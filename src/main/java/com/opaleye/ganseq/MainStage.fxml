@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Accordion?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToolBar?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+
+<AnchorPane prefHeight="847.0" prefWidth="1258.0" xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.opaleye.ganseq.RootController">
+   <children>
+      <ToolBar layoutX="14.0" layoutY="14.0" prefHeight="43.0" prefWidth="1226.0">
+         <items>
+            <HBox prefHeight="33.0" prefWidth="1200.0" spacing="10.0">
+               <children>
+                  <Button fx:id="openRefButton" mnemonicParsing="false" onAction="#handleOpenRef" prefHeight="23.0" prefWidth="170.0" text="Open Reference File">
+                     <HBox.margin>
+                        <Insets />
+                     </HBox.margin>
+                  </Button>
+                  <Button fx:id="OpenFwdTraceButton" mnemonicParsing="false" onAction="#handleOpenFwdTrace" prefHeight="23.0" prefWidth="187.0" text="Open Forward Trace File" />
+                  <Button fx:id="OpenRevTraceButton" mnemonicParsing="false" onAction="#handleOpenRevTrace" prefHeight="23.0" prefWidth="180.0" text="Open Reverse Trace File" />
+                  <HBox alignment="CENTER_RIGHT" prefHeight="23.0" prefWidth="720.0">
+                     <children>
+                        <CheckBox fx:id="cb_hetIndelMode" mnemonicParsing="false" text="Hetero indel optimization mode">
+                           <padding>
+                              <Insets right="20.0" />
+                           </padding>
+                        </CheckBox>
+                        <Button fx:id="btn_settings" mnemonicParsing="false" onAction="#handleSettings" text="Settings" />
+                        <Label prefHeight="15.0" prefWidth="14.0" />
+                        <Button fx:id="runButton" mnemonicParsing="false" onAction="#handleRun" prefHeight="23.0" prefWidth="84.0" text="Run" />
+                     </children>
+                  </HBox>
+               </children>
+               <padding>
+                  <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+               </padding>
+            </HBox>
+         </items>
+      </ToolBar>
+      <ScrollPane fx:id="fwdPane" layoutX="14.0" layoutY="224.0" prefHeight="170.0" prefWidth="1238.0" />
+      <ScrollPane fx:id="revPane" layoutX="14.0" layoutY="432.0" prefHeight="170.0" prefWidth="1238.0" />
+      <Label layoutX="14.0" layoutY="70.0" prefHeight="15.0" prefWidth="101.0" text="Reference File : " />
+      <Label fx:id="refFileLabel" layoutX="132.0" layoutY="70.0" prefHeight="6.0" prefWidth="788.0" />
+      <Label layoutX="14.0" layoutY="202.0" text="Forward Trace File : " />
+      <Label fx:id="fwdTraceFileLabel" layoutX="133.0" layoutY="202.0" prefHeight="15.0" prefWidth="1048.0" />
+      <Label layoutX="16.0" layoutY="405.0" text="Reverse Trace File : " />
+      <Label fx:id="revTraceFileLabel" layoutX="133.0" layoutY="405.0" prefHeight="15.0" prefWidth="1048.0" />
+      <ScrollPane fx:id="alignmentPane" layoutX="14.0" layoutY="94.0" prefHeight="105.0" prefWidth="1238.0" />
+      <Button fx:id="removeFwd" layoutX="1124.0" layoutY="198.0" mnemonicParsing="false" onAction="#handleRemoveFwd" prefHeight="23.0" prefWidth="126.0" text="Remove Fwd Trace" />
+      <Button fx:id="removeRev" layoutX="1124.0" layoutY="401.0" mnemonicParsing="false" onAction="#handleRemoveRev" prefHeight="23.0" prefWidth="126.0" text="Remove Rev Trace" />
+      <Button fx:id="fwdHeteroBtn" layoutX="1000.0" layoutY="198.0" mnemonicParsing="false" onAction="#handleFwdHetero" text="Hetero Indel View" />
+      <Button fx:id="revHeteroBtn" layoutX="1000.0" layoutY="401.0" mnemonicParsing="false" onAction="#handleRevHetero" text="Hetero Indel View" />
+      <Label layoutX="16.0" layoutY="611.0" prefHeight="15.0" prefWidth="1000.0" text="Variant List (Double click : text selection, Del : Remove)" />
+      <ScrollPane fx:id="variantListPane" layoutX="14.0" layoutY="631.0" prefHeight="195.0" prefWidth="1238.0">
+      <TableView fx:id="variantTable" prefHeight="190" prefWidth="1230">
+      <columns>
+      <TableColumn prefWidth="350" text="Variant" />
+      <TableColumn prefWidth="75" text="Zygosity" />
+      <TableColumn prefWidth="75" text="Frequency" />
+      <TableColumn prefWidth="75" text="From" />
+      <TableColumn prefWidth="655" text="Equivalent Expressions" />
+      </columns>
+      </TableView>
+      </ScrollPane>
+      <Button fx:id="removeVariant" layoutX="1124.0" layoutY="607.0" mnemonicParsing="false" onAction="#handleRemoveVariant" prefHeight="23.0" prefWidth="126.0" text="Remove Variant" />
+      <Accordion />
+      <Label layoutX="933.0" layoutY="70.0" prefHeight="15.0" prefWidth="282.0" text="First coding DNA number (default : 1)" />
+      <TextField fx:id="tf_firstNumber" layoutX="1156.0" layoutY="66.0" prefHeight="23.0" prefWidth="63.0" text="1" />
+   </children>
+</AnchorPane>

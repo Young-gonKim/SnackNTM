@@ -78,7 +78,7 @@ public class RootController implements Initializable {
 	public static final int defaultGOP = 30;
 	public static final String version = "1.0";
 	public static int firstNumber = 1; 
-	private static int fontSize = 0;
+	private static int fontSize = 13;
 
 	@FXML private ScrollPane  fwdPane, revPane, alignmentPane, newAlignmentPane;
 	@FXML private Label refFileLabel, fwdTraceFileLabel, revTraceFileLabel;
@@ -395,13 +395,12 @@ public class RootController implements Initializable {
 			lastVisitedDir=".";
 
 		Vector<String> refTypeList = new Vector();
-		refTypeList.add("*.gb*");
 		refTypeList.add("*.fasta");
 		refTypeList.add("*.txt");
 
 		FileChooser fileChooser = new FileChooser();
 		fileChooser.getExtensionFilters().addAll(
-				new ExtensionFilter("GenBank or FASTA or TXT", refTypeList),
+				new ExtensionFilter("FASTA or TXT", refTypeList),
 				new ExtensionFilter("All Files", "*.*"));
 		fileChooser.setInitialDirectory(new File(lastVisitedDir));
 		File tempFile = fileChooser.showOpenDialog(primaryStage);
@@ -416,35 +415,10 @@ public class RootController implements Initializable {
 			if(refFileName.substring(refFileName.length()-6, refFileName.length()).equals(".fasta") ||
 					refFileName.substring(refFileName.length()-4, refFileName.length()).equals(".txt"))
 				selectedExtension = "Fasta";
-			else if(refFileName.substring(refFileName.length()-3, refFileName.length()).equals(".gb"))
-				selectedExtension = "Genbank";
 
 			if(selectedExtension.equals("Fasta")) {
 				refFile = new ReferenceFile(tempFile, ReferenceFile.FASTA);
 				System.out.println(refFile.getRefString());
-			}
-			else if (selectedExtension.equals("Genbank")) {
-				refFile = new ReferenceFile(tempFile, ReferenceFile.GenBank);
-				if(refFile.getTvList().size() == 0) {
-					throw new Exception("No coding DNA information in Genbank file");
-				}
-				else if(refFile.getTvList().size()==1) {		//one transcript variant from Genbank file
-					setTranscriptVariant(0);
-				}
-				else {	//many transcript variant from Genbank file
-					FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("TranscriptVariant.fxml"));
-					Parent root1 = (Parent) fxmlLoader.load();
-					Stage stage = new Stage();
-					TVController controller = fxmlLoader.getController();
-					controller.setPrimaryStage(stage);
-					controller.setRootController(this);
-					controller.init(refFile.getTvList());
-					stage.setScene(new Scene(root1));
-					//stage.setAlwaysOnTop(true);
-					stage.initOwner(primaryStage);
-					stage.setTitle("Choose a Transcript Variant");
-					stage.show();
-				}
 			}
 
 
@@ -806,6 +780,7 @@ public class RootController implements Initializable {
 			try {
 				fwdAp = mma.localAlignment(refFile.getRefString(), trimmedFwdTrace.getSequence());
 				
+				/*
 				int alignmentScore1 = fwdAp.getAlignedString1().length()+fwdAp.getAlignedString2().length();
 				for(int i=0;i<fwdAp.getAlignedString1().length();i++) {
 					if(fwdAp.getAlignedString1().charAt(i)==Formatter.gapChar) alignmentScore1--;
@@ -829,6 +804,7 @@ public class RootController implements Initializable {
 				if(alignmentScore1 < alignmentScore2) {
 					popUp("Reversal of forward/reverse traces is suspected. Try reversing forward/reverse in case of unexpected results.");
 				}
+				*/
 				
 		}
 
@@ -843,6 +819,7 @@ public class RootController implements Initializable {
 			try {
 				revAp = mma.localAlignment(refFile.getRefString(), trimmedRevTrace.getSequence());
 				
+				/*
 				int alignmentScore1 = revAp.getAlignedString1().length()+revAp.getAlignedString2().length();
 				for(int i=0;i<revAp.getAlignedString1().length();i++) {
 					if(revAp.getAlignedString1().charAt(i)==Formatter.gapChar) alignmentScore1--;
@@ -866,6 +843,7 @@ public class RootController implements Initializable {
 				if(alignmentScore1 < alignmentScore2) {
 					popUp("Reversal of forward/reverse traces is suspected. Try reversing forward/reverse in case of unexpected results.");
 				}
+				*/
 				
 		}
 

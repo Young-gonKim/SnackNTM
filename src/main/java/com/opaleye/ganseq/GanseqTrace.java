@@ -714,6 +714,8 @@ public class GanseqTrace {
 	public void applyAmbiguousSymbol() {
 
 		originalSequence = sequence;
+		
+		/*
 		char firstChar = 'N', secondChar = 'N', ambiguousChar = 'N';
 		StringBuffer buffer = new StringBuffer();
 		for(int i=0;i<sequenceLength;i++) {
@@ -729,6 +731,7 @@ public class GanseqTrace {
 			}
 		}
 		sequence = buffer.toString();
+		*/
 	}
 
 	/**

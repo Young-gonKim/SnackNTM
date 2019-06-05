@@ -4,7 +4,7 @@ import java.io.File;
 
 import com.opaleye.ganseq.GanseqTrace;
 import com.opaleye.ganseq.RootController;
-import com.opaleye.ganseq.reference.ReferenceFile;
+import com.opaleye.ganseq.reference.ReferenceSeq;
 
 public class MMAlignment {
 
@@ -384,7 +384,7 @@ public class MMAlignment {
 		revS2 = revS2.substring(0,maxJ);
 		
 		
-		System.out.println("start1 : " + start1 + ", start2 : " + start2);
+	//	System.out.println("start1 : " + start1 + ", start2 : " + start2);
 
 		s1 = getReverse(revS1);
 		s2 = getReverse(revS2);
@@ -394,41 +394,6 @@ public class MMAlignment {
 		ret.setStart2(start2);
 		//System.out.println("time4 : " + (System.currentTimeMillis() - timeStamp));
 		return ret;
-	}
-
-	public static void main(String[] args) {
-		MMAlignment mma = new MMAlignment();
-		File tempFile = null;
-		File abiFile = null;
-
-		ReferenceFile refFile = null;
-		GanseqTrace tempTrace = null;
-		String s1 = null, s2 = null;;
-		try {
-			//tempFile = new File("F:\\GoogleDrive\\ganseq\\Release\\test data\\kit.gb");
-			//abiFile = new File("F:\\GoogleDrive\\ganseq\\Release\\test data\\C-KIT_17F.ab1");
-			//tempFile = new File("F:\\GoogleDrive\\ganseq\\Release\\test data\\npm1.gb");
-			//abiFile = new File("F:\\GoogleDrive\\ganseq\\Release\\test data\\NPM1_R_F04_16.ab1");
-
-			//tempFile = new File("F:\\GoogleDrive\\ganseq\\data\\2009 SMC Lecture\\PRKN(PARK2).gb");
-			//abiFile = new File("F:\\GoogleDrive\\ganseq\\data\\2009 SMC Lecture\\Case 13 PARK2\\PARK2_Sample_01F.ab1");
-
-			tempFile = new File("F:\\GoogleDrive\\ganseq\\data\\안암병원 NGS validation\\BRCA1.gb");
-			abiFile = new File("F:\\GoogleDrive\\ganseq\\data\\안암병원 NGS validation\\2018.11.22 0_FW_ Re_sanger confrim_181122\\NLA210676-BRCA1-E12F-F1_A12_01_FastSeq50_POP7_Z.ab1");
-
-			refFile = new ReferenceFile(tempFile, ReferenceFile.GenBank);
-			tempTrace = new GanseqTrace(abiFile);
-			s1 = refFile.getRefString();
-			s2 = tempTrace.getSequence();
-		}
-		catch(Exception e) {
-			e.printStackTrace();
-		}
-
-		AlignedPair ap = mma.localAlignment(s1, s2);
-		ap.printStrings();
-
-
 	}
 
 	

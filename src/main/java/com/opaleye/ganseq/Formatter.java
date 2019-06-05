@@ -4,7 +4,7 @@ import java.util.TreeMap;
 import java.util.Vector;
 
 import com.opaleye.ganseq.mmalignment.AlignedPair;
-import com.opaleye.ganseq.reference.ReferenceFile;
+import com.opaleye.ganseq.reference.ReferenceSeq;
 
 /**
  * Title : Formatter
@@ -66,7 +66,7 @@ public class Formatter {
 	 * 2018.5
 	 */
 
-	public static Vector<AlignedPoint> format2(AlignedPair ap, ReferenceFile refFile, GanseqTrace trace, int direction) throws ArrayIndexOutOfBoundsException {
+	public static Vector<AlignedPoint> format2(AlignedPair ap, ReferenceSeq refFile, GanseqTrace trace, int direction) throws ArrayIndexOutOfBoundsException {
 
 
 		//(1) Reference 상에서의 좌표. 1부터 시작. +1 해줌. genomic DNA의 의미. 실제 array access에 사용되지 않음. 
@@ -172,7 +172,7 @@ public class Formatter {
 	 * This functions is derived from jaligner.formats.Pair.format()
 	 * 2018.5
 	 */
-	public static Vector<AlignedPoint> format3(AlignedPair fwdAp, AlignedPair revAp, ReferenceFile refFile, GanseqTrace fwdTrace, GanseqTrace revTrace) throws ArrayIndexOutOfBoundsException, NoContigException {
+	public static Vector<AlignedPoint> format3(AlignedPair fwdAp, AlignedPair revAp, ReferenceSeq refFile, GanseqTrace fwdTrace, GanseqTrace revTrace) throws ArrayIndexOutOfBoundsException, NoContigException {
 
 		int fwdAlignmentLength = fwdAp.getAlignedString1().length();
 		int revAlignmentLength = revAp.getAlignedString1().length();
@@ -450,7 +450,7 @@ public class Formatter {
 	 * @param endGIndex : end position on genomic DNA
 	 * @param refFile : reference file
 	 */
-	private static Vector<AlignedPoint> addCDnaNumber (Vector<AlignedPoint> alignedPoints, int startGIndex, int endGIndex, ReferenceFile refFile) {
+	private static Vector<AlignedPoint> addCDnaNumber (Vector<AlignedPoint> alignedPoints, int startGIndex, int endGIndex, ReferenceSeq refFile) {
 		TreeMap<Integer, String> cdnaMap = new TreeMap<Integer, String>();
 
 		int intCDnaStart = 0, intCDnaEnd = 0;

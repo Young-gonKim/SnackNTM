@@ -1,0 +1,36 @@
+<일단할것>
+
+
+class NTMSpecies : accession, speciesName, ReferenceSeq,  score
+
+2. fwd, rev : 
+같이있으나 따로 있으나 alignment 만들어지는거 까지는 똑같음. 
+같이 있으면 quality 높은쪽 기준으로 점수 매기기. quality 같으면 일치하는거 기준으로. 
+
+
+1) handleRun() 
+2) makeSpeciesList (cb_targetRegion기준으로)
+
+3) species 별로 doAlignment(i) --> score 계산 
+ (doAlignment안에서  reference 변경 & resetParameters() 호출)
+
+
+4) tableView 채우기
+5) score 젤 높은거 기준으로 Alignment 시행 (score 젤 높은거 : selectedSpeciesIndex)
+6) 테이블에서 다른거 클릭하면 selectedSpeciesIndex 변경 -> reference 변경 -> resetParameters() 호출 -> 다시 alignment
+
+
+handle Run() : handleRun() + doAlignment (int selectedSpeciesIndex) 로 분리.
+
+
+
+<추가기능>
+
+excel또는 csv로 output 시키는 버튼 만들기
+
+3. base 수정? : 나중에. 
+맨첨에 trimming할때 해야할듯. 
+
+
+
+* 마지막에 불필요한 기능빼기

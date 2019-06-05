@@ -3,31 +3,24 @@ package com.opaleye.ganseq;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.net.URL;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Properties;
 import java.util.ResourceBundle;
-import java.util.TreeSet;
 import java.util.Vector;
 
 import com.opaleye.ganseq.mmalignment.AlignedPair;
 import com.opaleye.ganseq.mmalignment.MMAlignment;
-import com.opaleye.ganseq.reference.ReferenceFile;
-import com.opaleye.ganseq.reference.TVController;
-import com.opaleye.ganseq.reference.TranscriptVariant;
+import com.opaleye.ganseq.reference.ReferenceSeq;
 import com.opaleye.ganseq.settings.SettingsController;
 import com.opaleye.ganseq.tools.TooltipDelay;
 import com.opaleye.ganseq.variants.Indel;
 import com.opaleye.ganseq.variants.Variant;
-import com.opaleye.ganseq.variants.VariantCallerFilter;
 
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import javafx.collections.FXCollections;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -38,18 +31,15 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
-import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -80,12 +70,20 @@ public class RootController implements Initializable {
 	public static int firstNumber = 1; 
 	private static int fontSize = 13;
 
+	private static final String s16 = "16s rRNA";
+	private static final String rpo = "rpo";
+	private static final String tuf = "tuf";
+	public static String chimaeraSeq = "";
+
+	private Vector<NTMSpecies> speciesList = null;
+
 	@FXML private ScrollPane  fwdPane, revPane, alignmentPane, newAlignmentPane;
-	@FXML private Label refFileLabel, fwdTraceFileLabel, revTraceFileLabel;
+	@FXML private Label fwdTraceFileLabel, revTraceFileLabel;
 	@FXML private Button removeRef, removeFwd, removeRev, removeVariant;
 	@FXML private Button fwdHeteroBtn, revHeteroBtn;
 	@FXML private CheckBox cb_hetIndelMode;
 	@FXML private TextField tf_firstNumber;
+	@FXML private ComboBox cb_targetRegion;
 
 	@FXML private Button btn_settings;
 	//@FXML private ImageView fwdRuler, revRuler;
@@ -112,7 +110,7 @@ public class RootController implements Initializable {
 
 	private int startRange = 0, endRange = 0;		//range : fwd, rev 양쪽다 align 된 range
 	private File fwdTraceFile, revTraceFile;
-	private static ReferenceFile refFile;
+	private static ReferenceSeq refFile;
 
 	private GanseqTrace trimmedFwdTrace, trimmedRevTrace;
 	private HeteroTrace fwdHeteroTrace, revHeteroTrace;
@@ -128,167 +126,38 @@ public class RootController implements Initializable {
 
 
 	private void checkVersion() {
-		boolean firstRun = false;
-		boolean goodToGo = false;
-		int serial = 0;
-		String comment = "";
-		String JDBC_DRIVER = "org.postgresql.Driver";
-		String DB_URL = "jdbc:postgresql://ganseq.cc7zt9rksbu9.ap-northeast-2.rds.amazonaws.com:5432/ganseq";
-		String USERNAME = "opaleye83"; 
-		String PASSWORD = "!crushonu83"; 
-	
-		Connection conn = null;
-		PreparedStatement pstmt = null;
-		ResultSet rs = null; 
 		String homepage = "https://blog.naver.com/opaleye83", email = "opaleye83@naver.com", copyright = "Copyrightⓒ2019 by Young-gon Kim";
-		try { 
-			Class.forName(JDBC_DRIVER); 
-			conn = DriverManager.getConnection(DB_URL,USERNAME,PASSWORD);
-			pstmt = conn.prepareStatement("select address, email, copyright from homepage");
-			rs = pstmt.executeQuery();
-			if(rs.next()) {
-				homepage = rs.getString(1);
-				email = rs.getString(2);
-				copyright = rs.getString(3);
-			}
-			pstmt = conn.prepareStatement("select status, comment from versions where version = ?");
-			pstmt.setString(1,  version);
-			rs = pstmt.executeQuery();
-			if(rs.next()) {
-				int status = rs.getInt(1);
-				comment = rs.getString(2);
-				//System.out.println(String.format("status : %d, comment : %s",  rs.getInt(1), rs.getString(2)));
-				if(status == 1) 
-					goodToGo = true;
-			}
-			else {
-				comment = "Invalid version. Please visit ";
-			}
-		}
-
-		catch (Exception e) {
-			comment = "Cannot connect to Server! Check the network connection.\n";
-			e.printStackTrace(); 
-
-		}
-		finally {
-			try {
-				if(conn != null && !conn.isClosed()) conn.close();
-				if(pstmt != null && !pstmt.isClosed()) pstmt.close();
-				if(rs != null && !rs.isClosed()) rs.close();
-			}
-			catch(Exception e) {}
-		}
-
-		comment += "\n" + homepage;
+		String comment = "Ganseq NTM Ver " + version;
+		comment += "\n\n" + homepage;
 		comment += "\n" + email;
 		comment += "\n\n" + copyright;
 
 		textPopUp(comment);
 
-		if(!goodToGo) {
-			System.exit(0);
-		}
-
 
 		/* settings Property 읽기. 
 		 * 
 		 */
-		String s_firstRun = "";
 		Properties props = new Properties();
 		try {
-		    props.load(new FileInputStream(settingsFileName));
-		    s_firstRun = props.getProperty("firstrun");
-		    if(s_firstRun.equals("true")) {
-		    	firstRun = true; 
-		    	props.setProperty("firstrun",  "false");
-		    	props.store(new FileOutputStream(settingsFileName), null);
-		    }
-		    else {
-		    	serial = Integer.parseInt(props.getProperty("serial"));
-		    }
-		    fontSize = Integer.parseInt(props.getProperty("fontsize"));
+			props.load(new FileInputStream(settingsFileName));
+			fontSize = Integer.parseInt(props.getProperty("fontsize"));
+			chimaeraSeq = props.getProperty("chimaera");
 		}
 		catch(Exception e) {
-		    e.printStackTrace();
+			e.printStackTrace();
 			textPopUp("Cannot access to the configuration file. (settings/settings.properties) Please reinstall the program.");
 			System.exit(0);
 		}
-		
-		//System.out.println(String.format("firstrun : %b, serial : %d",  firstRun, serial));
-		
-		/* firstRun 일 경우 serial 할당. 이 버젼에서 몇번째 user인지 파악해서..
-		 * 할당 된 값 settings property에도 쓰기. 
-		 * */
-		try { 
-			Class.forName(JDBC_DRIVER); 
-			conn = DriverManager.getConnection(DB_URL,USERNAME,PASSWORD);
-			if(firstRun) {	//firstRun 일 경우 serial 할당. 이 버젼에서 몇번제 user인지. 
-				pstmt = conn.prepareStatement("select max(serial) from visitcount where version = ?");
-				pstmt.setString(1,  version);
-				rs = pstmt.executeQuery();
-				if(rs.next()) {
-					serial = rs.getInt(1) +1;
-				}
-				else {	// 이 버전에서 최초 user
-					serial = 1;
 
-					// 여기서 굳이 insert 안해줘도 아래에서 됨.
-					/*
-					pstmt = conn.prepareStatement("insert into visitcount (version, serial, cnt) values (?, 1, 0)");
-					pstmt.setString(1,  version);
-					pstmt.executeUpdate();
-					*/
-				}
-		    	props.setProperty("serial",  String.format("%d",  serial));
-		    	props.store(new FileOutputStream(settingsFileName), null);
-			}
-			
-			
-			//이제 serial 할당되었음.. version과 serial로 cnt 기록. 
-			
-			pstmt = conn.prepareStatement("select version, serial, cnt from visitcount where version = ? and serial = ?");
-			pstmt.setString(1,  version);
-			pstmt.setInt(2,  serial);
-			rs = pstmt.executeQuery();
-			if(rs.next()) {
-				int cnt = rs.getInt(3);
-				pstmt = conn.prepareStatement("update visitcount set cnt = ?, lastvisited = now() where version = ? and serial = ?");
-				pstmt.setInt(1,  cnt+1);
-				pstmt.setString(2,  version);
-				pstmt.setInt(3,  serial);
-				pstmt.executeUpdate();
-			}
-			else {
-				pstmt = conn.prepareStatement("insert into visitcount(version, serial, cnt, firstvisited, lastvisited) values(?, ?, 1, now(), now())");
-				pstmt.setString(1,  version);
-				pstmt.setInt(2,  serial);
-				pstmt.executeUpdate();
-			}
-
-			if(!conn.getAutoCommit())
-				conn.commit();
-		}
-		catch (Exception e) {
-			e.printStackTrace(); 
-		}
-		finally {
-			try {
-				if(conn != null && !conn.isClosed()) conn.close();
-				if(pstmt != null && !pstmt.isClosed()) pstmt.close();
-				if(rs != null && !rs.isClosed()) rs.close();
-			}
-			catch(Exception e) {}
-		}
 	}
-
 
 	/**
 	 * Initializes required settings
 	 */
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
-		//checkVersion();
+		checkVersion();
 		readDefaultProperties();
 		File tempFile = new File(lastVisitedDir);
 		if(!tempFile.exists())
@@ -308,31 +177,34 @@ public class RootController implements Initializable {
 
 
 	private void readDefaultProperties() {
+		cb_targetRegion.getItems().addAll(s16, rpo, tuf);
+		cb_targetRegion.setValue(s16);
+
 		secondPeakCutoff = 0.20;
 		gapOpenPenalty = defaultGOP;
 		filterQualityCutoff = 20;
 		filteringOption = SettingsController.ruleBasedFiltering;
-		
+
 		String tooltipText ="Try this option when unexpected homo indels are detected due to misleading alignment\n" 
 				+ "ex) homo indel + hetero indel is detected instead of one hetero indel";
-				
-				
+
+
 		Tooltip tooltip = new Tooltip(tooltipText);
 		tooltip.setAutoHide(false);
 		TooltipDelay.activateTooltipInstantly(tooltip);
 		TooltipDelay.holdTooltip(tooltip);
 		cb_hetIndelMode.setTooltip(tooltip);
-		
-        cb_hetIndelMode.selectedProperty().addListener(new ChangeListener<Boolean>() {
-            public void changed(ObservableValue<? extends Boolean> ov,
-              Boolean old_val, Boolean new_val) {
-              //System.out.println(cb_hetIndelMode.isSelected());
-            	if(cb_hetIndelMode.isSelected()) 
-            		gapOpenPenalty = 200;
-            	else
-            		gapOpenPenalty = defaultGOP;
-           }
-         });
+
+		cb_hetIndelMode.selectedProperty().addListener(new ChangeListener<Boolean>() {
+			public void changed(ObservableValue<? extends Boolean> ov,
+					Boolean old_val, Boolean new_val) {
+				//System.out.println(cb_hetIndelMode.isSelected());
+				if(cb_hetIndelMode.isSelected()) 
+					gapOpenPenalty = 200;
+				else
+					gapOpenPenalty = defaultGOP;
+			}
+		});
 	}
 
 	public void setProperties(double secondPeakCutoff, int gapOpenPenalty, int filterQualityCutoff, String filteringOption) {
@@ -383,77 +255,53 @@ public class RootController implements Initializable {
 	}
 
 
+	private void makeSpeciesList() throws Exception {
+		speciesList = new Vector<NTMSpecies>();
+		String targetRegion = (String)cb_targetRegion.getValue();
 
 
-	/**
-	 * Open and Read reference file
-	 */
-	public void handleOpenRef() {
-		if(trimmingOngoing) return;
-		File tempFile2 = new File(lastVisitedDir);
-		if(!tempFile2.exists())
-			lastVisitedDir=".";
+		File file = null;
+		if(targetRegion.equals(s16))
+			file = new File("reference/ref_16s.fasta");
+		else if(targetRegion.equals(rpo))
+			file = new File("reference/ref_rpob.fasta");
+		else if(targetRegion.equals(tuf))
+			file = new File("reference/ref_tuf.fasta");
 
-		Vector<String> refTypeList = new Vector();
-		refTypeList.add("*.fasta");
-		refTypeList.add("*.txt");
+		StringBuffer buffer = new StringBuffer();
+		String wholeString = "";
 
-		FileChooser fileChooser = new FileChooser();
-		fileChooser.getExtensionFilters().addAll(
-				new ExtensionFilter("FASTA or TXT", refTypeList),
-				new ExtensionFilter("All Files", "*.*"));
-		fileChooser.setInitialDirectory(new File(lastVisitedDir));
-		File tempFile = fileChooser.showOpenDialog(primaryStage);
-		if(tempFile == null) return;
-		lastVisitedDir=tempFile.getParent();
+		try (FileReader fileReader = new FileReader(file)){
+			int ch;
+			while ((ch = fileReader.read()) != -1) {
+				char readChar = (char) ch;
+				buffer.append(readChar);
+			}
+			wholeString = buffer.toString();
 
-		try {
+			String[] tokens = wholeString.split(">");
 
-			//String selectedExtension = fileChooser.getSelectedExtensionFilter().getDescription();
-			String selectedExtension = "";
-			String refFileName = tempFile.getAbsolutePath();
-			if(refFileName.substring(refFileName.length()-6, refFileName.length()).equals(".fasta") ||
-					refFileName.substring(refFileName.length()-4, refFileName.length()).equals(".txt"))
-				selectedExtension = "Fasta";
+			/*
+			for(String token:tokens) {
+				System.out.println(token + "\n\n\n");
+			}
+			 */
 
-			if(selectedExtension.equals("Fasta")) {
-				refFile = new ReferenceFile(tempFile, ReferenceFile.FASTA);
-				System.out.println(refFile.getRefString());
+			//  맨앞에 공백 한칸 들어감 --> 1부터 시작 
+			for(int i=1;i<tokens.length;i++) {
+				NTMSpecies tempSpecies = new NTMSpecies(tokens[i]);
+				speciesList.add(tempSpecies);
 			}
 
-
-		}
-		catch (Exception ex) {
+		}catch (Exception ex) {
 			ex.printStackTrace();
-			popUp(ex.getMessage());
-			return;
-		}
-		resetParameters();
-		refLoaded = true;
-		String fileName = tempFile.getAbsolutePath();
-		refFileLabel.setText(fileName);
-	}
-
-	public void setTranscriptVariant (int selectedId) {
-		TranscriptVariant tv = refFile.getTvList().get(selectedId);
-		refFile.setcDnaStart(tv.getcDnaStart());
-		refFile.setcDnaEnd(tv.getcDnaEnd());
-		for(int i=0;i<tv.getcDnaStart().size();i++) {
-			int start = tv.getcDnaStart().get(i).intValue();
-			int end = tv.getcDnaEnd().get(i).intValue();
-			System.out.println("(" + start + ", " + end + ")");
+			throw new Exception("Error in reading reference file");
 		}
 	}
 
-	/** 
-	 * Removes reference file
-	 */
-	public void handleRemoveRef() {
-		resetParameters();
-		refFileLabel.setText("");
-		refFile = null;
-		refLoaded = false;
-	}
+
+
+
 
 	/** 
 	 * Open forward trace file and opens trim.fxml with that file
@@ -770,43 +618,20 @@ public class RootController implements Initializable {
 
 	}
 
-	private void doAlignment() {
+	private void doAlignment(int selectedSpecies) {
+		resetParameters();
+		Formatter.init();
+		refFile = speciesList.get(selectedSpecies).getRefSeq();
 		//When only fwd trace is given as input
+
 		MMAlignment mma = new MMAlignment();
-		AlignedPair fwdAp = null, complementedFwdAp = null;
-		AlignedPair revAp = null, complementedRevAp = null;
-		
+		AlignedPair fwdAp = null;
+		AlignedPair revAp = null;
+
 		if(fwdLoaded == true) {
 			try {
 				fwdAp = mma.localAlignment(refFile.getRefString(), trimmedFwdTrace.getSequence());
-				
-				/*
-				int alignmentScore1 = fwdAp.getAlignedString1().length()+fwdAp.getAlignedString2().length();
-				for(int i=0;i<fwdAp.getAlignedString1().length();i++) {
-					if(fwdAp.getAlignedString1().charAt(i)==Formatter.gapChar) alignmentScore1--;
-				}
-				for(int i=0;i<fwdAp.getAlignedString2().length();i++) {
-					if(fwdAp.getAlignedString2().charAt(i)==Formatter.gapChar) alignmentScore1--;
-				}
-				// complement 만들어보기. && score 계산
-				complementedFwdAp = mma.localAlignment(refFile.getRefString(), trimmedFwdTrace.getComplementString());
-				int alignmentScore2 = complementedFwdAp.getAlignedString1().length()+complementedFwdAp.getAlignedString2().length();
-				for(int i=0;i<complementedFwdAp.getAlignedString1().length();i++) {
-					if(complementedFwdAp.getAlignedString1().charAt(i)==Formatter.gapChar) alignmentScore2--;
-				}
-				for(int i=0;i<complementedFwdAp.getAlignedString2().length();i++) {
-					if(complementedFwdAp.getAlignedString2().charAt(i)==Formatter.gapChar) alignmentScore2--;
-				}
-				
-				System.out.println(String.format("score1, score2 : %d, %d",  alignmentScore1, alignmentScore2));
-				
-				//score1이 더 높으면 원상복귀.
-				if(alignmentScore1 < alignmentScore2) {
-					popUp("Reversal of forward/reverse traces is suspected. Try reversing forward/reverse in case of unexpected results.");
-				}
-				*/
-				
-		}
+			}
 
 			catch (Exception ex) {
 				popUp(ex.getMessage());
@@ -814,38 +639,11 @@ public class RootController implements Initializable {
 				return;
 			}
 		}
-		
+
 		if(revLoaded == true) {
 			try {
 				revAp = mma.localAlignment(refFile.getRefString(), trimmedRevTrace.getSequence());
-				
-				/*
-				int alignmentScore1 = revAp.getAlignedString1().length()+revAp.getAlignedString2().length();
-				for(int i=0;i<revAp.getAlignedString1().length();i++) {
-					if(revAp.getAlignedString1().charAt(i)==Formatter.gapChar) alignmentScore1--;
-				}
-				for(int i=0;i<revAp.getAlignedString2().length();i++) {
-					if(revAp.getAlignedString2().charAt(i)==Formatter.gapChar) alignmentScore1--;
-				}
-				// complement 만들어보기. && score 계산
-				complementedRevAp = mma.localAlignment(refFile.getRefString(), trimmedRevTrace.getComplementString());
-				int alignmentScore2 = complementedRevAp.getAlignedString1().length()+complementedRevAp.getAlignedString2().length();
-				for(int i=0;i<complementedRevAp.getAlignedString1().length();i++) {
-					if(complementedRevAp.getAlignedString1().charAt(i)==Formatter.gapChar) alignmentScore2--;
-				}
-				for(int i=0;i<complementedRevAp.getAlignedString2().length();i++) {
-					if(complementedRevAp.getAlignedString2().charAt(i)==Formatter.gapChar) alignmentScore2--;
-				}
-				
-				System.out.println(String.format("score1, score2 : %d, %d",  alignmentScore1, alignmentScore2));
-				
-				//score1이 더 높으면 원상복귀.
-				if(alignmentScore1 < alignmentScore2) {
-					popUp("Reversal of forward/reverse traces is suspected. Try reversing forward/reverse in case of unexpected results.");
-				}
-				*/
-				
-		}
+			}
 
 			catch (Exception ex) {
 				popUp(ex.getMessage());
@@ -853,14 +651,12 @@ public class RootController implements Initializable {
 				return;
 			}
 		}
-		
-		
-		
-		
+
+
+
+
 		if(fwdLoaded == true && revLoaded == false) {
-			
 			try {
-				
 				alignedPoints = Formatter.format2(fwdAp, refFile, trimmedFwdTrace, 1);
 			}
 
@@ -885,7 +681,7 @@ public class RootController implements Initializable {
 
 		//When both of fwd trace and rev trace are given
 		else  if(fwdLoaded == true && revLoaded == true) {
-			
+
 			try {
 				alignedPoints = Formatter.format3(fwdAp, revAp, refFile, trimmedFwdTrace, trimmedRevTrace);
 			}
@@ -900,36 +696,67 @@ public class RootController implements Initializable {
 				return;
 			}
 		}
+		setRange();
 	}
-
-
 
 	/**
 	 * Performs alignment, Detects variants, Shows results
 	 */
 	public void handleRun() {
-		Formatter.init();
-
-		if(refLoaded == false) {
-			popUp("Reference File should be loaded before running.");
-			return;
-		}
-		else if(fwdLoaded == false && revLoaded == false) {  
+		if(fwdLoaded == false && revLoaded == false) {  
 			popUp("At least one of forward trace file and reverse trace file \n should be loaded before running.");
 			return;
 		}
 
-        try {
-        	firstNumber = Integer.parseInt(tf_firstNumber.getText());
-        	if(firstNumber<1) throw new Exception();
-        }
-        catch(Exception ex) {
-        	popUp("first coding DNA nubmer should be a positive integer.");
-			return;
-        }
+		try {
+			makeSpeciesList();
+		}
+		catch (Exception ex) {
+			ex.printStackTrace();
+			popUp(ex.getMessage());
+		}
+
+		for(int i=0;i<speciesList.size();i++) {
+			NTMSpecies thisSpecies = speciesList.get(i);
+			doAlignment(i);
+
+			int i_score = 0;
+			double d_score = 0;
+			for(int j=0;j<alignedPoints.size();j++) {
+				AlignedPoint ap = alignedPoints.get(j);
+				if(ap.getDiscrepency()!='*') i_score++;
+			}
+			if(alignedPoints.size() != 0)
+				d_score = (double)i_score / alignedPoints.size();
+			d_score*=100;
+			//System.out.println("score : " + d_score);
+			thisSpecies.setScore(d_score);
+		}
+
+		Collections.sort(speciesList);
+
+
+		for(int i=0;i<Integer.min(5, speciesList.size());i++) {
+			NTMSpecies thisSpecies = speciesList.get(i);
+			System.out.println(thisSpecies.getAccession() + ", " + thisSpecies.getSpeciesName());
+			System.out.println("score : " + thisSpecies.getScore());
+		}
+
+
+
+		/*
+
+
+
+
+
+
+
 
 		doAlignment();
-		setRange();
+
+
+
 		printAlignedResult();
 		alignmentPerformed = true;
 
@@ -997,6 +824,8 @@ public class RootController implements Initializable {
 			});
 
 		}
+
+		 */
 	}
 
 	/**
@@ -1131,7 +960,7 @@ public class RootController implements Initializable {
 			Label revLabel = new Label();
 			Label discrepencyLabel = new Label();
 			Label indexLabel = new Label();
-			
+
 			refLabel.setFont(new Font("Consolas", fontSize));
 			fwdLabel.setFont(new Font("Consolas", fontSize));
 			revLabel.setFont(new Font("Consolas", fontSize));
@@ -1505,7 +1334,7 @@ public class RootController implements Initializable {
 		variantTable.getItems().remove(index);
 
 		variantTable.getSelectionModel().select(newSelectedIdx); // 지워지면 그 위에꺼 자동으로 가리키니까 그냥 그 자리에 있도록
-		
+
 		if(index == 0 && variantTable.getItems().size()>0) {	//맨위에꺼 지우면 그위에꺼 자동으로 못 가리킴. changeListener 호출 안함 --> 강제로  focus
 			Variant variant = variantTable.getItems().get(0);
 			if(variant instanceof Indel && ((Indel) variant).getZygosity().equals("homo"))
@@ -1519,7 +1348,7 @@ public class RootController implements Initializable {
 	/**
 	 * Getters for member variables
 	 */
-	public static ReferenceFile getRefFile() {
+	public static ReferenceSeq getRefFile() {
 		return refFile;
 	}
 
@@ -1541,5 +1370,7 @@ public class RootController implements Initializable {
 	}
 
 
-
 }
+
+
+

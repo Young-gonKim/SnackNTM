@@ -57,17 +57,16 @@
       <Button fx:id="revHeteroBtn" layoutX="1000.0" layoutY="401.0" mnemonicParsing="false" onAction="#handleRevHetero" text="Hetero Indel View" />
       <Label layoutX="16.0" layoutY="611.0" prefHeight="15.0" prefWidth="1000.0" text="Variant List (Double click : text selection, Del : Remove)" />
       <ScrollPane fx:id="variantListPane" layoutX="14.0" layoutY="631.0" prefHeight="195.0" prefWidth="1238.0">
-      <TableView fx:id="variantTable" prefHeight="190" prefWidth="1230">
+      <TableView fx:id="speciesTable" prefHeight="190" prefWidth="1230">
       <columns>
-      <TableColumn prefWidth="350" text="Variant" />
-      <TableColumn prefWidth="75" text="Zygosity" />
-      <TableColumn prefWidth="75" text="Frequency" />
-      <TableColumn prefWidth="75" text="From" />
-      <TableColumn prefWidth="655" text="Equivalent Expressions" />
+      <TableColumn prefWidth="500" text="Species" />
+      <TableColumn prefWidth="180" text="Accession" />
+      <TableColumn prefWidth="50" text ="qLen" />
+      <TableColumn prefWidth="50" text="Score" />
       </columns>
       </TableView>
       </ScrollPane>
-      <Button fx:id="removeVariant" layoutX="1124.0" layoutY="607.0" mnemonicParsing="false" onAction="#handleRemoveVariant" prefHeight="23.0" prefWidth="126.0" text="Remove Variant" />
+<!--      <Button fx:id="removeVariant" layoutX="1124.0" layoutY="607.0" mnemonicParsing="false" onAction="#handleRemoveVariant" prefHeight="23.0" prefWidth="126.0" text="Remove Variant" />-->
       <Accordion />
       <Label layoutX="933.0" layoutY="70.0" prefHeight="15.0" prefWidth="282.0" text="First coding DNA number (default : 1)" />
       <TextField fx:id="tf_firstNumber" layoutX="1156.0" layoutY="66.0" prefHeight="23.0" prefWidth="63.0" text="1" />

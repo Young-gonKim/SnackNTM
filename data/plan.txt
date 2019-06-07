@@ -17,10 +17,13 @@ class NTMSpecies : accession, speciesName, ReferenceSeq,  score
 
 4) tableView 채우기
 5) score 젤 높은거 기준으로 Alignment 시행 (score 젤 높은거 : selectedSpeciesIndex)
-6) 테이블에서 다른거 클릭하면 selectedSpeciesIndex 변경 -> reference 변경 -> resetParameters() 호출 -> 다시 alignment
+
+table click 하면 do alignment (i)	
+doAlignment
 
 
-handle Run() : handleRun() + doAlignment (int selectedSpeciesIndex) 로 분리.
+ambiguous peak 나올 수 없음 (사람처럼 DNA 한쌍 아니니까) --> ambiguous 이으면 젤 큰걸로 replace?
+
 
 
 

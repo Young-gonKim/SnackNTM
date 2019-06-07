@@ -2,25 +2,29 @@ package com.opaleye.ganseq;
 
 import com.opaleye.ganseq.reference.ReferenceSeq;
 
+import javafx.beans.property.SimpleStringProperty;
+
 public class NTMSpecies implements Comparable<NTMSpecies> {
 	private String accession = "";
 	private String speciesName = "";
 	private ReferenceSeq refSeq = null;
 	private double score = 0;
+	private int qlen = 0;
 
-	   @Override
-	    public int compareTo(NTMSpecies s) {
-	        if (this.score < s.getScore()) {
-	            return 1;
-	        } else if (this.score > s.getScore()) {
-	            return -1;
-	        }
-	        return 0;
-	    }
+	protected SimpleStringProperty accessionProperty;
+	protected SimpleStringProperty speciesNameProperty;
+	protected SimpleStringProperty scoreProperty;
+	protected SimpleStringProperty qlenProperty;
 
+	@Override
+	public int compareTo(NTMSpecies s) {
+		if (this.score < s.getScore()) 
+			return 1;
+		else if (this.score > s.getScore()) 
+			return -1;
+		else return s.getQlen()-this.getQlen();		
+	}
 
-	
-	
 	public NTMSpecies(String inputString) {
 		boolean firstLine = true;
 		String s_firstLine = "";
@@ -29,7 +33,7 @@ public class NTMSpecies implements Comparable<NTMSpecies> {
 		String refSeqString = null;
 		for(int i=0;i<inputString.length();i++) {
 			char thisChar = inputString.charAt(i);
-			
+
 			if(firstLine) {
 				if(thisChar == '\n') {
 					firstLine = false;
@@ -40,7 +44,7 @@ public class NTMSpecies implements Comparable<NTMSpecies> {
 				else {
 					s_firstLine += thisChar;
 				}
-				
+
 			}
 			else {
 				String s_thisChar = String.format("%c",  thisChar);
@@ -53,10 +57,12 @@ public class NTMSpecies implements Comparable<NTMSpecies> {
 		refSeq = new ReferenceSeq(refSeqString);
 
 		//System.out.println(String.format("%s, %s\n%s\n\n\n\n", accession, speciesName, refSeq.getRefString()));
-		
+		accessionProperty= new SimpleStringProperty(accession);
+		speciesNameProperty= new SimpleStringProperty(speciesName);
+
 	}
-	
-	
+
+
 	public ReferenceSeq getRefSeq() {
 		return refSeq;
 	}
@@ -81,15 +87,40 @@ public class NTMSpecies implements Comparable<NTMSpecies> {
 		this.speciesName = speciesName;
 	}
 
-	
+
 
 	public double getScore() {
 		return score;
 	}
 
-	public void setScore(double score) {
-		this.score = score;
+	public int getQlen() {
+		return qlen;
 	}
 
+	public void setQlen(int qlen) {
+		this.qlen = qlen;
+		qlenProperty =  new SimpleStringProperty(String.format("%d",  qlen));
+	}
+
+	public void setScore(double score) {
+		this.score = score;
+		scoreProperty = new SimpleStringProperty(String.format("%.2f",  score));
+	}
+
+	public String getSpeciesNameProperty() {
+		return speciesNameProperty.get();
+	}
+
+	public String getAccessionProperty() {
+		return accessionProperty.get();
+	}
+
+	public String getScoreProperty() {
+		return scoreProperty.get();
+	}
+
+	public String getQlenProperty() {
+		return qlenProperty.get();
+	}
 
 }

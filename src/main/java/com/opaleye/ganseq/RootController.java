@@ -6,7 +6,6 @@ import java.io.FileInputStream;
 import java.io.FileReader;
 import java.net.URL;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.Vector;
@@ -21,6 +20,7 @@ import com.opaleye.ganseq.variants.Variant;
 
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -34,12 +34,16 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -87,7 +91,7 @@ public class RootController implements Initializable {
 
 	@FXML private Button btn_settings;
 	//@FXML private ImageView fwdRuler, revRuler;
-	@FXML private TableView<Variant> variantTable;
+	@FXML private TableView<NTMSpecies> speciesTable;
 	private String lastVisitedDir="C:\\Users\\user\\Desktop\\ygkim\\1906 NTM";
 	private Stage primaryStage;
 	public void setPrimaryStage(Stage primaryStage) {
@@ -251,7 +255,7 @@ public class RootController implements Initializable {
 		revHeteroTrace = null;
 		fwdHeteroBtn.setVisible(false);
 		revHeteroBtn.setVisible(false);
-		variantTable.getItems().clear();
+		//speciesTable.getItems().clear();
 	}
 
 
@@ -653,8 +657,6 @@ public class RootController implements Initializable {
 		}
 
 
-
-
 		if(fwdLoaded == true && revLoaded == false) {
 			try {
 				alignedPoints = Formatter.format2(fwdAp, refFile, trimmedFwdTrace, 1);
@@ -731,6 +733,7 @@ public class RootController implements Initializable {
 			d_score*=100;
 			//System.out.println("score : " + d_score);
 			thisSpecies.setScore(d_score);
+			thisSpecies.setQlen(alignedPoints.size());
 		}
 
 		Collections.sort(speciesList);
@@ -742,90 +745,49 @@ public class RootController implements Initializable {
 			System.out.println("score : " + thisSpecies.getScore());
 		}
 
-
-
-		/*
-
-
-
-
-
-
-
-
-		doAlignment();
-
-
-
+		// 점수 제일 높은걸로 align
+		doAlignment(0);
 		printAlignedResult();
-		alignmentPerformed = true;
+		
 
-		if(fwdLoaded) {
-			// 새로운 좌표로 update (fwdPane, revPane)
-			java.awt.image.BufferedImage awtImage = trimmedFwdTrace.getShadedImage(0,0,0);
-			javafx.scene.image.Image fxImage = SwingFXUtils.toFXImage(awtImage, null);
-			ImageView imageView = new ImageView(fxImage);
-			fwdPane.setContent(imageView);
-			// 시작점에 화면 align
-			adjustFwdPane(Formatter.fwdTraceAlignStartPoint);
-		}
-		if(revLoaded) {
-			java.awt.image.BufferedImage awtImage2 = trimmedRevTrace.getShadedImage(0,0,0);
-			javafx.scene.image.Image fxImage2 = SwingFXUtils.toFXImage(awtImage2, null);
-			ImageView imageView2 = new ImageView(fxImage2);
-			revPane.setContent(imageView2);
-			adjustRevPane(Formatter.revTraceAlignStartPoint);
-		}
-
-		Vector<Variant> heteroIndelList = detectHeteroIndel();
-		VariantCallerFilter vcf = new VariantCallerFilter(fwdLoaded, revLoaded, startRange, endRange, heteroIndelList, trimmedFwdTrace, trimmedRevTrace );
-		TreeSet<Variant> variantList = vcf.getVariantList();
+//		Vector<Variant> heteroIndelList = detectHeteroIndel();
+//		VariantCallerFilter vcf = new VariantCallerFilter(fwdLoaded, revLoaded, startRange, endRange, heteroIndelList, trimmedFwdTrace, trimmedRevTrace );
+//		TreeSet<Variant> variantList = vcf.getVariantList();
 
 
-		if(variantList.size()==0) popUp("No variant detected!");
+		if(speciesList.size()==0) popUp("No matching species!");
 		else {
-			variantTable.setEditable(true);
-			TableColumn tcVariant = variantTable.getColumns().get(0);
-			TableColumn tcZygosity = variantTable.getColumns().get(1);
-			TableColumn tcFrequency = variantTable.getColumns().get(2);
-			TableColumn tcFrom = variantTable.getColumns().get(3);
-			TableColumn tcEquivalentExpressions = variantTable.getColumns().get(4);
+			speciesTable.setEditable(true);
+			TableColumn tcSpecies = speciesTable.getColumns().get(0);
+			TableColumn tcAccession = speciesTable.getColumns().get(1);
+			TableColumn tcQlen = speciesTable.getColumns().get(2);
+			TableColumn tcScore = speciesTable.getColumns().get(3);
 
-			tcVariant.setCellValueFactory(new PropertyValueFactory("variantProperty"));
-			tcZygosity.setCellValueFactory(new PropertyValueFactory("zygosityProperty"));
-			tcFrequency.setCellValueFactory(new PropertyValueFactory("frequencyProperty"));
-			tcFrom.setCellValueFactory(new PropertyValueFactory("fromProperty"));
-			tcEquivalentExpressions.setCellValueFactory(new PropertyValueFactory("equivalentExpressionsProperty"));
+			tcSpecies.setCellValueFactory(new PropertyValueFactory("speciesNameProperty"));
+			tcAccession.setCellValueFactory(new PropertyValueFactory("accessionProperty"));
+			tcQlen.setCellValueFactory(new PropertyValueFactory("qlenProperty"));
+			tcScore.setCellValueFactory(new PropertyValueFactory("scoreProperty"));
 
-			tcVariant.setCellFactory(TextFieldTableCell.<Variant>forTableColumn());
+			tcSpecies.setCellFactory(TextFieldTableCell.<NTMSpecies>forTableColumn());
+			speciesTable.setItems(FXCollections.observableArrayList(speciesList));
 
-			variantTable.setItems(FXCollections.observableArrayList(variantList));
-
-
-
-			variantTable.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
+			
+			speciesTable.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
 				@Override
 				public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-					if(newValue.intValue()<0) return; 
+					if(newValue.intValue()<0 || newValue.intValue()>= speciesList.size()) return; 
 
-					Variant variant = variantTable.getItems().get(newValue.intValue());
-
-					if(variant instanceof Indel && ((Indel) variant).getZygosity().equals("homo"))
-						focus2((Indel)variant);
-					else 
-						focus(variant.getAlignmentIndex()-1, variant.getFwdTraceIndex(), variant.getRevTraceIndex(), variant.getFwdTraceChar(), variant.getRevTraceChar());
-
+					//Sysem.out.println("selected Index : " + newValue.intValue());
+					doAlignment(newValue.intValue());
+					printAlignedResult();
+					
 				}
 			});
-
-			Scene scene = primaryStage.getScene();
-			scene.setOnKeyPressed(event-> {
-				if(event.getCode()==KeyCode.DELETE) handleRemoveVariant();
-			});
+			
 
 		}
 
-		 */
+		
 	}
 
 	/**
@@ -1047,6 +1009,24 @@ public class RootController implements Initializable {
 		}
 
 		alignmentPane.setContent(gridPane);
+		alignmentPerformed = true;
+
+		if(fwdLoaded) {
+			// 새로운 좌표로 update (fwdPane, revPane)
+			java.awt.image.BufferedImage awtImage = trimmedFwdTrace.getShadedImage(0,0,0);
+			javafx.scene.image.Image fxImage = SwingFXUtils.toFXImage(awtImage, null);
+			ImageView imageView = new ImageView(fxImage);
+			fwdPane.setContent(imageView);
+			// 시작점에 화면 align
+			adjustFwdPane(Formatter.fwdTraceAlignStartPoint);
+		}
+		if(revLoaded) {
+			java.awt.image.BufferedImage awtImage2 = trimmedRevTrace.getShadedImage(0,0,0);
+			javafx.scene.image.Image fxImage2 = SwingFXUtils.toFXImage(awtImage2, null);
+			ImageView imageView2 = new ImageView(fxImage2);
+			revPane.setContent(imageView2);
+			adjustRevPane(Formatter.revTraceAlignStartPoint);
+		}
 	}
 
 	/**
@@ -1317,10 +1297,9 @@ public class RootController implements Initializable {
 			focus(selectedAlignmentPos, selectedFwdPos, selectedRevPos, fwdChar, revChar);
 		}
 	}
+	
+	/*
 
-	/**
-	 * Handler for remove button
-	 */
 	public void handleRemoveVariant() {
 		//if(!variantListViewFocused) return;
 		int index = variantTable.getSelectionModel().getSelectedIndex();
@@ -1343,7 +1322,7 @@ public class RootController implements Initializable {
 				focus(variant.getAlignmentIndex()-1, variant.getFwdTraceIndex(), variant.getRevTraceIndex(), variant.getFwdTraceChar(), variant.getRevTraceChar());
 		}
 	}
-
+*/
 
 	/**
 	 * Getters for member variables

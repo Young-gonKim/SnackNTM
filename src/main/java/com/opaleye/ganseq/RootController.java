@@ -706,7 +706,7 @@ public class RootController implements Initializable {
 				doAlignment(i);
 			}
 			catch(Exception ex) {
-				System.out.println("alignment failure : " + thisSpecies.getSpeciesName());
+				//sSystem.out.println("alignment failure : " + thisSpecies.getSpeciesName());
 				removeList.add(thisSpecies);
 				continue;
 			}
@@ -724,9 +724,9 @@ public class RootController implements Initializable {
 			thisSpecies.setScore(d_score);
 			thisSpecies.setQlen(alignedPoints.size());
 		}
-		System.out.println("size before removal : " + speciesList.size());
+		//System.out.println("size before removal : " + speciesList.size());
 		speciesList.removeAll(removeList);
-		System.out.println("size after removal : " + speciesList.size());
+		//System.out.println("size after removal : " + speciesList.size());
 		if(speciesList.size()>0) 
 			Collections.sort(speciesList);
 

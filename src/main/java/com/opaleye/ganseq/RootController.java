@@ -68,11 +68,11 @@ import javafx.stage.StageStyle;
  *2018.5
  */
 public class RootController implements Initializable {
-	
+
 	//edit base 용
 	private int selectedAlignmentPos = 0;
-	
-	
+
+
 	private static String settingsFileName = "settings/settings.properties";
 	public static final int defaultGOP = 30;
 	public static final String version = "1.0";
@@ -161,10 +161,10 @@ public class RootController implements Initializable {
 		}
 
 	}
-	
-	
-	
-	
+
+
+
+
 	/**
 	 * Initializes required settings
 	 */
@@ -198,7 +198,7 @@ public class RootController implements Initializable {
 		filterQualityCutoff = 20;
 		filteringOption = SettingsController.ruleBasedFiltering;
 
-		
+
 	}
 
 	public void setProperties(double secondPeakCutoff, int gapOpenPenalty, int filterQualityCutoff, String filteringOption) {
@@ -209,11 +209,11 @@ public class RootController implements Initializable {
 
 	}
 
-	
+
 	public void handleEditBase() {
 		if(!alignmentPerformed) return;
 		AlignedPoint ap = alignedPoints.get(selectedAlignmentPos);
-		
+
 		try {
 			FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("editbase.fxml"));
 			Parent root1 = (Parent) fxmlLoader.load();
@@ -233,12 +233,12 @@ public class RootController implements Initializable {
 			return;
 		}
 
-		
-		
-		
+
+
+
 	}
-	
-	
+
+
 	public void handleSettings() {
 		try {
 			FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("settings.fxml"));
@@ -642,7 +642,7 @@ public class RootController implements Initializable {
 
 	}
 
-	private void doAlignment(int selectedSpecies) {
+	private void doAlignment(int selectedSpecies) throws Exception{
 		resetParameters();
 		Formatter.init();
 		refFile = speciesList.get(selectedSpecies).getRefSeq();
@@ -653,70 +653,27 @@ public class RootController implements Initializable {
 		AlignedPair revAp = null;
 
 		if(fwdLoaded == true) {
-			try {
-				fwdAp = mma.localAlignment(refFile.getRefString(), trimmedFwdTrace.getSequence());
-			}
-
-			catch (Exception ex) {
-				popUp(ex.getMessage());
-				ex.printStackTrace();
-				return;
-			}
+			fwdAp = mma.localAlignment(refFile.getRefString(), trimmedFwdTrace.getSequence());
 		}
 
 		if(revLoaded == true) {
-			try {
-				revAp = mma.localAlignment(refFile.getRefString(), trimmedRevTrace.getSequence());
-			}
-
-			catch (Exception ex) {
-				popUp(ex.getMessage());
-				ex.printStackTrace();
-				return;
-			}
+			revAp = mma.localAlignment(refFile.getRefString(), trimmedRevTrace.getSequence());
 		}
 
 
 		if(fwdLoaded == true && revLoaded == false) {
-			try {
-				alignedPoints = Formatter.format2(fwdAp, refFile, trimmedFwdTrace, 1);
-			}
-
-			catch (Exception ex) {
-				popUp(ex.getMessage());
-				ex.printStackTrace();
-				return;
-			}
+			alignedPoints = Formatter.format2(fwdAp, refFile, trimmedFwdTrace, 1);
 		}
 
 		//When only rev trace is given as input
 		else if(fwdLoaded == false && revLoaded == true) {
-			try {
-				alignedPoints = Formatter.format2(revAp, refFile, trimmedRevTrace, -1);
-			}
-			catch (Exception ex) {
-				popUp(ex.getMessage());
-				ex.printStackTrace();
-				return;
-			}
+			alignedPoints = Formatter.format2(revAp, refFile, trimmedRevTrace, -1);
 		}
 
 		//When both of fwd trace and rev trace are given
 		else  if(fwdLoaded == true && revLoaded == true) {
 
-			try {
-				alignedPoints = Formatter.format3(fwdAp, revAp, refFile, trimmedFwdTrace, trimmedRevTrace);
-			}
-			catch (NoContigException ex) {
-				popUp(ex.getMessage());
-				ex.printStackTrace();
-				return;
-			}
-			catch (Exception ex) {
-				popUp(ex.getMessage());
-				ex.printStackTrace();
-				return;
-			}
+			alignedPoints = Formatter.format3(fwdAp, revAp, refFile, trimmedFwdTrace, trimmedRevTrace);
 		}
 		setRange();
 	}
@@ -738,9 +695,21 @@ public class RootController implements Initializable {
 			popUp(ex.getMessage());
 		}
 
+		Vector<NTMSpecies> removeList = new Vector<NTMSpecies>();
 		for(int i=0;i<speciesList.size();i++) {
+
 			NTMSpecies thisSpecies = speciesList.get(i);
-			doAlignment(i);
+
+			//System.out.println(String.format("i : %d, name : %s", i, thisSpecies.getSpeciesName()));
+
+			try {
+				doAlignment(i);
+			}
+			catch(Exception ex) {
+				System.out.println("alignment failure : " + thisSpecies.getSpeciesName());
+				removeList.add(thisSpecies);
+				continue;
+			}
 
 			int i_score = 0;
 			double d_score = 0;
@@ -755,28 +724,42 @@ public class RootController implements Initializable {
 			thisSpecies.setScore(d_score);
 			thisSpecies.setQlen(alignedPoints.size());
 		}
+		System.out.println("size before removal : " + speciesList.size());
+		speciesList.removeAll(removeList);
+		System.out.println("size after removal : " + speciesList.size());
+		if(speciesList.size()>0) 
+			Collections.sort(speciesList);
 
-		Collections.sort(speciesList);
-
-
+		/*
 		for(int i=0;i<Integer.min(5, speciesList.size());i++) {
 			NTMSpecies thisSpecies = speciesList.get(i);
 			System.out.println(thisSpecies.getAccession() + ", " + thisSpecies.getSpeciesName());
 			System.out.println("score : " + thisSpecies.getScore());
 		}
+		 */
 
 		// 점수 제일 높은걸로 align
-		doAlignment(0);
-		printAlignedResult();
-		
 
-//		Vector<Variant> heteroIndelList = detectHeteroIndel();
-//		VariantCallerFilter vcf = new VariantCallerFilter(fwdLoaded, revLoaded, startRange, endRange, heteroIndelList, trimmedFwdTrace, trimmedRevTrace );
-//		TreeSet<Variant> variantList = vcf.getVariantList();
+
+
+		//		Vector<Variant> heteroIndelList = detectHeteroIndel();
+		//		VariantCallerFilter vcf = new VariantCallerFilter(fwdLoaded, revLoaded, startRange, endRange, heteroIndelList, trimmedFwdTrace, trimmedRevTrace );
+		//		TreeSet<Variant> variantList = vcf.getVariantList();
 
 
 		if(speciesList.size()==0) popUp("No matching species!");
 		else {
+			
+			try {
+				doAlignment(0);
+			}
+			catch(Exception ex) {
+				popUp(ex.getMessage());
+				ex.printStackTrace();
+			}
+			
+			printAlignedResult();
+
 			speciesTable.setEditable(true);
 			TableColumn tcSpecies = speciesTable.getColumns().get(0);
 			TableColumn tcAccession = speciesTable.getColumns().get(1);
@@ -791,23 +774,25 @@ public class RootController implements Initializable {
 			tcSpecies.setCellFactory(TextFieldTableCell.<NTMSpecies>forTableColumn());
 			speciesTable.setItems(FXCollections.observableArrayList(speciesList));
 
-			
+
 			speciesTable.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
 				@Override
 				public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
 					if(newValue.intValue()<0 || newValue.intValue()>= speciesList.size()) return; 
 
 					//Sysem.out.println("selected Index : " + newValue.intValue());
-					doAlignment(newValue.intValue());
+					try {
+						doAlignment(newValue.intValue());
+					}
+					catch(Exception ex) {
+						popUp(ex.getMessage());
+						ex.printStackTrace();
+					}
 					printAlignedResult();
-					
+
 				}
 			});
-			
-
 		}
-
-		
 	}
 
 	/**
@@ -1229,10 +1214,10 @@ public class RootController implements Initializable {
 	 * @param revChar : If it is gap, not focused
 	 */
 	public void focus(int selectedAlignmentPos, int selectedFwdPos, int selectedRevPos, char fwdChar, char revChar) {
-		
-		
+
+
 		this.selectedAlignmentPos = selectedAlignmentPos;
-		
+
 		//selectedAlignmentPos : 이것만 0부터 시작하는 index
 		//selectedFwdPos, selectedRevPos : 1부터 시작하는 index
 		boolean fwdGap = (fwdChar == Formatter.gapChar); 
@@ -1321,7 +1306,7 @@ public class RootController implements Initializable {
 			focus(selectedAlignmentPos, selectedFwdPos, selectedRevPos, fwdChar, revChar);
 		}
 	}
-	
+
 	/*
 
 	public void handleRemoveVariant() {
@@ -1346,7 +1331,7 @@ public class RootController implements Initializable {
 				focus(variant.getAlignmentIndex()-1, variant.getFwdTraceIndex(), variant.getRevTraceIndex(), variant.getFwdTraceChar(), variant.getRevTraceChar());
 		}
 	}
-*/
+	 */
 
 	/**
 	 * Getters for member variables

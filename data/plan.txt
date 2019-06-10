@@ -26,14 +26,17 @@ ambiguous peak 나올 수 없음 (사람처럼 DNA 한쌍 아니니까) --> ambi
 
 
 
+base 수정
+--> trimmedTrace에서 해당위치 base 바꾸기
+--> handle Run 다시 돌리기 (그냥 통채로 다시 돌리면 될듯?)
 
-<추가기능>
+fwd & rev 같이있을때 에러나는거 수정
 
 excel또는 csv로 output 시키는 버튼 만들기
 
-3. base 수정? : 나중에. 
-맨첨에 trimming할때 해야할듯. 
 
 
+<추가기능>
+targetRegion 3개 통합..?
 
 * 마지막에 불필요한 기능빼기

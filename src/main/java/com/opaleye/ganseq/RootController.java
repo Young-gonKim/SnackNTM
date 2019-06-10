@@ -68,6 +68,11 @@ import javafx.stage.StageStyle;
  *2018.5
  */
 public class RootController implements Initializable {
+	
+	//edit base 용
+	private int selectedAlignmentPos = 0;
+	
+	
 	private static String settingsFileName = "settings/settings.properties";
 	public static final int defaultGOP = 30;
 	public static final String version = "1.0";
@@ -88,6 +93,7 @@ public class RootController implements Initializable {
 	@FXML private CheckBox cb_hetIndelMode;
 	@FXML private TextField tf_firstNumber;
 	@FXML private ComboBox cb_targetRegion;
+	@FXML private Button btnEditBase;
 
 	@FXML private Button btn_settings;
 	//@FXML private ImageView fwdRuler, revRuler;
@@ -155,7 +161,10 @@ public class RootController implements Initializable {
 		}
 
 	}
-
+	
+	
+	
+	
 	/**
 	 * Initializes required settings
 	 */
@@ -189,26 +198,7 @@ public class RootController implements Initializable {
 		filterQualityCutoff = 20;
 		filteringOption = SettingsController.ruleBasedFiltering;
 
-		String tooltipText ="Try this option when unexpected homo indels are detected due to misleading alignment\n" 
-				+ "ex) homo indel + hetero indel is detected instead of one hetero indel";
-
-
-		Tooltip tooltip = new Tooltip(tooltipText);
-		tooltip.setAutoHide(false);
-		TooltipDelay.activateTooltipInstantly(tooltip);
-		TooltipDelay.holdTooltip(tooltip);
-		cb_hetIndelMode.setTooltip(tooltip);
-
-		cb_hetIndelMode.selectedProperty().addListener(new ChangeListener<Boolean>() {
-			public void changed(ObservableValue<? extends Boolean> ov,
-					Boolean old_val, Boolean new_val) {
-				//System.out.println(cb_hetIndelMode.isSelected());
-				if(cb_hetIndelMode.isSelected()) 
-					gapOpenPenalty = 200;
-				else
-					gapOpenPenalty = defaultGOP;
-			}
-		});
+		
 	}
 
 	public void setProperties(double secondPeakCutoff, int gapOpenPenalty, int filterQualityCutoff, String filteringOption) {
@@ -219,6 +209,36 @@ public class RootController implements Initializable {
 
 	}
 
+	
+	public void handleEditBase() {
+		if(!alignmentPerformed) return;
+		AlignedPoint ap = alignedPoints.get(selectedAlignmentPos);
+		
+		try {
+			FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("editbase.fxml"));
+			Parent root1 = (Parent) fxmlLoader.load();
+			Stage stage = new Stage();
+			EditBaseController controller = fxmlLoader.getController();
+			controller.setPrimaryStage(stage);
+			controller.setRootController(this);
+			controller.setInitBases(String.format("%c", ap.getRefChar()), String.format("%c", ap.getFwdChar()), String.format("%c", ap.getRevChar()) );
+			stage.setScene(new Scene(root1));
+			stage.setTitle("Edit base");
+			//stage.setAlwaysOnTop(true);
+			stage.initOwner(primaryStage);
+			stage.show();
+		}
+		catch (Exception ex) {
+			ex.printStackTrace();
+			return;
+		}
+
+		
+		
+		
+	}
+	
+	
 	public void handleSettings() {
 		try {
 			FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("settings.fxml"));
@@ -1209,6 +1229,10 @@ public class RootController implements Initializable {
 	 * @param revChar : If it is gap, not focused
 	 */
 	public void focus(int selectedAlignmentPos, int selectedFwdPos, int selectedRevPos, char fwdChar, char revChar) {
+		
+		
+		this.selectedAlignmentPos = selectedAlignmentPos;
+		
 		//selectedAlignmentPos : 이것만 0부터 시작하는 index
 		//selectedFwdPos, selectedRevPos : 1부터 시작하는 index
 		boolean fwdGap = (fwdChar == Formatter.gapChar); 

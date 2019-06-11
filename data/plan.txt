@@ -1,42 +1,16 @@
-<일단할것>
 
-
-class NTMSpecies : accession, speciesName, ReferenceSeq,  score
-
-2. fwd, rev : 
-같이있으나 따로 있으나 alignment 만들어지는거 까지는 똑같음. 
-같이 있으면 quality 높은쪽 기준으로 점수 매기기. quality 같으면 일치하는거 기준으로. 
-
-
-1) handleRun() 
-2) makeSpeciesList (cb_targetRegion기준으로)
-
-3) species 별로 doAlignment(i) --> score 계산 
- (doAlignment안에서  reference 변경 & resetParameters() 호출)
-
-
-4) tableView 채우기
-5) score 젤 높은거 기준으로 Alignment 시행 (score 젤 높은거 : selectedSpeciesIndex)
-
-table click 하면 do alignment (i)	
-doAlignment
-
-
-ambiguous peak 나올 수 없음 (사람처럼 DNA 한쌍 아니니까) --> ambiguous 이으면 젤 큰걸로 replace?
-
-
-
-base 수정
---> trimmedTrace에서 해당위치 base 바꾸기
---> handle Run 다시 돌리기 (그냥 통채로 다시 돌리면 될듯?)
-
-fwd & rev 같이있을때 에러나는거 수정
 
 excel또는 csv로 output 시키는 버튼 만들기
 
-
-
 <추가기능>
 targetRegion 3개 통합..?
+창을 하나 더 만들어서?
+
+<16S : top 5>
+<rpo : top 5>
+
+combined : 1개
+
+
 
 * 마지막에 불필요한 기능빼기

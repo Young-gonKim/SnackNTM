@@ -132,13 +132,15 @@ public class Formatter {
 
 			}
 
-			if(tempPoint.getDiscrepency() == ' ') {	
+			if(tempPoint.getDiscrepency() == ' ') {
+				/*
 				if(direction == 1 && tempPoint.getFwdQuality()<20) {
 					tempPoint.setDiscrepency('+');
 				}
 				if(direction == -1 && tempPoint.getRevQuality()<20) {
 					tempPoint.setDiscrepency('+');
 				}
+				*/
 			}
 			alignedPoints.add(tempPoint);
 		}

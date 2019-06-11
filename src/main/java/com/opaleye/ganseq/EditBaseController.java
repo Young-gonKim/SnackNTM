@@ -54,11 +54,9 @@ public class EditBaseController implements Initializable  {
 		            
 		public void handleConfirm() {
 			
-			System.out.println(String.format("fwd : " + fwdComboBox.getValue()));
-			System.out.println(String.format("rev : " + revComboBox.getValue()));
-			
-			
-			//rootController.update();
+			//System.out.println(String.format("fwd : " + fwdComboBox.getValue()));
+			//System.out.println(String.format("rev : " + revComboBox.getValue()));
+			rootController.updateBase(((String)fwdComboBox.getValue()).charAt(0), ((String)revComboBox.getValue()).charAt(0));
 			primaryStage.close();
 		}
 

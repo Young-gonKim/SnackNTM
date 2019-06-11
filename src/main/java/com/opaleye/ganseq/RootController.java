@@ -232,11 +232,20 @@ public class RootController implements Initializable {
 			ex.printStackTrace();
 			return;
 		}
-
-
-
-
 	}
+	
+	public void updateBase(char newFwdChar, char newRevChar) {
+		AlignedPoint ap = alignedPoints.get(selectedAlignmentPos);
+		
+		if(fwdLoaded) {
+			trimmedFwdTrace.editBase(ap.getFwdTraceIndex(), ap.getFwdChar(), newFwdChar);
+		}
+		if(revLoaded) {
+			trimmedRevTrace.editBase(ap.getRevTraceIndex(), ap.getRevChar(), newRevChar);
+		}
+		handleRun();
+	}
+	
 
 
 	public void handleSettings() {

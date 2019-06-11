@@ -71,6 +71,60 @@ public class GanseqTrace {
 		transformTrace();
 	}
 
+	
+	public void editBase(int pos, char oldBase, char newBase) {
+		
+		System.out.println("Pos : " + pos);
+		
+		pos--; //1부터 시작하는 index이므로
+		
+		//base 1개 insertion
+		if(oldBase == Formatter.gapChar) {
+			sequence = sequence.substring(0,pos) + newBase + sequence.substring(pos, sequence.length());
+			sequenceLength++;
+			int[] tempQcalls = new int[sequenceLength];
+			int[] tempBasecalls = new int[sequenceLength];
+			for(int i=0;i<pos;i++) {
+				tempQcalls[i] = qCalls[i];
+				tempBasecalls[i] = baseCalls[i];
+			}
+			tempQcalls[pos] = 10;
+			//tempBasecalls[pos+1] = Integer.min(baseCalls[pos]+5, traceLength);
+			tempBasecalls[pos] = Integer.max(baseCalls[pos]-5, 0);
+			
+			for(int i=pos+1;i<sequenceLength;i++) {
+				tempQcalls[i] = qCalls[i-1];
+				tempBasecalls[i] = baseCalls[i-1];
+			}
+			qCalls = tempQcalls;
+			baseCalls = tempBasecalls;
+		}
+		
+		else if(newBase == Formatter.gapChar) {
+			sequence = sequence.substring(0, pos) + sequence.substring(pos+1, sequence.length());
+			sequenceLength--;
+
+			
+			int[] tempQcalls = new int[sequenceLength];
+			int[] tempBasecalls = new int[sequenceLength];
+			for(int i=0;i<pos;i++) {
+				tempQcalls[i] = qCalls[i];
+				tempBasecalls[i] = baseCalls[i];
+			}
+			
+			for(int i=pos+1;i<sequenceLength;i++) {
+				tempQcalls[i-1] = qCalls[i];
+				tempBasecalls[i-1] = baseCalls[i];
+			}
+			qCalls = tempQcalls;
+			baseCalls = tempBasecalls;
+
+		}
+		
+		else
+			sequence = sequence.substring(0,pos) + newBase + sequence.substring(pos+1, sequence.length());
+	}
+	
 	private void transformTrace() {
 		maxHeight = -1;
 		double imageHeightRatio = 0;

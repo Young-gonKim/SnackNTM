@@ -343,10 +343,12 @@ public class Formatter {
 				revTracePos++;
 			}
 
-			if(tempPoint.getDiscrepency() == ' ') {	
+			if(tempPoint.getDiscrepency() == ' ') {
+				/*
 				if(tempPoint.getFwdQuality()<30 && tempPoint.getRevQuality()<30) {
 					tempPoint.setDiscrepency('+');
 				}
+				*/
 			}
 			alignedPoints.add(tempPoint);
 		}

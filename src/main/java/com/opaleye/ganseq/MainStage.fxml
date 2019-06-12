@@ -8,22 +8,22 @@
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
-<?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.ToolBar?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="847.0" prefWidth="1258.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.opaleye.ganseq.RootController">
+<AnchorPane prefHeight="847.0" prefWidth="1128.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.opaleye.ganseq.RootController">
    <children>
-      <ToolBar layoutX="14.0" layoutY="14.0" prefHeight="43.0" prefWidth="1226.0">
+      <ToolBar layoutX="14.0" layoutY="14.0" prefHeight="43.0" prefWidth="907.0">
          <items>
-            <HBox prefHeight="33.0" prefWidth="1200.0" spacing="10.0">
+            <HBox prefHeight="33.0" prefWidth="890.0" spacing="10.0">
                <children>
-                  <Button fx:id="OpenFwdTraceButton" mnemonicParsing="false" onAction="#handleOpenFwdTrace" prefHeight="23.0" prefWidth="187.0" text="Open Forward Trace File" />
-                  <Button fx:id="OpenRevTraceButton" mnemonicParsing="false" onAction="#handleOpenRevTrace" prefHeight="23.0" prefWidth="180.0" text="Open Reverse Trace File" />
-                  <Label prefHeight="15.0" prefWidth="146.0" text="Target Region : " />
+                  <Button fx:id="OpenFwdTraceButton" mnemonicParsing="false" onAction="#handleOpenFwdTrace" prefHeight="23.0" prefWidth="169.0" text="Open Forward Trace File" />
+                  <Button fx:id="OpenRevTraceButton" mnemonicParsing="false" onAction="#handleOpenRevTrace" prefHeight="23.0" prefWidth="164.0" text="Open Reverse Trace File" />
+                  <Label prefHeight="15.0" prefWidth="98.0" text="Target Region : " />
                   <ComboBox fx:id="cb_targetRegion" prefWidth="150.0" />
-                  <HBox alignment="CENTER_RIGHT" prefHeight="23.0" prefWidth="720.0">
+                  <HBox alignment="CENTER_RIGHT" prefHeight="23.0" prefWidth="258.0">
                      <children>
                         <Button fx:id="btnEditBase" mnemonicParsing="false" onAction="#handleEditBase" text="Edit base">
                            <HBox.margin>
@@ -42,21 +42,21 @@
             </HBox>
          </items>
       </ToolBar>
-      <ScrollPane fx:id="fwdPane" layoutX="14.0" layoutY="224.0" prefHeight="170.0" prefWidth="1238.0" />
-      <ScrollPane fx:id="revPane" layoutX="14.0" layoutY="432.0" prefHeight="170.0" prefWidth="1238.0" />
-      <Label layoutX="14.0" layoutY="70.0" prefHeight="15.0" prefWidth="101.0" text="Reference File : " />
+      <ScrollPane fx:id="fwdPane" layoutX="14.0" layoutY="224.0" prefHeight="170.0" prefWidth="907.0" />
+      <ScrollPane fx:id="revPane" layoutX="14.0" layoutY="432.0" prefHeight="170.0" prefWidth="907.0" />
+      <Label layoutX="14.0" layoutY="70.0" prefHeight="18.0" prefWidth="126.0" text="Alignment">
+         <font>
+            <Font name="System Bold" size="14.0" />
+         </font></Label>
       <Label layoutX="14.0" layoutY="202.0" text="Forward Trace File : " />
-      <Label fx:id="fwdTraceFileLabel" layoutX="133.0" layoutY="202.0" prefHeight="15.0" prefWidth="1048.0" />
+      <Label fx:id="fwdTraceFileLabel" layoutX="133.0" layoutY="202.0" prefHeight="15.0" prefWidth="660.0" />
       <Label layoutX="16.0" layoutY="405.0" text="Reverse Trace File : " />
-      <Label fx:id="revTraceFileLabel" layoutX="133.0" layoutY="405.0" prefHeight="15.0" prefWidth="1048.0" />
-      <ScrollPane fx:id="alignmentPane" layoutX="14.0" layoutY="94.0" prefHeight="105.0" prefWidth="1238.0" />
-      <Button fx:id="removeFwd" layoutX="1124.0" layoutY="198.0" mnemonicParsing="false" onAction="#handleRemoveFwd" prefHeight="23.0" prefWidth="126.0" text="Remove Fwd Trace" />
-      <Button fx:id="removeRev" layoutX="1124.0" layoutY="401.0" mnemonicParsing="false" onAction="#handleRemoveRev" prefHeight="23.0" prefWidth="126.0" text="Remove Rev Trace" />
-      <Button fx:id="fwdHeteroBtn" layoutX="1000.0" layoutY="198.0" mnemonicParsing="false" onAction="#handleFwdHetero" text="Hetero Indel View" />
-      <Button fx:id="revHeteroBtn" layoutX="1000.0" layoutY="401.0" mnemonicParsing="false" onAction="#handleRevHetero" text="Hetero Indel View" />
-      <Label layoutX="16.0" layoutY="611.0" prefHeight="15.0" prefWidth="1000.0" text="Variant List (Double click : text selection, Del : Remove)" />
-      <ScrollPane fx:id="variantListPane" layoutX="14.0" layoutY="631.0" prefHeight="195.0" prefWidth="1238.0">
-      <TableView fx:id="speciesTable" prefHeight="190" prefWidth="1230">
+      <Label fx:id="revTraceFileLabel" layoutX="133.0" layoutY="405.0" prefHeight="15.0" prefWidth="660.0" />
+      <ScrollPane fx:id="alignmentPane" layoutX="14.0" layoutY="94.0" prefHeight="105.0" prefWidth="907.0" />
+      <Button fx:id="removeFwd" layoutX="795.0" layoutY="198.0" mnemonicParsing="false" onAction="#handleRemoveFwd" prefHeight="23.0" prefWidth="126.0" text="Remove Fwd Trace" />
+      <Button fx:id="removeRev" layoutX="795.0" layoutY="401.0" mnemonicParsing="false" onAction="#handleRemoveRev" prefHeight="23.0" prefWidth="126.0" text="Remove Rev Trace" />
+      <ScrollPane fx:id="variantListPane" layoutX="14.0" layoutY="631.0" prefHeight="195.0" prefWidth="907.0">
+      <TableView fx:id="speciesTable" prefHeight="190" prefWidth="903.0">
       <columns>
       <TableColumn prefWidth="500" text="Species" />
       <TableColumn prefWidth="180" text="Accession" />
@@ -65,9 +65,52 @@
       </columns>
       </TableView>
       </ScrollPane>
-<!--      <Button fx:id="removeVariant" layoutX="1124.0" layoutY="607.0" mnemonicParsing="false" onAction="#handleRemoveVariant" prefHeight="23.0" prefWidth="126.0" text="Remove Variant" />-->
       <Accordion />
-      <Label layoutX="933.0" layoutY="70.0" prefHeight="15.0" prefWidth="282.0" text="First coding DNA number (default : 1)" />
-      <TextField fx:id="tf_firstNumber" layoutX="1156.0" layoutY="66.0" prefHeight="23.0" prefWidth="63.0" text="1" />
+      <AnchorPane layoutX="930.0" layoutY="2.0" prefHeight="827.0" prefWidth="300.0">
+         <children>
+            <Label layoutX="7.0" layoutY="35.0" prefHeight="15.0" prefWidth="98.0" text="By 16s rRNA" />
+            <Label layoutX="13.0" layoutY="201.0" text="by rpo" />
+            <Label layoutX="15.0" layoutY="406.0" text="by tuf" />
+            <TableView fx:id="s16Table" layoutX="7.0" layoutY="58.0" prefHeight="136.0" prefWidth="283.0">
+              <columns>
+                <TableColumn prefWidth="210.0" text="Species" />
+                <TableColumn prefWidth="73.0" text="Score" />
+              </columns>
+            </TableView>
+            <Label layoutX="2.0" layoutY="12.0" prefHeight="21.0" prefWidth="207.0" text="Identification Result">
+               <font>
+                  <Font name="System Bold" size="18.0" />
+               </font>
+            </Label>
+            <Label layoutX="6.0" layoutY="608.0" prefHeight="15.0" prefWidth="119.0" text="combined">
+               <font>
+                  <Font name="System Bold" size="15.0" />
+               </font>
+            </Label>
+            <TableView fx:id="rpoTable" layoutX="7.0" layoutY="222.0" prefHeight="170.0" prefWidth="283.0">
+               <columns>
+                <TableColumn prefWidth="210.0" text="Species" />
+                <TableColumn prefWidth="73.0" text="Score" />
+               </columns>
+            </TableView>
+            <TableView fx:id="tufTable" layoutX="9.0" layoutY="432.0" prefHeight="170.0" prefWidth="283.0">
+               <columns>
+                <TableColumn prefWidth="210.0" text="Species" />
+                <TableColumn prefWidth="73.0" text="Score" />
+               </columns>
+            </TableView>
+            <TableView fx:id="finalTable" layoutX="7.0" layoutY="629.0" prefHeight="195.0" prefWidth="283.0">
+               <columns>
+                <TableColumn prefWidth="210.0" text="Species" />
+                <TableColumn prefWidth="73.0" text="Score" />
+               </columns>
+            </TableView>
+         </children>
+      </AnchorPane>
+      <Label layoutX="14.0" layoutY="613.0" prefHeight="18.0" prefWidth="150.0" text="Result">
+         <font>
+            <Font name="System Bold" size="14.0" />
+         </font>
+      </Label>
    </children>
 </AnchorPane>

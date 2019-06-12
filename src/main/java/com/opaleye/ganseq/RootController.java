@@ -69,6 +69,9 @@ import javafx.stage.StageStyle;
  */
 public class RootController implements Initializable {
 
+	private static final double paneWidth = 907; 
+	
+	
 	//edit base 용
 	private int selectedAlignmentPos = 0;
 
@@ -83,21 +86,20 @@ public class RootController implements Initializable {
 	private static final String rpo = "rpo";
 	private static final String tuf = "tuf";
 	public static String chimaeraSeq = "";
+	
+	private String targetRegion = null;
 
 	private Vector<NTMSpecies> speciesList = null;
 
 	@FXML private ScrollPane  fwdPane, revPane, alignmentPane, newAlignmentPane;
 	@FXML private Label fwdTraceFileLabel, revTraceFileLabel;
 	@FXML private Button removeRef, removeFwd, removeRev, removeVariant;
-	@FXML private Button fwdHeteroBtn, revHeteroBtn;
-	@FXML private CheckBox cb_hetIndelMode;
-	@FXML private TextField tf_firstNumber;
 	@FXML private ComboBox cb_targetRegion;
 	@FXML private Button btnEditBase;
 
 	@FXML private Button btn_settings;
 	//@FXML private ImageView fwdRuler, revRuler;
-	@FXML private TableView<NTMSpecies> speciesTable;
+	@FXML private TableView<NTMSpecies> speciesTable, s16Table, rpoTable, tufTable;
 	private String lastVisitedDir="C:\\Users\\user\\Desktop\\ygkim\\1906 NTM";
 	private Stage primaryStage;
 	public void setPrimaryStage(Stage primaryStage) {
@@ -162,9 +164,6 @@ public class RootController implements Initializable {
 
 	}
 
-
-
-
 	/**
 	 * Initializes required settings
 	 */
@@ -175,19 +174,7 @@ public class RootController implements Initializable {
 		File tempFile = new File(lastVisitedDir);
 		if(!tempFile.exists())
 			lastVisitedDir=".";
-		fwdHeteroBtn.setVisible(false);
-		revHeteroBtn.setVisible(false);
-		/*
-		try {
-			LSTMOutput.init();
-		}
-		catch (Exception ex) {
-			ex.printStackTrace();
-			popUp("Trained LSTM model file does not exist");
-		}
-		 */
 	}
-
 
 	private void readDefaultProperties() {
 		cb_targetRegion.getItems().addAll(s16, rpo, tuf);
@@ -197,8 +184,6 @@ public class RootController implements Initializable {
 		gapOpenPenalty = defaultGOP;
 		filterQualityCutoff = 20;
 		filteringOption = SettingsController.ruleBasedFiltering;
-
-
 	}
 
 	public void setProperties(double secondPeakCutoff, int gapOpenPenalty, int filterQualityCutoff, String filteringOption) {
@@ -282,15 +267,13 @@ public class RootController implements Initializable {
 		endRange = 0;		
 		fwdHeteroTrace = null; 
 		revHeteroTrace = null;
-		fwdHeteroBtn.setVisible(false);
-		revHeteroBtn.setVisible(false);
 		//speciesTable.getItems().clear();
 	}
 
 
 	private void makeSpeciesList() throws Exception {
 		speciesList = new Vector<NTMSpecies>();
-		String targetRegion = (String)cb_targetRegion.getValue();
+		targetRegion = (String)cb_targetRegion.getValue();
 
 
 		File file = null;
@@ -733,32 +716,16 @@ public class RootController implements Initializable {
 			thisSpecies.setScore(d_score);
 			thisSpecies.setQlen(alignedPoints.size());
 		}
-		//System.out.println("size before removal : " + speciesList.size());
-		speciesList.removeAll(removeList);
-		//System.out.println("size after removal : " + speciesList.size());
+		speciesList.removeAll(removeList);	//align 안된 것들은 remove
+
 		if(speciesList.size()>0) 
 			Collections.sort(speciesList);
-
-		/*
-		for(int i=0;i<Integer.min(5, speciesList.size());i++) {
-			NTMSpecies thisSpecies = speciesList.get(i);
-			System.out.println(thisSpecies.getAccession() + ", " + thisSpecies.getSpeciesName());
-			System.out.println("score : " + thisSpecies.getScore());
-		}
-		 */
-
-		// 점수 제일 높은걸로 align
-
-
-
-		//		Vector<Variant> heteroIndelList = detectHeteroIndel();
-		//		VariantCallerFilter vcf = new VariantCallerFilter(fwdLoaded, revLoaded, startRange, endRange, heteroIndelList, trimmedFwdTrace, trimmedRevTrace );
-		//		TreeSet<Variant> variantList = vcf.getVariantList();
 
 
 		if(speciesList.size()==0) popUp("No matching species!");
 		else {
-			
+
+			// 점수 제일 높은걸로 align
 			try {
 				doAlignment(0);
 			}
@@ -783,7 +750,36 @@ public class RootController implements Initializable {
 			tcSpecies.setCellFactory(TextFieldTableCell.<NTMSpecies>forTableColumn());
 			speciesTable.setItems(FXCollections.observableArrayList(speciesList));
 
+			if(targetRegion.equals(s16)) {
+				s16Table.setEditable(true);
+				TableColumn s16_tcSpecies = s16Table.getColumns().get(0);
+				TableColumn s16_tcScore = s16Table.getColumns().get(1);
+				s16_tcSpecies.setCellValueFactory(new PropertyValueFactory("speciesNameProperty"));
+				s16_tcScore.setCellValueFactory(new PropertyValueFactory("scoreProperty"));
+				s16_tcSpecies.setCellFactory(TextFieldTableCell.<NTMSpecies>forTableColumn());
+				s16Table.setItems(FXCollections.observableArrayList(speciesList));
+			}
+			else if(targetRegion.equals(rpo)) {
+				rpoTable.setEditable(true);
+				TableColumn rpo_tcSpecies = rpoTable.getColumns().get(0);
+				TableColumn rpo_tcScore = rpoTable.getColumns().get(1);
+				rpo_tcSpecies.setCellValueFactory(new PropertyValueFactory("speciesNameProperty"));
+				rpo_tcScore.setCellValueFactory(new PropertyValueFactory("scoreProperty"));
+				rpo_tcSpecies.setCellFactory(TextFieldTableCell.<NTMSpecies>forTableColumn());
+				rpoTable.setItems(FXCollections.observableArrayList(speciesList));
+			}
+			else if(targetRegion.equals(tuf)) {
+				tufTable.setEditable(true);
+				TableColumn tuf_tcSpecies = tufTable.getColumns().get(0);
+				TableColumn tuf_tcScore = tufTable.getColumns().get(1);
+				tuf_tcSpecies.setCellValueFactory(new PropertyValueFactory("speciesNameProperty"));
+				tuf_tcScore.setCellValueFactory(new PropertyValueFactory("scoreProperty"));
+				tuf_tcSpecies.setCellFactory(TextFieldTableCell.<NTMSpecies>forTableColumn());
+				tufTable.setItems(FXCollections.observableArrayList(speciesList));
+			}
+			
 
+			
 			speciesTable.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
 				@Override
 				public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
@@ -798,7 +794,6 @@ public class RootController implements Initializable {
 						ex.printStackTrace();
 					}
 					printAlignedResult();
-
 				}
 			});
 		}
@@ -843,52 +838,8 @@ public class RootController implements Initializable {
 
 		startRange = Integer.max(fwdTraceStart,revTraceStart);
 		endRange = Integer.min(fwdTraceEnd, revTraceEnd);
-
 	}
 
-
-	private Vector<Variant> detectHeteroIndel() {
-		Vector<Variant> heteroIndelList = new Vector<Variant>();
-		Variant fwdIndel=null, revIndel = null;
-
-		fwdHeteroTrace = null;
-		revHeteroTrace = null;
-
-		char tempFwdChar = 'N';
-		int tempFwdIndex = 0;
-
-		if(fwdLoaded) {
-			fwdHeteroTrace = new HeteroTrace(trimmedFwdTrace);
-			fwdIndel = fwdHeteroTrace.detectHeteroIndel();
-
-			if(fwdIndel != null) {
-				tempFwdChar = fwdIndel.getFwdTraceChar();
-				tempFwdIndex = fwdIndel.getFwdTraceIndex();
-				heteroIndelList.add(fwdIndel);
-				fwdHeteroBtn.setVisible(true);
-			}
-			else fwdHeteroTrace = null;
-		}
-
-
-		if(revLoaded) {
-			revHeteroTrace = new HeteroTrace(trimmedRevTrace);
-			revIndel = revHeteroTrace.detectHeteroIndel();
-			if(revIndel != null) {
-				//fwd, rev 양쪽에서 같은 variant 찾을 경우, fwd, revpane 모두에서 볼 수 있게. --> 나중에 fwd꺼 지우기. range 설정한 다음 지워야 함. VariantCollerFilter.makeVariantList()
-				if(fwdIndel != null) 
-					if(fwdIndel.getHGVS().equals(revIndel.getHGVS())) {
-						revIndel.setHitCount(2);
-						revIndel.setFwdTraceChar(tempFwdChar);
-						revIndel.setFwdTraceIndex(tempFwdIndex);
-					}
-				heteroIndelList.add(revIndel);
-				revHeteroBtn.setVisible(true);
-			}
-			else revHeteroTrace = null;
-		}
-		return heteroIndelList;
-	}
 
 	/**
 	 * Prints the result of alignment on the alignment pane
@@ -1048,13 +999,13 @@ public class RootController implements Initializable {
 	 * @param fwdTraceIndex : the point to be focused
 	 */
 	private void adjustFwdPane(int fwdTraceIndex) {
-		if(Formatter.fwdNewLength <= 1280) return;
+		if(Formatter.fwdNewLength <= paneWidth) return;
 		if(fwdTraceIndex > trimmedFwdTrace.getBaseCalls().length)
 			fwdTraceIndex = trimmedFwdTrace.getBaseCalls().length;
 		double coordinate = Formatter.fwdStartOffset + trimmedFwdTrace.getBaseCalls()[fwdTraceIndex-1]*2;
 		System.out.println("fwdTrace Index : " + fwdTraceIndex);
 		System.out.println("p = " + coordinate);
-		double hValue = (coordinate - 640.0) / (Formatter.fwdNewLength - 1280);
+		double hValue = (coordinate - paneWidth/2) / (Formatter.fwdNewLength - paneWidth);
 		fwdPane.setHvalue(hValue);
 	}
 
@@ -1063,7 +1014,7 @@ public class RootController implements Initializable {
 	 * @param revTraceIndex : the point to be focused
 	 */
 	private void adjustRevPane(int revTraceIndex) {
-		if(Formatter.revNewLength <= 1280) return;
+		if(Formatter.revNewLength <= paneWidth) return;
 		if(revTraceIndex > trimmedRevTrace.getBaseCalls().length)
 			revTraceIndex = trimmedRevTrace.getBaseCalls().length;
 
@@ -1071,7 +1022,7 @@ public class RootController implements Initializable {
 		System.out.println("revTrace Index : " + revTraceIndex);
 		System.out.println("p = " + coordinate);
 
-		double hValue = (coordinate - 640.0) / (Formatter.revNewLength - 1280);
+		double hValue = (coordinate - paneWidth/2) / (Formatter.revNewLength - paneWidth);
 		revPane.setHvalue(hValue);
 
 	}
@@ -1085,9 +1036,9 @@ public class RootController implements Initializable {
 		if(labels[0]==null) return;
 
 		double length = labels[0][labels[0].length-1].getLayoutX();
-		if(length<=1280) return;
+		if(length<=paneWidth) return;
 		double coordinate = labels[0][index].getLayoutX();
-		double hValue = (coordinate - 640.0) / (length - 1280.0);
+		double hValue = (coordinate - paneWidth/2) / (length - paneWidth);
 		alignmentPane.setHvalue(hValue);
 
 	}
@@ -1316,31 +1267,7 @@ public class RootController implements Initializable {
 		}
 	}
 
-	/*
-
-	public void handleRemoveVariant() {
-		//if(!variantListViewFocused) return;
-		int index = variantTable.getSelectionModel().getSelectedIndex();
-		System.out.println(String.format("remove index : %d",  index));
-		if(index == -1) return;
-		int newSelectedIdx = (index == variantTable.getItems().size() - 1)
-				? index - 1
-						: index;
-		//o_variantList.remove(index);
-		//v_variantList.remove(index);
-		variantTable.getItems().remove(index);
-
-		variantTable.getSelectionModel().select(newSelectedIdx); // 지워지면 그 위에꺼 자동으로 가리키니까 그냥 그 자리에 있도록
-
-		if(index == 0 && variantTable.getItems().size()>0) {	//맨위에꺼 지우면 그위에꺼 자동으로 못 가리킴. changeListener 호출 안함 --> 강제로  focus
-			Variant variant = variantTable.getItems().get(0);
-			if(variant instanceof Indel && ((Indel) variant).getZygosity().equals("homo"))
-				focus2((Indel)variant);
-			else 
-				focus(variant.getAlignmentIndex()-1, variant.getFwdTraceIndex(), variant.getRevTraceIndex(), variant.getFwdTraceChar(), variant.getRevTraceChar());
-		}
-	}
-	 */
+	
 
 	/**
 	 * Getters for member variables

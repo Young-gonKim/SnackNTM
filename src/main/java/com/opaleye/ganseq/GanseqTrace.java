@@ -37,7 +37,7 @@ public class GanseqTrace {
 	protected int sequenceLength = 0; 
 	protected int[] qCalls = null;
 	protected int[] baseCalls = null;
-	
+
 	protected int[] transformedA = null;
 	protected int[] transformedT = null;
 	protected int[] transformedG = null;
@@ -68,16 +68,57 @@ public class GanseqTrace {
 		qCalls = tempTrace.getQcalls();
 		baseCalls = tempTrace.getBasecalls();
 
+		resolveAmbiguousSymbols();
+
 		transformTrace();
 	}
 
-	
+	private void resolveAmbiguousSymbols() {
+
+		String ATGC = "ATGC";
+		StringBuffer buffer = new StringBuffer();
+		for(int i=0;i<sequenceLength;i++) {
+			String temp = sequence.substring(i, i+1);
+			if(!ATGC.contains(temp)) {
+				int[] peakHeights = new int[4];
+				peakHeights[0] = traceA[baseCalls[i]];
+				peakHeights[1] = traceT[baseCalls[i]];
+				peakHeights[2] = traceG[baseCalls[i]];
+				peakHeights[3] = traceC[baseCalls[i]];
+
+				int maxJ = 0;
+				int maxPeak = -1;
+				for(int j=0;j<4;j++) {
+					if(peakHeights[j] > maxPeak) {
+						maxJ = j;
+						maxPeak = peakHeights[j];
+					}
+				}
+
+				char newBase = 'N';
+				switch(maxJ) {
+				case 0: newBase = 'A'; break;
+				case 1: newBase = 'T'; break;
+				case 2: newBase = 'G'; break;
+				case 3: newBase = 'C'; break;
+				}
+				buffer.append(newBase);
+			}
+			else
+				buffer.append(temp);
+		}
+		
+		sequence = buffer.toString();
+
+	}
+
+
 	public void editBase(int pos, char oldBase, char newBase) {
-		
+
 		System.out.println("Pos : " + pos);
-		
+
 		pos--; //1부터 시작하는 index이므로
-		
+
 		//base 1개 insertion
 		if(oldBase == Formatter.gapChar) {
 			sequence = sequence.substring(0,pos) + newBase + sequence.substring(pos, sequence.length());
@@ -91,7 +132,7 @@ public class GanseqTrace {
 			tempQcalls[pos] = 10;
 			//tempBasecalls[pos+1] = Integer.min(baseCalls[pos]+5, traceLength);
 			tempBasecalls[pos] = Integer.max(baseCalls[pos]-5, 0);
-			
+
 			for(int i=pos+1;i<sequenceLength;i++) {
 				tempQcalls[i] = qCalls[i-1];
 				tempBasecalls[i] = baseCalls[i-1];
@@ -99,19 +140,19 @@ public class GanseqTrace {
 			qCalls = tempQcalls;
 			baseCalls = tempBasecalls;
 		}
-		
+
 		else if(newBase == Formatter.gapChar) {
 			sequence = sequence.substring(0, pos) + sequence.substring(pos+1, sequence.length());
 			sequenceLength--;
 
-			
+
 			int[] tempQcalls = new int[sequenceLength];
 			int[] tempBasecalls = new int[sequenceLength];
 			for(int i=0;i<pos;i++) {
 				tempQcalls[i] = qCalls[i];
 				tempBasecalls[i] = baseCalls[i];
 			}
-			
+
 			for(int i=pos+1;i<sequenceLength;i++) {
 				tempQcalls[i-1] = qCalls[i];
 				tempBasecalls[i-1] = baseCalls[i];
@@ -120,11 +161,11 @@ public class GanseqTrace {
 			baseCalls = tempBasecalls;
 
 		}
-		
+
 		else
 			sequence = sequence.substring(0,pos) + newBase + sequence.substring(pos+1, sequence.length());
 	}
-	
+
 	private void transformTrace() {
 		maxHeight = -1;
 		double imageHeightRatio = 0;
@@ -421,12 +462,12 @@ public class GanseqTrace {
 		return ret;
 	}
 
-		
+
 	/**
 	 * Makes a complemented Trace
 	 * @author Young-gon Kim
 	 */
-	
+
 	public void makeComplement() throws IllegalArgumentException {
 		int[] newQcalls = new int[sequenceLength];
 		int[] newBaseCalls = new int[sequenceLength];
@@ -491,10 +532,10 @@ public class GanseqTrace {
 		if(RootController.filteringOption.equals(SettingsController.AIBasedFiltering)) {
 			return getTwoPeaks_LSTM(basePosition, cutOff);
 		}
-		
+
 		else
-		*/ 
-		
+		 */ 
+
 		if(RootController.filteringOption.equals(SettingsController.noFiltering)) {
 			return getTwoPeaks_noFiltering(basePosition, cutOff);
 		}
@@ -503,7 +544,7 @@ public class GanseqTrace {
 		}
 		return getTwoPeaks_ruleBasedFiltering(basePosition, cutOff);
 	}
-	
+
 	public TwoPeaks getTwoPeaks_noFiltering(int basePosition, double cutOff) {	
 
 		int baseHeights[] = new int [4];
@@ -713,7 +754,7 @@ public class GanseqTrace {
 			truePeak [2] = true;
 			truePeak [3] = true;
 		}
-		
+
 		Vector symbolList = SymbolTools.IUPACtoSymbolList(originalBase);
 		//KB에서 결과가 1개짜리 or 2개짜리일때 : call 된 애들은 무조건 살려주기.
 		if(symbolList.size() ==1 || symbolList.size() ==2) {
@@ -722,7 +763,7 @@ public class GanseqTrace {
 					truePeak[i] = true;
 			}
 		}
-		
+
 		baseHeights[0] = traceA[position];
 		baseHeights[1] = traceT[position];
 		baseHeights[2] = traceG[position];
@@ -757,10 +798,10 @@ public class GanseqTrace {
 		return new TwoPeaks(SymbolTools.numberToBase(maxIndex), SymbolTools.numberToBase(secondMaxIndex), maxValue, secondMaxValue, secondPeakExist);
 	}
 
-*/
-	
-	
-	
+	 */
+
+
+
 	/**
 	 * Replaces symbols with corresponding ambiguous symbols where second peak exist
 	 * @author Young-gon Kim
@@ -768,7 +809,7 @@ public class GanseqTrace {
 	public void applyAmbiguousSymbol() {
 
 		originalSequence = sequence;
-		
+
 		/*
 		char firstChar = 'N', secondChar = 'N', ambiguousChar = 'N';
 		StringBuffer buffer = new StringBuffer();
@@ -785,7 +826,7 @@ public class GanseqTrace {
 			}
 		}
 		sequence = buffer.toString();
-		*/
+		 */
 	}
 
 	/**
@@ -990,6 +1031,6 @@ public class GanseqTrace {
 	public void setSequenceLength(int sequenceLength) {
 		this.sequenceLength = sequenceLength;
 	}
-	
+
 
 }

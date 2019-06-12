@@ -1,8 +1,8 @@
-
-
-excel또는 csv로 output 시키는 버튼 만들기
-
 <추가기능>
+
+ambiguous : 1개만으로.
+
+
 targetRegion 3개 통합..?
 창을 하나 더 만들어서?
 
@@ -12,5 +12,9 @@ targetRegion 3개 통합..?
 combined : 1개
 
 
+excel또는 csv로 output 시키는 버튼 만들기
+
+
+세로 zoom
 
 * 마지막에 불필요한 기능빼기

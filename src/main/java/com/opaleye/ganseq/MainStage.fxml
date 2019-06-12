@@ -6,6 +6,7 @@
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.ToolBar?>
@@ -25,6 +26,7 @@
                   <ComboBox fx:id="cb_targetRegion" prefWidth="150.0" />
                   <HBox alignment="CENTER_RIGHT" prefHeight="23.0" prefWidth="258.0">
                      <children>
+                        <Button fx:id="runButton" mnemonicParsing="false" onAction="#handleRun" prefHeight="23.0" prefWidth="84.0" text="Run" />
                         <Button fx:id="btnEditBase" mnemonicParsing="false" onAction="#handleEditBase" text="Edit base">
                            <HBox.margin>
                               <Insets right="10.0" />
@@ -32,7 +34,6 @@
                         </Button>
                         <Button fx:id="btn_settings" mnemonicParsing="false" onAction="#handleSettings" text="Settings" />
                         <Label prefHeight="15.0" prefWidth="14.0" />
-                        <Button fx:id="runButton" mnemonicParsing="false" onAction="#handleRun" prefHeight="23.0" prefWidth="84.0" text="Run" />
                      </children>
                   </HBox>
                </children>
@@ -77,12 +78,12 @@
                 <TableColumn prefWidth="73.0" text="Score" />
               </columns>
             </TableView>
-            <Label layoutX="2.0" layoutY="12.0" prefHeight="21.0" prefWidth="207.0" text="Identification Result">
+            <Label layoutX="7.0" layoutY="12.0" prefHeight="21.0" prefWidth="207.0" text="Identification Result">
                <font>
-                  <Font name="System Bold" size="18.0" />
+                  <Font name="System Bold" size="16.0" />
                </font>
             </Label>
-            <Label layoutX="6.0" layoutY="608.0" prefHeight="15.0" prefWidth="119.0" text="combined">
+            <Label layoutX="6.0" layoutY="608.0" prefHeight="15.0" prefWidth="119.0" text="Combined">
                <font>
                   <Font name="System Bold" size="15.0" />
                </font>
@@ -101,10 +102,11 @@
             </TableView>
             <TableView fx:id="finalTable" layoutX="7.0" layoutY="629.0" prefHeight="195.0" prefWidth="283.0">
                <columns>
-                <TableColumn prefWidth="210.0" text="Species" />
-                <TableColumn prefWidth="73.0" text="Score" />
+                <TableColumn prefWidth="200.0" text="Species" />
+                <TableColumn prefWidth="83.0" text="Score" />
                </columns>
             </TableView>
+            <Button fx:id="btnReset" layoutX="171.0" layoutY="11.0" mnemonicParsing="false" onAction="#handleReset" prefHeight="43.0" prefWidth="116.0" text="Reset (New case)" />
          </children>
       </AnchorPane>
       <Label layoutX="14.0" layoutY="613.0" prefHeight="18.0" prefWidth="150.0" text="Result">
@@ -112,5 +114,6 @@
             <Font name="System Bold" size="14.0" />
          </font>
       </Label>
+      <Separator layoutX="926.0" layoutY="-6.0" orientation="VERTICAL" prefHeight="847.0" prefWidth="0.0" />
    </children>
 </AnchorPane>

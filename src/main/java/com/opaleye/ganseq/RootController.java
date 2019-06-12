@@ -79,13 +79,18 @@ public class RootController implements Initializable {
 	private static String settingsFileName = "settings/settings.properties";
 	public static final int defaultGOP = 30;
 	public static final String version = "1.0";
-	public static int firstNumber = 1; 
 	private static int fontSize = 13;
 
 	private static final String s16 = "16s rRNA";
 	private static final String rpo = "rpo";
 	private static final String tuf = "tuf";
+	private boolean s16Loaded = false;
+	private boolean rpoLoaded = false;
+	private boolean tufLoaded = false;
+	
 	public static String chimaeraSeq = "";
+	
+	
 	
 	private String targetRegion = null;
 
@@ -99,7 +104,7 @@ public class RootController implements Initializable {
 
 	@FXML private Button btn_settings;
 	//@FXML private ImageView fwdRuler, revRuler;
-	@FXML private TableView<NTMSpecies> speciesTable, s16Table, rpoTable, tufTable;
+	@FXML private TableView<NTMSpecies> speciesTable, s16Table, rpoTable, tufTable, finalTable;
 	private String lastVisitedDir="C:\\Users\\user\\Desktop\\ygkim\\1906 NTM";
 	private Stage primaryStage;
 	public void setPrimaryStage(Stage primaryStage) {
@@ -180,18 +185,12 @@ public class RootController implements Initializable {
 		cb_targetRegion.getItems().addAll(s16, rpo, tuf);
 		cb_targetRegion.setValue(s16);
 
-		secondPeakCutoff = 0.20;
 		gapOpenPenalty = defaultGOP;
-		filterQualityCutoff = 20;
-		filteringOption = SettingsController.ruleBasedFiltering;
 	}
 
-	public void setProperties(double secondPeakCutoff, int gapOpenPenalty, int filterQualityCutoff, String filteringOption) {
-		RootController.secondPeakCutoff = secondPeakCutoff;
+	public void setProperties(int gapOpenPenalty) {
 		RootController.gapOpenPenalty = gapOpenPenalty;
-		RootController.filterQualityCutoff = filterQualityCutoff;
-		RootController.filteringOption = filteringOption;
-
+		
 	}
 
 
@@ -241,7 +240,7 @@ public class RootController implements Initializable {
 			SettingsController controller = fxmlLoader.getController();
 			controller.setPrimaryStage(stage);
 			controller.setRootController(this);
-			controller.initValues(secondPeakCutoff, gapOpenPenalty, filterQualityCutoff, filteringOption);
+			controller.initValues(gapOpenPenalty);
 			stage.setScene(new Scene(root1));
 			stage.setTitle("Settings");
 			//stage.setAlwaysOnTop(true);
@@ -402,6 +401,21 @@ public class RootController implements Initializable {
 		resetParameters();
 	}
 
+	
+	public void handleReset() {
+		handleRemoveFwd();
+		handleRemoveRev();
+		speciesTable.setItems(null);
+		s16Table.setItems(null);
+		rpoTable.setItems(null);
+		tufTable.setItems(null);
+		finalTable.setItems(null);
+		s16Loaded = false;
+		rpoLoaded = false;
+		tufLoaded = false;
+	}
+
+	
 	/**
 	 * Remove forward trace file
 	 */
@@ -670,6 +684,48 @@ public class RootController implements Initializable {
 		setRange();
 	}
 
+	private Vector<NTMSpecies> getFinalList() {
+		Vector<NTMSpecies> ret = new Vector<NTMSpecies>();
+		Vector<NTMSpecies> s16List = new Vector<NTMSpecies>(s16Table.getItems());
+		Vector<NTMSpecies> rpoList = new Vector<NTMSpecies>(rpoTable.getItems());
+		Vector<NTMSpecies> tufList = new Vector<NTMSpecies>(tufTable.getItems());
+		
+		if(s16Loaded && !rpoLoaded) {
+			boolean hundredFound = false;
+			for(NTMSpecies ntm : s16List) {
+				if(ntm.getScore() == 100) {
+					hundredFound = true;
+					NTMSpecies temp = new NTMSpecies(ntm.getSpeciesName(), "Exact match");
+					ret.add(temp);
+				}
+				else {
+					if(hundredFound) 
+						break;
+					else if (ntm.getScore() >= 99) {
+						NTMSpecies temp = new NTMSpecies(ntm.getSpeciesName(), "most closely");
+						ret.add(temp);
+					}
+					else
+						break;
+				}
+			}
+		}
+		else if(s16Loaded && rpoLoaded && !tufLoaded) {
+			
+		}
+		else if(s16Loaded && rpoLoaded && tufLoaded) {
+			
+		}
+		
+/*
+		for(NTMSpecies ntm:ret) {
+			System.out.println("ret : " + ntm.getSpeciesName());
+		}
+		*/
+		
+		return ret;
+	}
+	
 	/**
 	 * Performs alignment, Detects variants, Shows results
 	 */
@@ -702,7 +758,23 @@ public class RootController implements Initializable {
 				removeList.add(thisSpecies);
 				continue;
 			}
+			
+			//너무 짧게 align된 것들은 버림.
+			int inputLength = 0;
+			if(fwdLoaded && !revLoaded) 
+				inputLength = trimmedFwdTrace.getSequenceLength();
+			else if(!fwdLoaded && revLoaded) 
+				inputLength = trimmedRevTrace.getSequenceLength();
+			else if (fwdLoaded && revLoaded)	 
+				inputLength = Integer.max(trimmedFwdTrace.getSequenceLength(),  trimmedRevTrace.getSequenceLength());
+			
+			double alignedPortion = alignedPoints.size() / (double)inputLength;
+			if(alignedPortion < 0.5) {
+				removeList.add(thisSpecies);
+				continue;
+			}
 
+			//score 계산
 			int i_score = 0;
 			double d_score = 0;
 			for(int j=0;j<alignedPoints.size();j++) {
@@ -712,6 +784,13 @@ public class RootController implements Initializable {
 			if(alignedPoints.size() != 0)
 				d_score = (double)i_score / alignedPoints.size();
 			d_score*=100;
+
+			//score 너무 낮은것들 버림
+			if(d_score < 90) {
+				removeList.add(thisSpecies);
+				continue;
+			}
+			
 			//System.out.println("score : " + d_score);
 			thisSpecies.setScore(d_score);
 			thisSpecies.setQlen(alignedPoints.size());
@@ -751,6 +830,7 @@ public class RootController implements Initializable {
 			speciesTable.setItems(FXCollections.observableArrayList(speciesList));
 
 			if(targetRegion.equals(s16)) {
+				s16Loaded = true;
 				s16Table.setEditable(true);
 				TableColumn s16_tcSpecies = s16Table.getColumns().get(0);
 				TableColumn s16_tcScore = s16Table.getColumns().get(1);
@@ -758,8 +838,10 @@ public class RootController implements Initializable {
 				s16_tcScore.setCellValueFactory(new PropertyValueFactory("scoreProperty"));
 				s16_tcSpecies.setCellFactory(TextFieldTableCell.<NTMSpecies>forTableColumn());
 				s16Table.setItems(FXCollections.observableArrayList(speciesList));
+				
 			}
 			else if(targetRegion.equals(rpo)) {
+				rpoLoaded = true;
 				rpoTable.setEditable(true);
 				TableColumn rpo_tcSpecies = rpoTable.getColumns().get(0);
 				TableColumn rpo_tcScore = rpoTable.getColumns().get(1);
@@ -769,6 +851,7 @@ public class RootController implements Initializable {
 				rpoTable.setItems(FXCollections.observableArrayList(speciesList));
 			}
 			else if(targetRegion.equals(tuf)) {
+				tufLoaded = true;
 				tufTable.setEditable(true);
 				TableColumn tuf_tcSpecies = tufTable.getColumns().get(0);
 				TableColumn tuf_tcScore = tufTable.getColumns().get(1);
@@ -778,7 +861,17 @@ public class RootController implements Initializable {
 				tufTable.setItems(FXCollections.observableArrayList(speciesList));
 			}
 			
-
+			//finalTable 
+			finalTable.setEditable(true);
+			TableColumn final_tcSpecies = finalTable.getColumns().get(0);
+			TableColumn final_tcScore = finalTable.getColumns().get(1);
+			final_tcSpecies.setCellValueFactory(new PropertyValueFactory("speciesNameProperty"));
+			final_tcScore.setCellValueFactory(new PropertyValueFactory("scoreProperty"));
+			final_tcSpecies.setCellFactory(TextFieldTableCell.<NTMSpecies>forTableColumn());
+			finalTable.setItems(FXCollections.observableArrayList(getFinalList()));
+			
+			
+			
 			
 			speciesTable.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
 				@Override

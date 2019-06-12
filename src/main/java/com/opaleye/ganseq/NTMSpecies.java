@@ -24,6 +24,7 @@ public class NTMSpecies implements Comparable<NTMSpecies> {
 			return -1;
 		else return s.getQlen()-this.getQlen();		
 	}
+	
 
 	public NTMSpecies(String inputString) {
 		boolean firstLine = true;
@@ -60,6 +61,11 @@ public class NTMSpecies implements Comparable<NTMSpecies> {
 		accessionProperty= new SimpleStringProperty(accession);
 		speciesNameProperty= new SimpleStringProperty(speciesName);
 
+	}
+	
+	public NTMSpecies(String speciesName, String score) {
+		speciesNameProperty= new SimpleStringProperty(speciesName);
+		scoreProperty = new SimpleStringProperty(score);
 	}
 
 

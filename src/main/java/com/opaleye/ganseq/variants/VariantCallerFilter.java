@@ -35,10 +35,10 @@ public class VariantCallerFilter {
 	public TreeSet<Variant> getVariantList() {
 		TreeSet<Variant> ret = makeVariantList();
 
-		if(RootController.filteringOption.equals(SettingsController.ruleBasedFiltering)) {
-			ret = comparisonFilter(ret);
-			ret = compressedPeakFilter(ret);
-		}
+
+		ret = comparisonFilter(ret);
+		ret = compressedPeakFilter(ret);
+
 
 		try {
 			ret = makeHomoDelins(ret);

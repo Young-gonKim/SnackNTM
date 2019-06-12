@@ -536,12 +536,6 @@ public class GanseqTrace {
 		else
 		 */ 
 
-		if(RootController.filteringOption.equals(SettingsController.noFiltering)) {
-			return getTwoPeaks_noFiltering(basePosition, cutOff);
-		}
-		else if (RootController.filteringOption.equals(SettingsController.ruleBasedFiltering)) {
-			return getTwoPeaks_ruleBasedFiltering(basePosition, cutOff);
-		}
 		return getTwoPeaks_ruleBasedFiltering(basePosition, cutOff);
 	}
 

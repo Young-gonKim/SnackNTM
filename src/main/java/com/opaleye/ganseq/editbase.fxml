@@ -4,17 +4,20 @@
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.AnchorPane?>
-
+<?import javafx.scene.text.Font?>
 
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="226.0" prefWidth="184.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.opaleye.ganseq.EditBaseController">
    <children>
-      <Label layoutX="24.0" layoutY="87.0" text="Reference : " />
-      <Label layoutX="24.0" layoutY="116.0" text="Forward : " />
-      <Label layoutX="24.0" layoutY="143.0" text="Reverse : " />
-      <Label fx:id="refLabel" layoutX="93.0" layoutY="87.0" prefHeight="15.0" prefWidth="69.0" text="-" />
-      <ComboBox fx:id="fwdComboBox" layoutX="87.0" layoutY="112.0" prefHeight="23.0" prefWidth="80.0" />
-      <ComboBox fx:id="revComboBox" layoutX="87.0" layoutY="139.0" prefHeight="23.0" prefWidth="80.0" />
-      <Button fx:id="btnConfirm" layoutX="32.0" layoutY="191.0" mnemonicParsing="false" onAction="#handleConfirm" prefHeight="23.0" prefWidth="138.0" text="Confirm" />
-      <Label layoutX="24.0" layoutY="24.0" text="&lt;Edit Base&gt;" />
+      <Label layoutX="24.0" layoutY="71.0" text="Reference : " />
+      <Label layoutX="24.0" layoutY="100.0" text="Forward : " />
+      <Label layoutX="24.0" layoutY="127.0" text="Reverse : " />
+      <Label fx:id="refLabel" layoutX="93.0" layoutY="71.0" prefHeight="15.0" prefWidth="69.0" text="-" />
+      <ComboBox fx:id="fwdComboBox" layoutX="87.0" layoutY="96.0" prefHeight="23.0" prefWidth="80.0" />
+      <ComboBox fx:id="revComboBox" layoutX="87.0" layoutY="123.0" prefHeight="23.0" prefWidth="80.0" />
+      <Button fx:id="btnConfirm" layoutX="32.0" layoutY="175.0" mnemonicParsing="false" onAction="#handleConfirm" prefHeight="23.0" prefWidth="138.0" text="Confirm" />
+      <Label layoutX="23.0" layoutY="22.0" text="Edit Base">
+         <font>
+            <Font size="16.0" />
+         </font></Label>
    </children>
 </AnchorPane>

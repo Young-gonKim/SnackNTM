@@ -23,33 +23,9 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
 public class SettingsController implements Initializable  {
-	@FXML private TextField tf_secondPeakCutoff;
 	@FXML private TextField tf_gapOpenPenalty;
-	@FXML private TextField tf_filterQualityCutoff;
-	@FXML private TextField tf_trainStartFileNo;
-	@FXML private TextField tf_testStartFileNo;
-
-	@FXML private ComboBox filteringComboBox;
-
 
 	@FXML private Label gapOpenDesc;
-	@FXML private Label doublePeakLabel;
-	@FXML private Label qualityCutoffLabel;
-
-	public static final String noFiltering = "No filtering";
-	public static final String ruleBasedFiltering = "Rule based";
-	//public static final String AIBasedFiltering = "AI based";
-
-	//for test data generation
-	private static int trainCsvCounter = 0;
-	private static int testCsvCounter = 0;
-	private static File baseDir = new File("../../chromatogram");
-	private static File baseTrainDir = new File(baseDir, "train");
-	private static File featuresDirTrain = new File(baseTrainDir, "features");
-	private static File labelsDirTrain = new File(baseTrainDir, "labels");
-	private static File baseTestDir = new File(baseDir, "test");
-	private static File featuresDirTest = new File(baseTestDir, "features");
-	private static File labelsDirTest = new File(baseTestDir, "labels");
 
 	private RootController rootController = null;
 	private Stage primaryStage;
@@ -58,7 +34,6 @@ public class SettingsController implements Initializable  {
 
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
-		filteringComboBox.getItems().addAll(noFiltering, ruleBasedFiltering);
 	}
 
 	public void setRootController(RootController rootController) {
@@ -69,43 +44,21 @@ public class SettingsController implements Initializable  {
 		this.primaryStage = primaryStage;
 	}
 
-	public void initValues(double secondPeakCutoff, int gapOpenPenalty, int filterQualityCutoff, String filteringOption) {
+	public void initValues(int gapOpenPenalty) {
 		gapOpenDesc.setWrapText(true);
-		doublePeakLabel.setWrapText(true);
-		qualityCutoffLabel.setWrapText(true);
-
-		tf_trainStartFileNo.setText(String.format("%d",  trainCsvCounter));
-		tf_testStartFileNo.setText(String.format("%d",  testCsvCounter));
-
-		tf_secondPeakCutoff.setText(String.format("%.2f",  secondPeakCutoff));
 		tf_gapOpenPenalty.setText(String.format("%d",  gapOpenPenalty));
-		tf_filterQualityCutoff.setText(String.format("%d", filterQualityCutoff));
-
-		filteringComboBox.setValue(filteringOption);
-		//chkboxAIFiltering.setSelected(AIFiltering);
 	}
 
 
 	private void setValues() {
-		double secondPeakCutoff;
 		int gapOpenPenalty;
-		int filterQualityCutoff;
-		String filteringOption;
 
 		try {
-			secondPeakCutoff = Double.parseDouble(tf_secondPeakCutoff.getText());
 			gapOpenPenalty = Integer.parseInt(tf_gapOpenPenalty.getText());
-			filterQualityCutoff = Integer.parseInt(tf_filterQualityCutoff.getText());
-			filteringOption = (String)filteringComboBox.getValue(); 
-
-			if(secondPeakCutoff>1 || secondPeakCutoff <0)
-				throw new NumberFormatException("Cutoff value should be number between 0 and 1");
 			if(gapOpenPenalty <= 0)
 				throw new NumberFormatException("Gap open penalty should be positive integer");
-			if(filterQualityCutoff <= 0)
-				throw new NumberFormatException("FilterQualityCutoff should be positive integer");
 
-			rootController.setProperties(secondPeakCutoff, gapOpenPenalty, filterQualityCutoff, filteringOption);
+			rootController.setProperties(gapOpenPenalty);
 			rootController.handleRemoveFwd();
 			rootController.handleRemoveRev();
 			primaryStage.close();
@@ -133,10 +86,7 @@ public class SettingsController implements Initializable  {
 	}
 
 	public void handleDefault() {
-		tf_secondPeakCutoff.setText("0.20");
 		tf_gapOpenPenalty.setText(String.format("%d",  RootController.defaultGOP));
-		tf_filterQualityCutoff.setText("20");
-		filteringComboBox.setValue(SettingsController.ruleBasedFiltering);
 
 	}
 

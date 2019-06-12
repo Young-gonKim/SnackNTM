@@ -140,7 +140,7 @@ public class Formatter {
 				if(direction == -1 && tempPoint.getRevQuality()<20) {
 					tempPoint.setDiscrepency('+');
 				}
-				*/
+				 */
 			}
 			alignedPoints.add(tempPoint);
 		}
@@ -348,7 +348,7 @@ public class Formatter {
 				if(tempPoint.getFwdQuality()<30 && tempPoint.getRevQuality()<30) {
 					tempPoint.setDiscrepency('+');
 				}
-				*/
+				 */
 			}
 			alignedPoints.add(tempPoint);
 		}
@@ -465,7 +465,8 @@ public class Formatter {
 
 		if(cDnaStart != null && cDnaEnd != null) {
 			cdsIndex = 0;
-			int cDNA = RootController.firstNumber-1;
+			//int cDNA = RootController.firstNumber-1;
+			int cDNA = 0;
 			for(int i=0;i<cDnaStart.size();i++) {
 				intCDnaStart = (cDnaStart.get(i)).intValue();
 				intCDnaEnd = (cDnaEnd.get(i)).intValue();
@@ -506,12 +507,7 @@ public class Formatter {
 				else {
 					if(cdsIndex==0 && i < intCDnaStart) { //5' of first CDS
 						int offSet = intCDnaStart - i;
-						if(RootController.firstNumber > 1) {
-							tempCIndex += RootController.firstNumber + "-" + offSet;
-						}
-						else {
-							tempCIndex += "-" + offSet;
-						}
+						tempCIndex += "-" + offSet;
 					}
 					else if (cdsIndex == cDnaStart.size()-1 && i > intCDnaEnd) { //3' of last CDS
 						int offSet = i-intCDnaEnd;

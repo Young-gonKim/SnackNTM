@@ -217,7 +217,7 @@ public class Indel extends Variant{
 		//equivExpression = makeHGVS(leftAlignedStartIndex, leftAlignedEndIndex);
 		//HGVS = equivExpression.getHGVS();
 
-		if(coding1 && coding2 && RootController.firstNumber == 1) makeAAChange();
+		if(coding1 && coding2) makeAAChange();
 
 		makeTableViewProperties();
 	}

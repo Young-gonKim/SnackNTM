@@ -1,13 +1,5 @@
 <추가기능>
 
-ambiguous : 1개만으로.
-
-
-targetRegion 3개 통합..?
-창을 하나 더 만들어서?
-
-<16S : top 5>
-<rpo : top 5>
 
 combined : 1개
 
@@ -15,6 +7,14 @@ combined : 1개
 excel또는 csv로 output 시키는 버튼 만들기
 
 
+
+
 세로 zoom
+
+
+
+reference 파일 정리. 균종명만 남게 --> SGM, RGM 구분
+(rpo reference 파일 이상함.)
+
 
 * 마지막에 불필요한 기능빼기

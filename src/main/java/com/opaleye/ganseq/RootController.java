@@ -69,29 +69,33 @@ import javafx.stage.StageStyle;
  */
 public class RootController implements Initializable {
 
+	//constants
 	private static final double paneWidth = 907; 
-	
-	
+	private static final String s16 = "16s rRNA";
+	private static final String rpo = "rpo";
+	private static final String tuf = "tuf";
+	public static final int defaultGOP = 30;
+	public static final String version = "1.0";
+	private static final double tableRowHeight = 25.0;
+	private static final String settingsFileName = "settings/settings.properties";
+
+	public static final String[] rapidGrowers = {"M.abscessus_subsp.abscessus", "M.abscessus_subsp.bolletii", "M.agri", "M.aichiense", "M.alvei", "M.aromaticivorans", "M.aubagnense", "M.aurum", "M.austroafricanum", "M.boenickei", "M.brisbanense", "M.brumae", "M.canariasense", "M.chitae", "M.chlorophenolicum", "M.chubuense", "M.confluentis", "M.cosmeticum", "M.crocinum", "M.diernhoferi", "M.duvalii", "M.elephantis", "M.flavescens", "M.fluoranthenivorans", "M.frederiksbergense", "M.gadium", "M.gilvum", "M.goodii", "M.hassiacum", "M.holsaticum", "M.houstonense", "M.immunogenum", "M.insubricum", "M.komossense", "M.llatzerense", "M.madagascariense", "M.mageritense", "M.monacense", "M.moriokaense", "M.mucogenicum", "M.murale", "M.neoaurum", "M.neworleansense", "M.novocastrense", "M.obuense", "M.pallens", "M.parafortuitum", "M.peregrinum", "M.phlei", "M.phocaicum", "M.porcinum", "M.poriferae", "M.psychrotolerans", "M.pyrenivorans", "M.rhodesiae", "M.rufum", "M.rutilum", "M.senegalense", "M.septicum", "M.setense", "M.smegmatis", "M.sphagni", "M.thermoresistibile", "M.tokaiense", "M.vaccae", "M.vanbaalenii"};
+	public static final String[] slowGrowers = {"M.arosiense", "M.avium_subsp.avium", "M.avium_subsp.paratuberculosis", "M.avium_subsp.silvaticum", "M.bohemicum", "M.celatum", "M.chimaera", "M.colombiense", "M.genavense", "M.gordonae", "M.haemophilum", "M.heidelbergense", "M.hiberniae", "M.interjectum", "M.intermedium", "M.intracellulare", "M.kansasii", "M.lentiflavum", "M.malmoense", "M.marinum", "M.nonchromogenicum", "M.scrofulaceum", "M.shimoidei", "M.simiae", "M.szulgai", "M.terrae", "M.ulcerans", "M.vulneris", "M.xenopi"};
+
+
+
+
+	private static int fontSize = 13;
 	//edit base 용
 	private int selectedAlignmentPos = 0;
 
 
-	private static String settingsFileName = "settings/settings.properties";
-	public static final int defaultGOP = 30;
-	public static final String version = "1.0";
-	private static int fontSize = 13;
 
-	private static final String s16 = "16s rRNA";
-	private static final String rpo = "rpo";
-	private static final String tuf = "tuf";
 	private boolean s16Loaded = false;
 	private boolean rpoLoaded = false;
 	private boolean tufLoaded = false;
-	
 	public static String chimaeraSeq = "";
-	
-	
-	
+
 	private String targetRegion = null;
 
 	private Vector<NTMSpecies> speciesList = null;
@@ -190,7 +194,7 @@ public class RootController implements Initializable {
 
 	public void setProperties(int gapOpenPenalty) {
 		RootController.gapOpenPenalty = gapOpenPenalty;
-		
+
 	}
 
 
@@ -217,10 +221,10 @@ public class RootController implements Initializable {
 			return;
 		}
 	}
-	
+
 	public void updateBase(char newFwdChar, char newRevChar) {
 		AlignedPoint ap = alignedPoints.get(selectedAlignmentPos);
-		
+
 		if(fwdLoaded) {
 			trimmedFwdTrace.editBase(ap.getFwdTraceIndex(), ap.getFwdChar(), newFwdChar);
 		}
@@ -229,7 +233,7 @@ public class RootController implements Initializable {
 		}
 		handleRun();
 	}
-	
+
 
 
 	public void handleSettings() {
@@ -277,11 +281,11 @@ public class RootController implements Initializable {
 
 		File file = null;
 		if(targetRegion.equals(s16))
-			file = new File("reference/ref_16s.fasta");
+			file = new File("reference/ref16s.fasta");
 		else if(targetRegion.equals(rpo))
-			file = new File("reference/ref_rpob.fasta");
+			file = new File("reference/refrpob.fasta");
 		else if(targetRegion.equals(tuf))
-			file = new File("reference/ref_tuf.fasta");
+			file = new File("reference/reftuf.fasta");
 
 		StringBuffer buffer = new StringBuffer();
 		String wholeString = "";
@@ -401,21 +405,23 @@ public class RootController implements Initializable {
 		resetParameters();
 	}
 
-	
+
 	public void handleReset() {
+		Vector<NTMSpecies> empty = new Vector<NTMSpecies>();
 		handleRemoveFwd();
 		handleRemoveRev();
-		speciesTable.setItems(null);
-		s16Table.setItems(null);
-		rpoTable.setItems(null);
-		tufTable.setItems(null);
-		finalTable.setItems(null);
+		
+		speciesTable.setItems(FXCollections.observableArrayList(empty));
+		s16Table.setItems(FXCollections.observableArrayList(empty));
+		rpoTable.setItems(FXCollections.observableArrayList(empty));
+		tufTable.setItems(FXCollections.observableArrayList(empty));
+		finalTable.setItems(FXCollections.observableArrayList(empty));
 		s16Loaded = false;
 		rpoLoaded = false;
 		tufLoaded = false;
 	}
 
-	
+
 	/**
 	 * Remove forward trace file
 	 */
@@ -684,24 +690,134 @@ public class RootController implements Initializable {
 		setRange();
 	}
 
-	private Vector<NTMSpecies> getFinalList() {
+	private Vector<NTMSpecies> makeFinalListFromStringList(Vector<String> stringList, boolean hundredFound) {
 		Vector<NTMSpecies> ret = new Vector<NTMSpecies>();
+		String score = null;
+		if(hundredFound)
+			score = "Exact match";
+		else 
+			score = "most closely";
+		
+		for(String speciesName:stringList) {
+			NTMSpecies temp = new NTMSpecies(speciesName, score);
+			ret.add(temp);
+		}
+		
+		return ret;
+		
+	}
+	
+	
+	private Vector<NTMSpecies> getFinalList() {
 		Vector<NTMSpecies> s16List = new Vector<NTMSpecies>(s16Table.getItems());
 		Vector<NTMSpecies> rpoList = new Vector<NTMSpecies>(rpoTable.getItems());
 		Vector<NTMSpecies> tufList = new Vector<NTMSpecies>(tufTable.getItems());
+
+		Vector<String> s16_100List = new Vector<String>();
+		Vector<String> s16_99List = new Vector<String>();
+		Vector<String> rpo_99List = new Vector<String>();
 		
-		if(s16Loaded && !rpoLoaded) {
-			boolean hundredFound = false;
+		Vector<String> retList = new Vector<String>();
+		
+		
+		if(s16Loaded) {
 			for(NTMSpecies ntm : s16List) {
 				if(ntm.getScore() == 100) {
-					hundredFound = true;
+					s16_100List.add(ntm.getSpeciesName());
+				}
+				else { //score < 100
+					if(s16_100List.isEmpty() && ntm.getScore() >= 99)
+						s16_99List.add(ntm.getSpeciesName());
+					else
+						break;
+				}
+			}
+
+			if(rpoLoaded) {
+				for(NTMSpecies ntm : rpoList) {
+					if(ntm.getScore() >= 99) {
+						rpo_99List.add(ntm.getSpeciesName());
+					}
+				}
+			}
+			
+			if(s16_100List.size() == 1) {
+				retList = s16_100List;
+			}
+			else if(s16_100List.size() >1) {
+				//s16_100List 중에서 rpo 젤 높은거 (rpo 99넘으면서)
+			}
+			else {	//16s 100%일치 하나도 없음.
+				
+				if(s16_99List.size() == 1) {
+					retList = s16_99List;
+				}
+				else if(s16_99List.size() >1) {
+					//s16_99List 중에서 rpo 젤 높은거 (rpo 99넘으면서)
+				}
+				else {	//16s 99%넘는것도 하나도 없음.
+					
+				}
+			}
+				
+			
+			return makeFinalListFromStringList(retList, !s16_100List.isEmpty());
+			
+			
+			
+		}
+		else { //s16 not loaded
+			return makeFinalListFromStringList(retList, false);
+			
+		}
+		
+		
+/*
+		if(!s16Loaded) return ret;
+
+		int s16_100Cnt = 0, s16_99Cnt = 0;
+		int rpo_100Cnt = 0, rpo_99Cnt = 0;
+		
+		for(NTMSpecies ntm : s16List) {
+			if(ntm.getScore() == 100) {
+				s16_100Cnt++;
+				NTMSpecies temp = new NTMSpecies(ntm.getSpeciesName(), "Exact match");
+				ret.add(temp);
+			}
+			else { //score < 100
+				if(s16_100Cnt > 0) 
+					break;
+				else if (ntm.getScore() >= 99) {
+					s16_99Cnt++;
+					NTMSpecies temp = new NTMSpecies(ntm.getSpeciesName(), "most closely");
+					ret.add(temp);
+				}
+				else
+					break;
+			}
+		}
+		
+		//16s rRNA만으로 끝나는 경우 아래 두가지
+		if(s16_100Cnt == 1) 
+			return ret;
+		if(s16_100Cnt == 0 && s16_99Cnt ==1) {
+			return ret;
+		}
+		
+		//16s rRNA만으로 판단할 수 없는경우 rpo로 해결
+		if(rpoLoaded) {
+
+			for(NTMSpecies ntm : rpoList) {
+				if(ntm.getScore() == 100) {
+					rpo_100Cnt++;
 					NTMSpecies temp = new NTMSpecies(ntm.getSpeciesName(), "Exact match");
 					ret.add(temp);
 				}
-				else {
-					if(hundredFound) 
+				else { //score < 100
+					if(rpo_100Cnt > 0) 
 						break;
 					else if (ntm.getScore() >= 99) {
+						rpo_99Cnt++;
 						NTMSpecies temp = new NTMSpecies(ntm.getSpeciesName(), "most closely");
 						ret.add(temp);
 					}
@@ -709,23 +825,13 @@ public class RootController implements Initializable {
 						break;
 				}
 			}
-		}
-		else if(s16Loaded && rpoLoaded && !tufLoaded) {
+
 			
 		}
-		else if(s16Loaded && rpoLoaded && tufLoaded) {
-			
-		}
+*/
 		
-/*
-		for(NTMSpecies ntm:ret) {
-			System.out.println("ret : " + ntm.getSpeciesName());
-		}
-		*/
-		
-		return ret;
 	}
-	
+
 	/**
 	 * Performs alignment, Detects variants, Shows results
 	 */
@@ -758,7 +864,7 @@ public class RootController implements Initializable {
 				removeList.add(thisSpecies);
 				continue;
 			}
-			
+
 			//너무 짧게 align된 것들은 버림.
 			int inputLength = 0;
 			if(fwdLoaded && !revLoaded) 
@@ -767,7 +873,7 @@ public class RootController implements Initializable {
 				inputLength = trimmedRevTrace.getSequenceLength();
 			else if (fwdLoaded && revLoaded)	 
 				inputLength = Integer.max(trimmedFwdTrace.getSequenceLength(),  trimmedRevTrace.getSequenceLength());
-			
+
 			double alignedPortion = alignedPoints.size() / (double)inputLength;
 			if(alignedPortion < 0.5) {
 				removeList.add(thisSpecies);
@@ -790,7 +896,7 @@ public class RootController implements Initializable {
 				removeList.add(thisSpecies);
 				continue;
 			}
-			
+
 			//System.out.println("score : " + d_score);
 			thisSpecies.setScore(d_score);
 			thisSpecies.setQlen(alignedPoints.size());
@@ -812,7 +918,7 @@ public class RootController implements Initializable {
 				popUp(ex.getMessage());
 				ex.printStackTrace();
 			}
-			
+
 			printAlignedResult();
 
 			speciesTable.setEditable(true);
@@ -838,7 +944,7 @@ public class RootController implements Initializable {
 				s16_tcScore.setCellValueFactory(new PropertyValueFactory("scoreProperty"));
 				s16_tcSpecies.setCellFactory(TextFieldTableCell.<NTMSpecies>forTableColumn());
 				s16Table.setItems(FXCollections.observableArrayList(speciesList));
-				
+
 			}
 			else if(targetRegion.equals(rpo)) {
 				rpoLoaded = true;
@@ -860,7 +966,13 @@ public class RootController implements Initializable {
 				tuf_tcSpecies.setCellFactory(TextFieldTableCell.<NTMSpecies>forTableColumn());
 				tufTable.setItems(FXCollections.observableArrayList(speciesList));
 			}
-			
+
+			speciesTable.setFixedCellSize(tableRowHeight);
+			s16Table.setFixedCellSize(tableRowHeight);
+			rpoTable.setFixedCellSize(tableRowHeight);
+			tufTable.setFixedCellSize(tableRowHeight);
+			finalTable.setFixedCellSize(tableRowHeight);
+
 			//finalTable 
 			finalTable.setEditable(true);
 			TableColumn final_tcSpecies = finalTable.getColumns().get(0);
@@ -869,10 +981,7 @@ public class RootController implements Initializable {
 			final_tcScore.setCellValueFactory(new PropertyValueFactory("scoreProperty"));
 			final_tcSpecies.setCellFactory(TextFieldTableCell.<NTMSpecies>forTableColumn());
 			finalTable.setItems(FXCollections.observableArrayList(getFinalList()));
-			
-			
-			
-			
+
 			speciesTable.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
 				@Override
 				public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
@@ -1360,7 +1469,7 @@ public class RootController implements Initializable {
 		}
 	}
 
-	
+
 
 	/**
 	 * Getters for member variables

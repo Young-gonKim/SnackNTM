@@ -39,8 +39,8 @@ public class NTMSpecies implements Comparable<NTMSpecies> {
 				if(thisChar == '\n') {
 					firstLine = false;
 					String[] tokens = s_firstLine.split("\\|");
-					accession = tokens[3];
-					speciesName = tokens[4];
+					accession = tokens[1];
+					speciesName = tokens[3];
 				}
 				else {
 					s_firstLine += thisChar;

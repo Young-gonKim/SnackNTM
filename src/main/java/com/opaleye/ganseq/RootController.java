@@ -410,7 +410,7 @@ public class RootController implements Initializable {
 		Vector<NTMSpecies> empty = new Vector<NTMSpecies>();
 		handleRemoveFwd();
 		handleRemoveRev();
-		
+
 		speciesTable.setItems(FXCollections.observableArrayList(empty));
 		s16Table.setItems(FXCollections.observableArrayList(empty));
 		rpoTable.setItems(FXCollections.observableArrayList(empty));
@@ -697,17 +697,17 @@ public class RootController implements Initializable {
 			score = "Exact match";
 		else 
 			score = "most closely";
-		
+
 		for(String speciesName:stringList) {
 			NTMSpecies temp = new NTMSpecies(speciesName, score);
 			ret.add(temp);
 		}
-		
+
 		return ret;
-		
+
 	}
-	
-	
+
+
 	private Vector<NTMSpecies> getFinalList() {
 		Vector<NTMSpecies> s16List = new Vector<NTMSpecies>(s16Table.getItems());
 		Vector<NTMSpecies> rpoList = new Vector<NTMSpecies>(rpoTable.getItems());
@@ -715,121 +715,45 @@ public class RootController implements Initializable {
 
 		Vector<String> s16_100List = new Vector<String>();
 		Vector<String> s16_99List = new Vector<String>();
-		Vector<String> rpo_99List = new Vector<String>();
-		
+		Vector<String> rpo_cutoffList = new Vector<String>();
+		Vector<String> tuf_99List = new Vector<String>();
+
 		Vector<String> retList = new Vector<String>();
-		
-		
+
 		if(s16Loaded) {
 			for(NTMSpecies ntm : s16List) {
-				if(ntm.getScore() == 100) {
+				if(ntm.getScore() == 100) 
 					s16_100List.add(ntm.getSpeciesName());
-				}
-				else { //score < 100
-					if(s16_100List.isEmpty() && ntm.getScore() >= 99)
-						s16_99List.add(ntm.getSpeciesName());
-					else
-						break;
-				}
+				else if(ntm.getScore() >= 99)
+					s16_99List.add(ntm.getSpeciesName());
+				else 
+					break;
 			}
 
 			if(rpoLoaded) {
-				for(NTMSpecies ntm : rpoList) {
-					if(ntm.getScore() >= 99) {
-						rpo_99List.add(ntm.getSpeciesName());
-					}
-				}
+				for(NTMSpecies ntm : rpoList) 
+					if(ntm.getScore() >= 99) 
+						rpo_cutoffList.add(ntm.getSpeciesName());
 			}
-			
-			if(s16_100List.size() == 1) {
+
+			if(tufLoaded) {
+				for(NTMSpecies ntm : tufList) 
+					if(ntm.getScore() >= 99) 
+						tuf_99List.add(ntm.getSpeciesName());
+			}
+
+			if(!s16_100List.isEmpty()) 
 				retList = s16_100List;
-			}
-			else if(s16_100List.size() >1) {
-				//s16_100List 중에서 rpo 젤 높은거 (rpo 99넘으면서)
-			}
-			else {	//16s 100%일치 하나도 없음.
-				
-				if(s16_99List.size() == 1) {
-					retList = s16_99List;
-				}
-				else if(s16_99List.size() >1) {
-					//s16_99List 중에서 rpo 젤 높은거 (rpo 99넘으면서)
-				}
-				else {	//16s 99%넘는것도 하나도 없음.
-					
-				}
-			}
-				
+			else if(!s16_99List.isEmpty())
+				retList = s16_99List;
 			
-			return makeFinalListFromStringList(retList, !s16_100List.isEmpty());
-			
-			
-			
-		}
-		else { //s16 not loaded
-			return makeFinalListFromStringList(retList, false);
-			
-		}
-		
-		
-/*
-		if(!s16Loaded) return ret;
-
-		int s16_100Cnt = 0, s16_99Cnt = 0;
-		int rpo_100Cnt = 0, rpo_99Cnt = 0;
-		
-		for(NTMSpecies ntm : s16List) {
-			if(ntm.getScore() == 100) {
-				s16_100Cnt++;
-				NTMSpecies temp = new NTMSpecies(ntm.getSpeciesName(), "Exact match");
-				ret.add(temp);
-			}
-			else { //score < 100
-				if(s16_100Cnt > 0) 
-					break;
-				else if (ntm.getScore() >= 99) {
-					s16_99Cnt++;
-					NTMSpecies temp = new NTMSpecies(ntm.getSpeciesName(), "most closely");
-					ret.add(temp);
-				}
-				else
-					break;
+			if(retList.size() > 1 && rpoLoaded) {
+				retList.retainAll(rpo_cutoffList);
+				if(retList.size() > 1 && tufLoaded)
+					retList.retainAll(tuf_99List);
 			}
 		}
-		
-		//16s rRNA만으로 끝나는 경우 아래 두가지
-		if(s16_100Cnt == 1) 
-			return ret;
-		if(s16_100Cnt == 0 && s16_99Cnt ==1) {
-			return ret;
-		}
-		
-		//16s rRNA만으로 판단할 수 없는경우 rpo로 해결
-		if(rpoLoaded) {
-
-			for(NTMSpecies ntm : rpoList) {
-				if(ntm.getScore() == 100) {
-					rpo_100Cnt++;
-					NTMSpecies temp = new NTMSpecies(ntm.getSpeciesName(), "Exact match");
-					ret.add(temp);
-				}
-				else { //score < 100
-					if(rpo_100Cnt > 0) 
-						break;
-					else if (ntm.getScore() >= 99) {
-						rpo_99Cnt++;
-						NTMSpecies temp = new NTMSpecies(ntm.getSpeciesName(), "most closely");
-						ret.add(temp);
-					}
-					else
-						break;
-				}
-			}
-
-			
-		}
-*/
-		
+		return makeFinalListFromStringList(retList, !s16_100List.isEmpty());
 	}
 
 	/**

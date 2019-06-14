@@ -8,6 +8,7 @@ import java.net.URL;
 import java.util.Collections;
 import java.util.Properties;
 import java.util.ResourceBundle;
+import java.util.TreeSet;
 import java.util.Vector;
 
 import com.opaleye.ganseq.mmalignment.AlignedPair;
@@ -16,7 +17,6 @@ import com.opaleye.ganseq.reference.ReferenceSeq;
 import com.opaleye.ganseq.settings.SettingsController;
 import com.opaleye.ganseq.tools.TooltipDelay;
 import com.opaleye.ganseq.variants.Indel;
-import com.opaleye.ganseq.variants.Variant;
 
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -30,20 +30,17 @@ import javafx.geometry.Insets;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -78,12 +75,12 @@ public class RootController implements Initializable {
 	public static final String version = "1.0";
 	private static final double tableRowHeight = 25.0;
 	private static final String settingsFileName = "settings/settings.properties";
+	private static final String icSeq = "ATCGACGAAGGTCCGGGTTTTCTCGGATT";
+	private static final String chSeq = "ATCGACGAAGGTTCGGGTTTTCTCGGATT";
+	
 
-	public static final String[] rapidGrowers = {"M.abscessus_subsp.abscessus", "M.abscessus_subsp.bolletii", "M.agri", "M.aichiense", "M.alvei", "M.aromaticivorans", "M.aubagnense", "M.aurum", "M.austroafricanum", "M.boenickei", "M.brisbanense", "M.brumae", "M.canariasense", "M.chitae", "M.chlorophenolicum", "M.chubuense", "M.confluentis", "M.cosmeticum", "M.crocinum", "M.diernhoferi", "M.duvalii", "M.elephantis", "M.flavescens", "M.fluoranthenivorans", "M.frederiksbergense", "M.gadium", "M.gilvum", "M.goodii", "M.hassiacum", "M.holsaticum", "M.houstonense", "M.immunogenum", "M.insubricum", "M.komossense", "M.llatzerense", "M.madagascariense", "M.mageritense", "M.monacense", "M.moriokaense", "M.mucogenicum", "M.murale", "M.neoaurum", "M.neworleansense", "M.novocastrense", "M.obuense", "M.pallens", "M.parafortuitum", "M.peregrinum", "M.phlei", "M.phocaicum", "M.porcinum", "M.poriferae", "M.psychrotolerans", "M.pyrenivorans", "M.rhodesiae", "M.rufum", "M.rutilum", "M.senegalense", "M.septicum", "M.setense", "M.smegmatis", "M.sphagni", "M.thermoresistibile", "M.tokaiense", "M.vaccae", "M.vanbaalenii"};
-	public static final String[] slowGrowers = {"M.arosiense", "M.avium_subsp.avium", "M.avium_subsp.paratuberculosis", "M.avium_subsp.silvaticum", "M.bohemicum", "M.celatum", "M.chimaera", "M.colombiense", "M.genavense", "M.gordonae", "M.haemophilum", "M.heidelbergense", "M.hiberniae", "M.interjectum", "M.intermedium", "M.intracellulare", "M.kansasii", "M.lentiflavum", "M.malmoense", "M.marinum", "M.nonchromogenicum", "M.scrofulaceum", "M.shimoidei", "M.simiae", "M.szulgai", "M.terrae", "M.ulcerans", "M.vulneris", "M.xenopi"};
-
-
-
+	public static TreeSet<String> rgmSet = new TreeSet<String>(); 
+	public static TreeSet<String> sgmSet = new TreeSet<String>();
 
 	private static int fontSize = 13;
 	//edit base 용
@@ -101,11 +98,10 @@ public class RootController implements Initializable {
 	private Vector<NTMSpecies> speciesList = null;
 
 	@FXML private ScrollPane  fwdPane, revPane, alignmentPane, newAlignmentPane;
-	@FXML private Label fwdTraceFileLabel, revTraceFileLabel;
+	@FXML private Label fwdTraceFileLabel, revTraceFileLabel, icSeqLabel, chimaeraSeqLabel;
 	@FXML private Button removeRef, removeFwd, removeRev, removeVariant;
 	@FXML private ComboBox cb_targetRegion;
 	@FXML private Button btnEditBase;
-
 	@FXML private Button btn_settings;
 	//@FXML private ImageView fwdRuler, revRuler;
 	@FXML private TableView<NTMSpecies> speciesTable, s16Table, rpoTable, tufTable, finalTable;
@@ -278,14 +274,8 @@ public class RootController implements Initializable {
 		speciesList = new Vector<NTMSpecies>();
 		targetRegion = (String)cb_targetRegion.getValue();
 
-
-		File file = null;
-		if(targetRegion.equals(s16))
-			file = new File("reference/ref16s.fasta");
-		else if(targetRegion.equals(rpo))
-			file = new File("reference/refrpob.fasta");
-		else if(targetRegion.equals(tuf))
-			file = new File("reference/reftuf.fasta");
+		//read rgm list
+		File file = new File("reference/rgm.txt");
 
 		StringBuffer buffer = new StringBuffer();
 		String wholeString = "";
@@ -298,13 +288,63 @@ public class RootController implements Initializable {
 			}
 			wholeString = buffer.toString();
 
-			String[] tokens = wholeString.split(">");
-
-			/*
+			String[] tokens = wholeString.split("\n");
 			for(String token:tokens) {
-				System.out.println(token + "\n\n\n");
+				token = token.trim();
+				rgmSet.add(token);
 			}
-			 */
+
+		}catch (Exception ex) {
+			ex.printStackTrace();
+			throw new Exception("Error in reading rgm.txt");
+		}
+
+
+		//read sgm list
+		file = new File("reference/sgm.txt");
+
+		buffer = new StringBuffer();
+		wholeString = "";
+
+		try (FileReader fileReader = new FileReader(file)){
+			int ch;
+			while ((ch = fileReader.read()) != -1) {
+				char readChar = (char) ch;
+				buffer.append(readChar);
+			}
+			wholeString = buffer.toString();
+
+			String[] tokens = wholeString.split("\n");
+			for(String token:tokens) {
+				token = token.trim();
+				sgmSet.add(token);
+			}
+
+		}catch (Exception ex) {
+			ex.printStackTrace();
+			throw new Exception("Error in reading sgm.txt");
+		}
+
+		file = null;
+		if(targetRegion.equals(s16))
+			file = new File("reference/ref16s.fasta");
+		else if(targetRegion.equals(rpo))
+			file = new File("reference/refrpob.fasta");
+		else if(targetRegion.equals(tuf))
+			file = new File("reference/reftuf.fasta");
+
+		buffer = new StringBuffer();
+		wholeString = "";
+
+		try (FileReader fileReader = new FileReader(file)){
+			int ch;
+			while ((ch = fileReader.read()) != -1) {
+				char readChar = (char) ch;
+				buffer.append(readChar);
+			}
+			wholeString = buffer.toString();
+
+			String[] tokens = wholeString.split(">");
 
 			//  맨앞에 공백 한칸 들어감 --> 1부터 시작 
 			for(int i=1;i<tokens.length;i++) {
@@ -316,11 +356,9 @@ public class RootController implements Initializable {
 			ex.printStackTrace();
 			throw new Exception("Error in reading reference file");
 		}
+
+
 	}
-
-
-
-
 
 	/** 
 	 * Open forward trace file and opens trim.fxml with that file
@@ -391,7 +429,8 @@ public class RootController implements Initializable {
 			fwdPane.setContent(imageView);
 			//fwdRuler.setImage(trimmedFwdTrace.getRulerImage());
 
-			String fileName = fwdTraceFile.getAbsolutePath();
+			String fileName = fwdTraceFile.getName();
+
 			fwdTraceFileLabel.setText(fileName);
 			fwdLoaded = true;
 		}
@@ -500,7 +539,7 @@ public class RootController implements Initializable {
 			revPane.setContent(imageView);
 
 			//revRuler.setImage(trimmedRevTrace.getRulerImage());
-			String fileName = revTraceFile.getAbsolutePath();
+			String fileName = revTraceFile.getName();
 			revTraceFileLabel.setText(fileName);
 			revLoaded = true;
 
@@ -690,70 +729,81 @@ public class RootController implements Initializable {
 		setRange();
 	}
 
-	private Vector<NTMSpecies> makeFinalListFromStringList(Vector<String> stringList, boolean hundredFound) {
-		Vector<NTMSpecies> ret = new Vector<NTMSpecies>();
-		String score = null;
-		if(hundredFound)
-			score = "Exact match";
-		else 
-			score = "most closely";
-
-		for(String speciesName:stringList) {
-			NTMSpecies temp = new NTMSpecies(speciesName, score);
-			ret.add(temp);
-		}
-
-		return ret;
-
-	}
-
-
 	private Vector<NTMSpecies> getFinalList() {
 		Vector<NTMSpecies> s16List = new Vector<NTMSpecies>(s16Table.getItems());
 		Vector<NTMSpecies> rpoList = new Vector<NTMSpecies>(rpoTable.getItems());
 		Vector<NTMSpecies> tufList = new Vector<NTMSpecies>(tufTable.getItems());
 
-		Vector<String> s16_100List = new Vector<String>();
-		Vector<String> s16_99List = new Vector<String>();
-		Vector<String> rpo_cutoffList = new Vector<String>();
-		Vector<String> tuf_99List = new Vector<String>();
-
-		Vector<String> retList = new Vector<String>();
+		Vector<NTMSpecies> s16_100List = new Vector<NTMSpecies>();
+		Vector<NTMSpecies> retList = new Vector<NTMSpecies>();
 
 		if(s16Loaded) {
 			for(NTMSpecies ntm : s16List) {
 				if(ntm.getScore() == 100) 
-					s16_100List.add(ntm.getSpeciesName());
-				else if(ntm.getScore() >= 99)
-					s16_99List.add(ntm.getSpeciesName());
+					s16_100List.add(ntm);
 				else 
 					break;
 			}
 
-			if(rpoLoaded) {
-				for(NTMSpecies ntm : rpoList) 
-					if(ntm.getScore() >= 99) 
-						rpo_cutoffList.add(ntm.getSpeciesName());
-			}
-
-			if(tufLoaded) {
-				for(NTMSpecies ntm : tufList) 
-					if(ntm.getScore() >= 99) 
-						tuf_99List.add(ntm.getSpeciesName());
-			}
-
-			if(!s16_100List.isEmpty()) 
+			//100 match 하는 것들 있으면 이것만 대상으로 함.
+			String strScore = "";
+			if(!s16_100List.isEmpty()) { 
 				retList = s16_100List;
-			else if(!s16_99List.isEmpty())
-				retList = s16_99List;
-			
-			if(retList.size() > 1 && rpoLoaded) {
-				retList.retainAll(rpo_cutoffList);
-				if(retList.size() > 1 && tufLoaded)
-					retList.retainAll(tuf_99List);
+				strScore = "Exact match";
 			}
+			else {
+				retList = s16List;
+				strScore = "most closely";
+			}
+
+			if(retList.size() > 1 && rpoLoaded) {
+				retList.retainAll(rpoList);
+				if(retList.size() > 1 && tufLoaded)
+					retList.retainAll(tufList);
+			}
+			
+			Vector<NTMSpecies> tempList = new Vector<NTMSpecies>();
+			boolean specificSeq = false;
+			for(NTMSpecies ntm : retList) {
+				if(ntm.getSpeciesName().equals("Mycobacterium_intracellulare") || ntm.getSpeciesName().equals("Mycobacterium_chimaera"))
+					specificSeq = true;
+				NTMSpecies temp = new NTMSpecies(ntm.getSpeciesName(), strScore);
+				tempList.add(temp);
+			}
+			retList = tempList;
+			
+			icSeqLabel.setText("");
+			chimaeraSeqLabel.setText("");
+			
+			if(specificSeq) {
+				boolean containsIcSeq = false;
+				boolean containsChSeq = false;
+				if(fwdLoaded) {
+					if(trimmedFwdTrace.getSequence().contains(icSeq)) 
+						containsIcSeq = true;
+					if(trimmedFwdTrace.getSequence().contains(chSeq)) 
+						containsChSeq = true;
+				}
+				if(revLoaded) {
+					if(trimmedRevTrace.getSequence().contains(icSeq)) 
+						containsIcSeq = true;
+					if(trimmedRevTrace.getSequence().contains(chSeq)) 
+						containsChSeq = true;
+				}
+				if(containsIcSeq)
+					icSeqLabel.setText("M. intracellularae specific sequence : O");
+				else
+					icSeqLabel.setText("M. intracellularae specific sequence : X");
+				if(containsChSeq)
+					chimaeraSeqLabel.setText("M. chimaera specific sequence : O");
+				else
+					chimaeraSeqLabel.setText("M. chimaera specific sequence : X");
+
+				
+			}
+			
 		}
-		return makeFinalListFromStringList(retList, !s16_100List.isEmpty());
+		return retList;
 	}
 
 	/**
@@ -809,8 +859,30 @@ public class RootController implements Initializable {
 			double d_score = 0;
 			for(int j=0;j<alignedPoints.size();j++) {
 				AlignedPoint ap = alignedPoints.get(j);
-				if(ap.getDiscrepency()!='*') i_score++;
+				if(fwdLoaded && revLoaded) {
+					if(j<startRange-1) {
+						if(ap.getRefChar()==ap.getRevChar())
+							i_score++;
+					}
+					else if(j>=startRange-1 && j<=endRange-1) {
+						char base = 'N';
+						if(ap.getFwdQuality()>=ap.getRevQuality())
+							base = ap.getFwdChar();
+						else
+							base = ap.getRevChar();
+						if(base == ap.getRefChar())
+							i_score++;
+					}
+					else {
+						if(ap.getRefChar()==ap.getFwdChar())
+							i_score++;
+					}
+				}
+				else {
+					if(ap.getDiscrepency()!='*') i_score++;
+				}
 			}
+
 			if(alignedPoints.size() != 0)
 				d_score = (double)i_score / alignedPoints.size();
 			d_score*=100;
@@ -825,7 +897,8 @@ public class RootController implements Initializable {
 			thisSpecies.setScore(d_score);
 			thisSpecies.setQlen(alignedPoints.size());
 		}
-		speciesList.removeAll(removeList);	//align 안된 것들은 remove
+
+		speciesList.removeAll(removeList);	//align 안된 것들, score 낮은것들 remove
 
 		if(speciesList.size()>0) 
 			Collections.sort(speciesList);
@@ -850,14 +923,30 @@ public class RootController implements Initializable {
 			TableColumn tcAccession = speciesTable.getColumns().get(1);
 			TableColumn tcQlen = speciesTable.getColumns().get(2);
 			TableColumn tcScore = speciesTable.getColumns().get(3);
+			TableColumn tcRgm = speciesTable.getColumns().get(4);
 
 			tcSpecies.setCellValueFactory(new PropertyValueFactory("speciesNameProperty"));
 			tcAccession.setCellValueFactory(new PropertyValueFactory("accessionProperty"));
 			tcQlen.setCellValueFactory(new PropertyValueFactory("qlenProperty"));
 			tcScore.setCellValueFactory(new PropertyValueFactory("scoreProperty"));
+			tcRgm.setCellValueFactory(new PropertyValueFactory("rgmProperty"));
 
 			tcSpecies.setCellFactory(TextFieldTableCell.<NTMSpecies>forTableColumn());
 			speciesTable.setItems(FXCollections.observableArrayList(speciesList));
+
+			Vector<NTMSpecies> selectedSpeciesList = new Vector<NTMSpecies>();
+			for(NTMSpecies ntm:speciesList) {
+				double cutoff = 99;
+				if(targetRegion.equals(rpo)) {
+					if(ntm.isRgm()) 
+						cutoff = 98.3;
+					else cutoff = 99.3;
+				}
+				if(ntm.getScore() >= cutoff)
+					selectedSpeciesList.add(ntm);
+				else
+					break;
+			}
 
 			if(targetRegion.equals(s16)) {
 				s16Loaded = true;
@@ -867,8 +956,7 @@ public class RootController implements Initializable {
 				s16_tcSpecies.setCellValueFactory(new PropertyValueFactory("speciesNameProperty"));
 				s16_tcScore.setCellValueFactory(new PropertyValueFactory("scoreProperty"));
 				s16_tcSpecies.setCellFactory(TextFieldTableCell.<NTMSpecies>forTableColumn());
-				s16Table.setItems(FXCollections.observableArrayList(speciesList));
-
+				s16Table.setItems(FXCollections.observableArrayList(selectedSpeciesList));
 			}
 			else if(targetRegion.equals(rpo)) {
 				rpoLoaded = true;
@@ -878,7 +966,7 @@ public class RootController implements Initializable {
 				rpo_tcSpecies.setCellValueFactory(new PropertyValueFactory("speciesNameProperty"));
 				rpo_tcScore.setCellValueFactory(new PropertyValueFactory("scoreProperty"));
 				rpo_tcSpecies.setCellFactory(TextFieldTableCell.<NTMSpecies>forTableColumn());
-				rpoTable.setItems(FXCollections.observableArrayList(speciesList));
+				rpoTable.setItems(FXCollections.observableArrayList(selectedSpeciesList));
 			}
 			else if(targetRegion.equals(tuf)) {
 				tufLoaded = true;
@@ -888,7 +976,7 @@ public class RootController implements Initializable {
 				tuf_tcSpecies.setCellValueFactory(new PropertyValueFactory("speciesNameProperty"));
 				tuf_tcScore.setCellValueFactory(new PropertyValueFactory("scoreProperty"));
 				tuf_tcSpecies.setCellFactory(TextFieldTableCell.<NTMSpecies>forTableColumn());
-				tufTable.setItems(FXCollections.observableArrayList(speciesList));
+				tufTable.setItems(FXCollections.observableArrayList(selectedSpeciesList));
 			}
 
 			speciesTable.setFixedCellSize(tableRowHeight);
@@ -1336,7 +1424,32 @@ public class RootController implements Initializable {
 			int tempFwdPos = selectedFwdPos;
 
 			BufferedImage awtImage = null;
-			if(fwdGap == true) awtImage = trimmedFwdTrace.getShadedImage(0,0,0);
+			if(fwdGap == true) {
+				if(revLoaded)
+					awtImage = trimmedFwdTrace.getShadedImage(0,0,0);
+				else {
+					int endPoint = selectedFwdPos;
+					for(int i=selectedAlignmentPos;i<alignedPoints.size();i++) {
+						AlignedPoint ap = alignedPoints.get(i);
+						if(ap.getFwdChar()!=Formatter.gapChar) {
+							endPoint = ap.getFwdTraceIndex();
+							break;
+						}
+					}
+					
+					int startPoint = selectedFwdPos;
+					for(int i=selectedAlignmentPos;i>=0;i--) {
+						AlignedPoint ap = alignedPoints.get(i);
+						if(ap.getFwdChar()!=Formatter.gapChar) {
+							startPoint = ap.getFwdTraceIndex();
+							break;
+						}
+					}
+					awtImage = trimmedFwdTrace.getShadedImage(2,startPoint-1,endPoint-1);
+				}
+
+
+			}
 			else awtImage = trimmedFwdTrace.getShadedImage(1, tempFwdPos-1, tempFwdPos-1);
 
 			javafx.scene.image.Image fxImage = SwingFXUtils.toFXImage(awtImage, null);

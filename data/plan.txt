@@ -1,16 +1,7 @@
+test
 
-rgm sgm 이름 정리 --> rpo 적용 (그 전엔 일단 99%로)
-
-reference 파일정리. 특히 tuf
- 
-
-excel또는 csv로 output 시키는 버튼 만들기
-
+*향후
 세로 zoom
-edit base할때 공백인거 클릭하면 focus2 적용해주기..
-
-reference 파일 정리. 균종명만 남게 --> SGM, RGM 구분
-
-
-* 마지막에 불필요한 기능빼기
+excel또는 csv로 output 시키는 버튼 만들기
+마지막에 불필요한 기능빼기
 

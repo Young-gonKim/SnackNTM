@@ -63,50 +63,54 @@
       <TableColumn prefWidth="180" text="Accession" />
       <TableColumn prefWidth="50" text="qLen" />
       <TableColumn prefWidth="50" text="Score" />
+      <TableColumn prefWidth="50" text="RGM" />
       </columns>
       </TableView>
       </ScrollPane>
       <Accordion />
       <AnchorPane layoutX="930.0" layoutY="2.0" prefHeight="827.0" prefWidth="300.0">
          <children>
-            <Label layoutX="7.0" layoutY="35.0" prefHeight="15.0" prefWidth="98.0" text="By 16s rRNA" />
-            <Label layoutX="13.0" layoutY="201.0" text="by rpo" />
-            <Label layoutX="15.0" layoutY="406.0" text="by tuf" />
-            <TableView fx:id="s16Table" layoutX="7.0" layoutY="58.0" prefHeight="136.0" prefWidth="283.0">
-              <columns>
-                <TableColumn prefWidth="210.0" text="Species" />
-                <TableColumn prefWidth="73.0" text="Score" />
-              </columns>
-            </TableView>
             <Label layoutX="7.0" layoutY="12.0" prefHeight="21.0" prefWidth="207.0" text="Identification Result">
                <font>
                   <Font name="System Bold" size="16.0" />
                </font>
             </Label>
-            <Label layoutX="6.0" layoutY="608.0" prefHeight="15.0" prefWidth="119.0" text="Combined">
+            <Label layoutX="7.0" layoutY="45.0" prefHeight="15.0" prefWidth="150.0" text="By 16s rRNA (over 99%)" />
+            <Label layoutX="7.0" layoutY="220.0" text="by rpo (over 99.3% for SGM, over 98.3% for RGM)" />
+            <Label layoutX="7.0" layoutY="395.0" text="by tuf (over 99%)" />
+            <Label layoutX="7.0" layoutY="570.0" prefHeight="15.0" prefWidth="119.0" text="Combined">
                <font>
                   <Font name="System Bold" size="15.0" />
                </font>
             </Label>
-            <TableView fx:id="rpoTable" layoutX="7.0" layoutY="222.0" prefHeight="170.0" prefWidth="283.0">
+            
+            <TableView fx:id="s16Table" layoutX="7.0" layoutY="60.0" prefHeight="150.0" prefWidth="283.0">
+              <columns>
+                <TableColumn prefWidth="210.0" text="Species" />
+                <TableColumn prefWidth="73.0" text="Score" />
+              </columns>
+            </TableView>
+            <TableView fx:id="rpoTable" layoutX="7.0" layoutY="235.0" prefHeight="150.0" prefWidth="283.0">
                <columns>
                 <TableColumn prefWidth="210.0" text="Species" />
                 <TableColumn prefWidth="73.0" text="Score" />
                </columns>
             </TableView>
-            <TableView fx:id="tufTable" layoutX="9.0" layoutY="432.0" prefHeight="170.0" prefWidth="283.0">
+            <TableView fx:id="tufTable" layoutX="9.0" layoutY="410.0" prefHeight="150.0" prefWidth="283.0">
                <columns>
                 <TableColumn prefWidth="210.0" text="Species" />
                 <TableColumn prefWidth="73.0" text="Score" />
                </columns>
             </TableView>
-            <TableView fx:id="finalTable" layoutX="7.0" layoutY="629.0" prefHeight="195.0" prefWidth="283.0">
+            <TableView fx:id="finalTable" layoutX="7.0" layoutY="585.0" prefHeight="150.0" prefWidth="283.0">
                <columns>
                 <TableColumn prefWidth="200.0" text="Species" />
                 <TableColumn prefWidth="83.0" text="Score" />
                </columns>
             </TableView>
             <Button fx:id="btnReset" layoutX="171.0" layoutY="11.0" mnemonicParsing="false" onAction="#handleReset" prefHeight="43.0" prefWidth="116.0" text="Reset (New case)" />
+            <Label fx:id="icSeqLabel" layoutX="14.0" layoutY="750.0" prefHeight="15.0" prefWidth="280.0" />
+            <Label fx:id="chimaeraSeqLabel" layoutX="14.0" layoutY="770.0" prefHeight="15.0" prefWidth="280.0" />
          </children>
       </AnchorPane>
       <Label layoutX="14.0" layoutY="613.0" prefHeight="18.0" prefWidth="150.0" text="Result">

@@ -10,19 +10,29 @@ public class NTMSpecies implements Comparable<NTMSpecies> {
 	private ReferenceSeq refSeq = null;
 	private double score = 0;
 	private int qlen = 0;
+	private boolean rgm = false;
 
 	protected SimpleStringProperty accessionProperty;
 	protected SimpleStringProperty speciesNameProperty;
 	protected SimpleStringProperty scoreProperty;
 	protected SimpleStringProperty qlenProperty;
+	protected SimpleStringProperty rgmProperty;
 
+	
+	//removeAll, retainAll 구현용
 	@Override
-	public int compareTo(NTMSpecies s) {
-		if (this.score < s.getScore()) 
+	public boolean equals(Object o) {
+		NTMSpecies ntm = (NTMSpecies)o;
+		return this.speciesName.equals(ntm.getSpeciesName());
+	}
+	
+	@Override
+	public int compareTo(NTMSpecies ntm) {
+		if (this.score < ntm.getScore()) 
 			return 1;
-		else if (this.score > s.getScore()) 
+		else if (this.score > ntm.getScore()) 
 			return -1;
-		else return s.getQlen()-this.getQlen();		
+		else return ntm.getQlen()-this.getQlen();		
 	}
 	
 
@@ -40,7 +50,12 @@ public class NTMSpecies implements Comparable<NTMSpecies> {
 					firstLine = false;
 					String[] tokens = s_firstLine.split("\\|");
 					accession = tokens[1];
-					speciesName = tokens[2];
+					speciesName = tokens[3];
+					speciesName = speciesName.trim();
+					System.out.println(speciesName);
+					if(RootController.rgmSet.contains(speciesName)) {
+						rgm = true;
+					}
 				}
 				else {
 					s_firstLine += thisChar;
@@ -60,6 +75,10 @@ public class NTMSpecies implements Comparable<NTMSpecies> {
 		//System.out.println(String.format("%s, %s\n%s\n\n\n\n", accession, speciesName, refSeq.getRefString()));
 		accessionProperty= new SimpleStringProperty(accession);
 		speciesNameProperty= new SimpleStringProperty(speciesName);
+		if(rgm) 
+			rgmProperty = new SimpleStringProperty("O");
+		else
+			rgmProperty = new SimpleStringProperty("");
 
 	}
 	
@@ -112,7 +131,7 @@ public class NTMSpecies implements Comparable<NTMSpecies> {
 		this.score = score;
 		scoreProperty = new SimpleStringProperty(String.format("%.2f",  score));
 	}
-
+	
 	public String getSpeciesNameProperty() {
 		return speciesNameProperty.get();
 	}
@@ -124,9 +143,19 @@ public class NTMSpecies implements Comparable<NTMSpecies> {
 	public String getScoreProperty() {
 		return scoreProperty.get();
 	}
+	
+	public void setScoreProperty(String score) {
+		scoreProperty = new SimpleStringProperty(score);
+	}
 
 	public String getQlenProperty() {
 		return qlenProperty.get();
 	}
+	public String getRgmProperty() {
+		return rgmProperty.get();
+	}
 
+	public boolean isRgm() {
+		return rgm;
+	}
 }

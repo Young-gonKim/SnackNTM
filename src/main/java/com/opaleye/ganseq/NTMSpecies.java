@@ -52,7 +52,7 @@ public class NTMSpecies implements Comparable<NTMSpecies> {
 					accession = tokens[1];
 					speciesName = tokens[3];
 					speciesName = speciesName.trim();
-					System.out.println(speciesName);
+					//System.out.println(speciesName);
 					if(RootController.rgmSet.contains(speciesName)) {
 						rgm = true;
 					}

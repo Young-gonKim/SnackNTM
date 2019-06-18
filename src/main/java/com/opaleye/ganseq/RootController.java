@@ -75,8 +75,8 @@ public class RootController implements Initializable {
 	public static final String version = "1.0";
 	private static final double tableRowHeight = 25.0;
 	private static final String settingsFileName = "settings/settings.properties";
-	private static final String icSeq = "ATCGACGAAGGTCCGGGTTTTCTCGGATT";
-	private static final String chSeq = "ATCGACGAAGGTTCGGGTTTTCTCGGATT";
+	private static String icSeq = "ATCGACGAAGGTCCGGGTTTTCTCGGATT";
+	private static String chSeq = "ATCGACGAAGGTTCGGGTTTTCTCGGATT";
 	
 
 	public static TreeSet<String> rgmSet = new TreeSet<String>(); 
@@ -91,7 +91,6 @@ public class RootController implements Initializable {
 	private boolean s16Loaded = false;
 	private boolean rpoLoaded = false;
 	private boolean tufLoaded = false;
-	public static String chimaeraSeq = "";
 
 	private String targetRegion = null;
 
@@ -159,7 +158,8 @@ public class RootController implements Initializable {
 		try {
 			props.load(new FileInputStream(settingsFileName));
 			fontSize = Integer.parseInt(props.getProperty("fontsize"));
-			chimaeraSeq = props.getProperty("chimaera");
+			chSeq = props.getProperty("chimaera");
+			icSeq = props.getProperty("intracellularae");
 		}
 		catch(Exception e) {
 			e.printStackTrace();
@@ -184,7 +184,14 @@ public class RootController implements Initializable {
 	private void readDefaultProperties() {
 		cb_targetRegion.getItems().addAll(s16, rpo, tuf);
 		cb_targetRegion.setValue(s16);
-
+		cb_targetRegion.valueProperty().addListener(new ChangeListener<String>() {
+	        @Override public void changed(ObservableValue ov, String t, String t1) {
+				handleRemoveFwd();
+				handleRemoveRev();
+				speciesTable.setItems(FXCollections.observableArrayList(new Vector<NTMSpecies>()));
+	        }    
+	    });
+		
 		gapOpenPenalty = defaultGOP;
 	}
 
@@ -775,7 +782,7 @@ public class RootController implements Initializable {
 			icSeqLabel.setText("");
 			chimaeraSeqLabel.setText("");
 			
-			if(specificSeq) {
+			if(specificSeq && targetRegion.equals(s16)) {
 				boolean containsIcSeq = false;
 				boolean containsChSeq = false;
 				if(fwdLoaded) {
@@ -859,6 +866,8 @@ public class RootController implements Initializable {
 			double d_score = 0;
 			for(int j=0;j<alignedPoints.size();j++) {
 				AlignedPoint ap = alignedPoints.get(j);
+				
+				/*
 				if(fwdLoaded && revLoaded) {
 					if(j<startRange-1) {
 						if(ap.getRefChar()==ap.getRevChar())
@@ -870,7 +879,7 @@ public class RootController implements Initializable {
 							base = ap.getFwdChar();
 						else
 							base = ap.getRevChar();
-						if(base == ap.getRefChar())
+						if(base == ap.getRefChar()) 
 							i_score++;
 					}
 					else {
@@ -881,6 +890,8 @@ public class RootController implements Initializable {
 				else {
 					if(ap.getDiscrepency()!='*') i_score++;
 				}
+				*/
+				if(ap.getDiscrepency()!='*') i_score++;
 			}
 
 			if(alignedPoints.size() != 0)
@@ -1217,8 +1228,6 @@ public class RootController implements Initializable {
 		if(fwdTraceIndex > trimmedFwdTrace.getBaseCalls().length)
 			fwdTraceIndex = trimmedFwdTrace.getBaseCalls().length;
 		double coordinate = Formatter.fwdStartOffset + trimmedFwdTrace.getBaseCalls()[fwdTraceIndex-1]*2;
-		System.out.println("fwdTrace Index : " + fwdTraceIndex);
-		System.out.println("p = " + coordinate);
 		double hValue = (coordinate - paneWidth/2) / (Formatter.fwdNewLength - paneWidth);
 		fwdPane.setHvalue(hValue);
 	}
@@ -1233,8 +1242,6 @@ public class RootController implements Initializable {
 			revTraceIndex = trimmedRevTrace.getBaseCalls().length;
 
 		double coordinate = Formatter.revStartOffset + trimmedRevTrace.getBaseCalls()[revTraceIndex-1]*2;
-		System.out.println("revTrace Index : " + revTraceIndex);
-		System.out.println("p = " + coordinate);
 
 		double hValue = (coordinate - paneWidth/2) / (Formatter.revNewLength - paneWidth);
 		revPane.setHvalue(hValue);
@@ -1265,8 +1272,6 @@ public class RootController implements Initializable {
 	 */
 	public void focus2(Indel indel) {
 		//다 1부터 시작하는 좌표
-		System.out.println("fwd loaded : " + fwdLoaded);
-		System.out.println("rev loaded : " + revLoaded);
 		int startAlignmentPos=0, endAlignmentPos=0;	
 		int startFwdTracePos=0, endFwdTracePos=0;
 		int startRevTracePos=0, endRevTracePos=0;
@@ -1297,7 +1302,7 @@ public class RootController implements Initializable {
 			endOffset = 1;
 
 
-		System.out.println(String.format("g1 : %d, g2 : %d",  indel.getgIndex(), indel.getgIndex2()));
+		//System.out.println(String.format("g1 : %d, g2 : %d",  indel.getgIndex(), indel.getgIndex2()));
 
 		while(indel.getAlignmentIndex()-1+counter < alignedPoints.size()) {
 			ap2 = alignedPoints.get(indel.getAlignmentIndex()-1+counter);
@@ -1425,9 +1430,7 @@ public class RootController implements Initializable {
 
 			BufferedImage awtImage = null;
 			if(fwdGap == true) {
-				if(revLoaded)
-					awtImage = trimmedFwdTrace.getShadedImage(0,0,0);
-				else {
+				/*
 					int endPoint = selectedFwdPos;
 					for(int i=selectedAlignmentPos;i<alignedPoints.size();i++) {
 						AlignedPoint ap = alignedPoints.get(i);
@@ -1446,9 +1449,9 @@ public class RootController implements Initializable {
 						}
 					}
 					awtImage = trimmedFwdTrace.getShadedImage(2,startPoint-1,endPoint-1);
-				}
-
-
+					*/
+				awtImage = trimmedFwdTrace.getShadedImage(3,tempFwdPos-1,tempFwdPos-1);
+				
 			}
 			else awtImage = trimmedFwdTrace.getShadedImage(1, tempFwdPos-1, tempFwdPos-1);
 
@@ -1473,8 +1476,36 @@ public class RootController implements Initializable {
 
 			int tempRevPos = selectedRevPos;
 			BufferedImage awtImage2 = null;
-			if(revGap == true) awtImage2 = trimmedRevTrace.getShadedImage(0,0,0);
-			else awtImage2 = trimmedRevTrace.getShadedImage(1, tempRevPos-1, tempRevPos-1);
+			
+			
+			if(revGap == true) {
+				/*
+				int endPoint = selectedRevPos;
+				for(int i=selectedAlignmentPos;i<alignedPoints.size();i++) {
+					AlignedPoint ap = alignedPoints.get(i);
+					if(ap.getRevChar()!=Formatter.gapChar) {
+						endPoint = ap.getRevTraceIndex();
+						break;
+					}
+				}
+				
+				int startPoint = selectedRevPos;
+				for(int i=selectedAlignmentPos;i>=0;i--) {
+					AlignedPoint ap = alignedPoints.get(i);
+					if(ap.getRevChar()!=Formatter.gapChar) {
+						startPoint = ap.getRevTraceIndex();
+						break;
+					}
+				}
+				awtImage2 = trimmedRevTrace.getShadedImage(2,startPoint-1,endPoint-1);
+				//awtImage2 = trimmedRevTrace.getShadedImage(0,0,0);
+				*/
+			
+				awtImage2 = trimmedRevTrace.getShadedImage(3,tempRevPos-1,tempRevPos-1);
+			}
+			
+			else 
+				awtImage2 = trimmedRevTrace.getShadedImage(1, tempRevPos-1, tempRevPos-1);
 			javafx.scene.image.Image fxImage2 = SwingFXUtils.toFXImage(awtImage2, null);
 			ImageView imageView2 = new ImageView(fxImage2);
 			revPane.setContent(imageView2);

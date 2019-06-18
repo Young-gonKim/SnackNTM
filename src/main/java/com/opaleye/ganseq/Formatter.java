@@ -201,7 +201,7 @@ public class Formatter {
 		Vector<AlignedPoint> alignedPoints = new Vector<AlignedPoint>();
 
 		//앞쪽에 fwd, rev 중 하나만 있는 영역
-		//fwd가 앞에 튀어나온 경우
+		//fwd가 앞에 튀어나온 경우 
 		if(fwdRefPos < revRefPos) {
 
 			//fwd와 rev가 너무 멀리 떨어져 있어서 겹치는 부분 없을 경우 (그냥 두면 ArrayIndexOutofBoundsException 발생)
@@ -213,12 +213,17 @@ public class Formatter {
 				char fwdRefChar = fwdRefSeq[fwdAlignmentPos];
 				char fwdTraceChar = fwdTraceSeq[fwdAlignmentPos];
 				char revTraceChar = gapChar;
+				
+				char discrepency = ' ';
+				if(fwdRefChar == gapChar || fwdRefChar != fwdTraceChar)
+					discrepency = '*';
+				
 
 				AlignedPoint tempPoint = null;
 				if(fwdRefChar == gapChar)
-					tempPoint = new AlignedPoint (fwdRefChar, fwdTraceChar, revTraceChar, ' ', fwdRefPos-1, fwdTracePos+1, revTracePos+1);
+					tempPoint = new AlignedPoint (fwdRefChar, fwdTraceChar, revTraceChar, discrepency, fwdRefPos-1, fwdTracePos+1, revTracePos+1);
 				else {
-					tempPoint = new AlignedPoint (fwdRefChar, fwdTraceChar, revTraceChar, ' ', fwdRefPos++, fwdTracePos+1, revTracePos+1);
+					tempPoint = new AlignedPoint (fwdRefChar, fwdTraceChar, revTraceChar, discrepency, fwdRefPos++, fwdTracePos+1, revTracePos+1);
 				}
 
 				if(fwdTraceChar!=gapChar) {
@@ -246,12 +251,15 @@ public class Formatter {
 				char revRefChar = revRefSeq[revAlignmentPos];
 				char revTraceChar = revTraceSeq[revAlignmentPos];
 				char fwdTraceChar = gapChar;
-
+				char discrepency = ' ';
+				if(revRefChar == gapChar || revRefChar != revTraceChar)
+					discrepency = '*';
+				
 				AlignedPoint tempPoint = null;
 				if(revRefChar == gapChar)
-					tempPoint = new AlignedPoint (revRefChar, fwdTraceChar, revTraceChar, ' ', revRefPos-1, fwdTracePos+1, revTracePos+1);
+					tempPoint = new AlignedPoint (revRefChar, fwdTraceChar, revTraceChar, discrepency, revRefPos-1, fwdTracePos+1, revTracePos+1);
 				else {
-					tempPoint = new AlignedPoint (revRefChar, fwdTraceChar, revTraceChar, ' ', revRefPos++, fwdTracePos+1, revTracePos+1);
+					tempPoint = new AlignedPoint (revRefChar, fwdTraceChar, revTraceChar, discrepency, revRefPos++, fwdTracePos+1, revTracePos+1);
 				}
 
 				if(revTraceChar!=gapChar) {
@@ -286,8 +294,28 @@ public class Formatter {
 			//homozygous insertion 없음. 
 			if(fwdRefChar == revRefChar && fwdRefChar != gapChar) {
 				char discrepency = ' ';
-				if(fwdRefChar!=fwdTraceChar || revRefChar != revTraceChar)
+				char base = 'N';
+
+				int fwdQ = 0, revQ = 0;
+				
+				//fwd, rev 중에 Q값 높은쪽으로 판단.
+				//reference가 gap 아니니까 gap이면 quality 0으로 줘서 선택 안되게..
+				if(fwdTraceChar!=gapChar) {
+					fwdQ = fwdTrace.getQCalls()[fwdTracePos];
+				}
+				if(revTraceChar!=gapChar) {
+					revQ = revTrace.getQCalls()[revTracePos];
+				}
+
+				if(fwdQ >= revQ) 
+					base = fwdTraceChar;
+				else 
+					base = revTraceChar;
+				
+				if(fwdRefChar != base)	//fwdRefChar와 revRefchar는 어차피 같음. (저~~위에 if)
 					discrepency = '*';
+				
+				
 				tempPoint = new AlignedPoint (fwdRefChar, fwdTraceChar, revTraceChar, discrepency, fwdRefPos, fwdTracePos+1, revTracePos+1);
 				if(fwdTraceChar!=gapChar) {
 					tempPoint.setFwdQuality(fwdTrace.getQCalls()[fwdTracePos]);
@@ -364,11 +392,15 @@ public class Formatter {
 				char fwdTraceChar = fwdTraceSeq[fwdAlignmentPos];
 				char revTraceChar = gapChar;
 
+				char discrepency = ' ';
+				if(refChar == gapChar || refChar != fwdTraceChar)
+					discrepency = '*';
+				
 				AlignedPoint tempPoint = null;
 				if(refChar == gapChar) 
-					tempPoint = new AlignedPoint (refChar, fwdTraceChar, revTraceChar, ' ', fwdRefPos-1, fwdTracePos+1, revTracePos);
+					tempPoint = new AlignedPoint (refChar, fwdTraceChar, revTraceChar, discrepency, fwdRefPos-1, fwdTracePos+1, revTracePos);
 				else
-					tempPoint = new AlignedPoint (refChar, fwdTraceChar, revTraceChar, ' ', fwdRefPos++, fwdTracePos+1, revTracePos);
+					tempPoint = new AlignedPoint (refChar, fwdTraceChar, revTraceChar, discrepency, fwdRefPos++, fwdTracePos+1, revTracePos);
 
 				if(fwdTraceChar!=gapChar) {
 					tempPoint.setFwdQuality(fwdTrace.getQCalls()[fwdTracePos]);
@@ -391,11 +423,15 @@ public class Formatter {
 				char fwdTraceChar = gapChar;
 				char revTraceChar = revTraceSeq[revAlignmentPos];
 
+				char discrepency = ' ';
+				if(refChar == gapChar || refChar != revTraceChar)
+					discrepency = '*';
+				
 				AlignedPoint tempPoint = null;
 				if(refChar == gapChar) 
-					tempPoint = new AlignedPoint (refChar, fwdTraceChar, revTraceChar, ' ', revRefPos-1, fwdTracePos, revTracePos+1);
+					tempPoint = new AlignedPoint (refChar, fwdTraceChar, revTraceChar, discrepency, revRefPos-1, fwdTracePos, revTracePos+1);
 				else
-					tempPoint = new AlignedPoint (refChar, fwdTraceChar, revTraceChar, ' ', revRefPos++, fwdTracePos, revTracePos+1);
+					tempPoint = new AlignedPoint (refChar, fwdTraceChar, revTraceChar, discrepency, revRefPos++, fwdTracePos, revTracePos+1);
 
 				if(revTraceChar!=gapChar) {
 					tempPoint.setRevQuality(revTrace.getQCalls()[revTracePos]);

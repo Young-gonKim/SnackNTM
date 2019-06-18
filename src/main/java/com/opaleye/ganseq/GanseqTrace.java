@@ -114,8 +114,7 @@ public class GanseqTrace {
 
 
 	public void editBase(int pos, char oldBase, char newBase) {
-
-		System.out.println("Pos : " + pos);
+		if(oldBase == newBase) return;
 
 		pos--; //1부터 시작하는 index이므로
 
@@ -144,7 +143,6 @@ public class GanseqTrace {
 		else if(newBase == Formatter.gapChar) {
 			sequence = sequence.substring(0, pos) + sequence.substring(pos+1, sequence.length());
 			sequenceLength--;
-
 
 			int[] tempQcalls = new int[sequenceLength];
 			int[] tempBasecalls = new int[sequenceLength];
@@ -368,6 +366,17 @@ public class GanseqTrace {
 
 			return image;
 		}
+		
+		else if (option == 3) {
+			
+			g.setColor(Color.BLUE);
+			g.setComposite(AlphaComposite.SrcOver.derive(0.2f));
+			g.fillRect(startOffset + (baseCalls[startPosition]-8) * traceWidth, 0, 4*traceWidth, traceHeight+30);
+
+			return image;
+		}
+		
+		
 		else 
 			return image;
 	}
@@ -704,97 +713,6 @@ public class GanseqTrace {
 		return new TwoPeaks(SymbolTools.numberToBase(maxIndex), SymbolTools.numberToBase(secondMaxIndex), maxValue, secondMaxValue, secondPeakExist);
 	}
 
-	/*
-	public TwoPeaks getTwoPeaks_LSTM(int basePosition, double cutOff) {
-		int baseHeights[] = new int [4];
-		int position = baseCalls[basePosition];
-		char originalBase = sequence.charAt(basePosition);
-		boolean secondPeakExist = false;
-
-		boolean[] truePeak = new boolean[4];
-		//앞뒤로 10칸 안나오면 그냥 filtering 안함 --> 다 true로.
-		//0,1,2,3 : ATGC
-		if(!LSTMOutput.LSTMLoaded || position < LSTMLength || position >= traceLength-LSTMLength) {
-			truePeak [0] = true;
-			truePeak [1] = true;
-			truePeak [2] = true;
-			truePeak [3] = true;
-		}
-		else {
-			float[] ATraceArray = new float[LSTMLength*2+1];
-			float[] TTraceArray = new float[LSTMLength*2+1];
-			float[] GTraceArray = new float[LSTMLength*2+1];
-			float[] CTraceArray = new float[LSTMLength*2+1];
-
-			int counter = 0;
-			for(int i=position-LSTMLength;i<=position+LSTMLength;i++) {
-				ATraceArray[counter] = traceA[i];
-				TTraceArray[counter] = traceT[i];
-				GTraceArray[counter] = traceG[i];
-				CTraceArray[counter] = traceC[i];
-				counter++;
-			}
-
-			truePeak[0] = LSTMOutput.predict(ATraceArray);
-			truePeak[1] = LSTMOutput.predict(TTraceArray);
-			truePeak[2] = LSTMOutput.predict(GTraceArray);
-			truePeak[3] = LSTMOutput.predict(CTraceArray);
-		}
-
-		//all false -> all true (so now at least one true peak exists) 
-		if(truePeak[0] == false && truePeak[1] == false && truePeak[2] == false && truePeak[3] == false) {
-			truePeak [0] = true;
-			truePeak [1] = true;
-			truePeak [2] = true;
-			truePeak [3] = true;
-		}
-
-		Vector symbolList = SymbolTools.IUPACtoSymbolList(originalBase);
-		//KB에서 결과가 1개짜리 or 2개짜리일때 : call 된 애들은 무조건 살려주기.
-		if(symbolList.size() ==1 || symbolList.size() ==2) {
-			for(int i=0;i<4;i++) {
-				if(symbolList.contains(Character.toString(SymbolTools.numberToBase(i)))) 
-					truePeak[i] = true;
-			}
-		}
-
-		baseHeights[0] = traceA[position];
-		baseHeights[1] = traceT[position];
-		baseHeights[2] = traceG[position];
-		baseHeights[3] = traceC[position];
-
-		//System.out.println(String.format("A:%b, T:%b, G:%b, C:%b", truePeak[0], truePeak[1],truePeak[2],truePeak[3]));
-
-		int maxValue = -1, secondMaxValue = -1;
-		int maxIndex = 0, secondMaxIndex = 0;
-
-		for(int j=0;j<4;j++) {
-			if(truePeak[j] && baseHeights[j] > maxValue) {
-				maxValue = baseHeights[j];
-				maxIndex = j;
-			}
-		}
-
-		for(int j=0;j<4;j++) {
-			if(j == maxIndex) continue;
-			if(truePeak[j] && baseHeights[j] > secondMaxValue) {
-				secondMaxValue = baseHeights[j];
-				secondMaxIndex = j;
-			}
-		}
-
-
-		if(maxValue != 0 && (secondMaxValue / (double)maxValue >= cutOff)) {
-			secondPeakExist = true;
-
-
-		}
-		return new TwoPeaks(SymbolTools.numberToBase(maxIndex), SymbolTools.numberToBase(secondMaxIndex), maxValue, secondMaxValue, secondPeakExist);
-	}
-
-	 */
-
-
 
 	/**
 	 * Replaces symbols with corresponding ambiguous symbols where second peak exist
@@ -831,7 +749,7 @@ public class GanseqTrace {
 		int ret = -1;
 		final int windowSize = 10;
 		int qualitySearchLength = 200;
-		final int scoreCutOff = 25;
+		final int scoreCutOff = 30;
 		boolean qualityPointFound = false;
 
 		qualitySearchLength = Integer.min(qualitySearchLength,  sequenceLength-windowSize);
@@ -904,7 +822,7 @@ public class GanseqTrace {
 		int ret = traceLength*traceWidth;
 		final int windowSize = 10;
 		int qScoreSearchLength = 200;	// 일단 무한대
-		final int scoreCutOff = 25;
+		final int scoreCutOff = 30;
 		boolean qualityPointFound = false;
 
 

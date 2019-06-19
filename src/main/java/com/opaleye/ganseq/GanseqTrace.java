@@ -748,8 +748,8 @@ public class GanseqTrace {
 		int scoreTrimPosition = -1;
 		int ret = -1;
 		final int windowSize = 10;
-		int qualitySearchLength = 200;
-		final int scoreCutOff = 30;
+		int qualitySearchLength = 2000;	//일단 무한대
+		final int scoreCutOff = 35;
 		boolean qualityPointFound = false;
 
 		qualitySearchLength = Integer.min(qualitySearchLength,  sequenceLength-windowSize);
@@ -821,8 +821,8 @@ public class GanseqTrace {
 		int scoreTrimPosition = traceLength*traceWidth;
 		int ret = traceLength*traceWidth;
 		final int windowSize = 10;
-		int qScoreSearchLength = 200;	// 일단 무한대
-		final int scoreCutOff = 30;
+		int qScoreSearchLength = 2000;	// 일단 무한대
+		final int scoreCutOff = 35;
 		boolean qualityPointFound = false;
 
 

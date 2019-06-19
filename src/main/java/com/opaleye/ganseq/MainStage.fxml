@@ -119,5 +119,6 @@
          </font>
       </Label>
       <Separator layoutX="926.0" layoutY="-6.0" orientation="VERTICAL" prefHeight="847.0" prefWidth="0.0" />
+      <Button layoutX="793.0" layoutY="606.0" mnemonicParsing="false" onAction="#handleCSV" prefHeight="23.0" prefWidth="126.0" text="Generate CSV" />
    </children>
 </AnchorPane>

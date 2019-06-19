@@ -86,6 +86,8 @@ public class RootController implements Initializable {
 	//edit base 용
 	private int selectedAlignmentPos = 0;
 
+	
+	private String csvContents = "";
 
 
 	private boolean s16Loaded = false;
@@ -189,6 +191,7 @@ public class RootController implements Initializable {
 				handleRemoveFwd();
 				handleRemoveRev();
 				speciesTable.setItems(FXCollections.observableArrayList(new Vector<NTMSpecies>()));
+				csvContents = "";
 	        }    
 	    });
 		
@@ -273,7 +276,7 @@ public class RootController implements Initializable {
 		endRange = 0;		
 		fwdHeteroTrace = null; 
 		revHeteroTrace = null;
-		//speciesTable.getItems().clear();
+
 	}
 
 
@@ -457,6 +460,7 @@ public class RootController implements Initializable {
 		handleRemoveFwd();
 		handleRemoveRev();
 
+		csvContents = "";
 		speciesTable.setItems(FXCollections.observableArrayList(empty));
 		s16Table.setItems(FXCollections.observableArrayList(empty));
 		rpoTable.setItems(FXCollections.observableArrayList(empty));
@@ -671,6 +675,32 @@ public class RootController implements Initializable {
 	}
 
 
+	public void handleCSV() {
+		Stage dialog = new Stage(StageStyle.DECORATED);
+		dialog.initOwner(primaryStage);
+		dialog.setTitle("CSV");
+		Parent parent;
+		try {
+			parent = FXMLLoader.load(getClass().getResource("csv.fxml"));
+			TextArea ta_csv = (TextArea)parent.lookup("#ta_csv");
+
+
+			ta_csv.setText(csvContents);
+			Button okButton = (Button) parent.lookup("#okButton");
+			okButton.setOnAction(event->dialog.close());
+			Scene scene = new Scene(parent);
+
+			dialog.setScene(scene);
+			dialog.setResizable(false);
+			dialog.showAndWait();
+		}
+		catch(Exception ex) {
+			ex.printStackTrace();
+		}
+	}
+	
+	
+	
 	/**
 	 * Shows the message with a popup
 	 * @param message : message to be showen
@@ -697,8 +727,21 @@ public class RootController implements Initializable {
 		catch(Exception ex) {
 			ex.printStackTrace();
 		}
-
 	}
+	
+	
+	
+	private void makeCsvContents() {
+		csvContents = "";
+		for(NTMSpecies ntm : speciesList) {
+			if(ntm.getScore()>=98) {
+				//csvContents += ntm.getQlen() + "\t\t" + ntm.getScoreProperty() + "\t" + ntm.getAccession() + "\t" + ntm.getSpeciesName() + "\n";
+				csvContents += ntm.getQlen() + "\t" + ntm.getScoreProperty() + "\t" + ntm.getAccession() + "\t" + ntm.getSpeciesName() + "\n";
+			}
+		}
+		
+	}
+	
 
 	private void doAlignment(int selectedSpecies) throws Exception{
 		resetParameters();
@@ -944,6 +987,9 @@ public class RootController implements Initializable {
 
 			tcSpecies.setCellFactory(TextFieldTableCell.<NTMSpecies>forTableColumn());
 			speciesTable.setItems(FXCollections.observableArrayList(speciesList));
+			
+			makeCsvContents();
+			
 
 			Vector<NTMSpecies> selectedSpeciesList = new Vector<NTMSpecies>();
 			for(NTMSpecies ntm:speciesList) {

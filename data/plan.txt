@@ -1,7 +1,9 @@
-test
+batch : SNU specific 파일이름으로 일단. 
+6개 한번에 읽어 이름으로 구분하기 && 파일이름 매칭 안된것 수동으로 매칭. trimming은 일단 자동으로 하고 edit trimming 할 수 있게. 
+qLen : fwd, rev 두개 붙인다음 그 길이로. (다 똑같이 나오게) 
+
 
 *향후
 세로 zoom
-excel또는 csv로 output 시키는 버튼 만들기
-마지막에 불필요한 기능빼기
+불필요한 기능빼기
 

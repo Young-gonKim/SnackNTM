@@ -1,14 +1,35 @@
-qLen : fwd, rev 두개 붙인다음 그 길이로. (다 똑같이 나오게)
-붙이면 양쪽 끝 짤리는데.. 
---> 길이만 구하면 됨. (앞꼬다리 + align 된 부분 + 뒷꼬다리)
-
-score : (matched / 위에서 구한 길이)
-
 
 batch : SNU specific 파일이름으로 일단. 
-6개 한번에 읽어 이름으로 구분하기 && 파일이름 매칭 안된것 수동으로 매칭. trimming은 일단 자동으로 하고 edit trimming 할 수 있게. 
+6개 한번에 읽어 이름으로 구분하기 && trimming은 일단 자동으로 하고 edit trimming 할 수 있게. 
 
- 
+1) multiple 파일 한꺼번에 선택
+2) 파일이름에 키워드 있는지 (예:16s_F) 여부로 6개로 할당 (일단 이름은 다 잘 붙어있다고 가정) 서울대에서만 쓴다고 가정.
+
+s16_trimmedFwdTrace
+s16_alignedPoints
+등등 모두 
+
+s16, rpo, tuf
+0, 1, 2 배열로??
+no. 로직이 다르니까 그냥 hard coding으로.  
+
+4) run 누르면 자동 trimming, gene 별로 alignment.
+자동trimming 되서 날라가는 애들은?
+없는거지뭐. 
+edit trimming 버튼 눌러보는거지. 
+
+
+
+5) 기본화면 : 16S. comboBox 바꾸면 다른 gene 보여주기
+
+   edit trimming 버튼
+    
+
+똑같이 하되, 3번 반복. 필요한건 저장해두기. 
+edit base할때 : 그 gene 안에서만 doAlignment 다시하기. gene 옮겨다니지 않으니까. 지금있는 그대로 써도 될듯?
+
+
+
 
 
 *향후

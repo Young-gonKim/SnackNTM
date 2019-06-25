@@ -83,6 +83,7 @@ public class RootController implements Initializable {
 	public static TreeSet<String> sgmSet = new TreeSet<String>();
 
 	private static int fontSize = 13;
+	
 	//edit base 용
 	private int selectedAlignmentPos = 0;
 

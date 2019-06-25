@@ -79,7 +79,7 @@
             <Label layoutX="7.0" layoutY="45.0" prefHeight="15.0" prefWidth="150.0" text="By 16s rRNA (over 99%)" />
             <Label layoutX="7.0" layoutY="220.0" text="by rpo (over 99.3% for SGM, over 98.3% for RGM)" />
             <Label layoutX="7.0" layoutY="395.0" text="by tuf (over 99%)" />
-            <Label layoutX="7.0" layoutY="570.0" prefHeight="15.0" prefWidth="119.0" text="Combined">
+            <Label layoutX="7.0" layoutY="570.0" prefHeight="15.0" prefWidth="119.0" text="Conclusion">
                <font>
                   <Font name="System Bold" size="15.0" />
                </font>

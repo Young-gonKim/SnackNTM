@@ -44,7 +44,6 @@ public class TrimController implements Initializable {
 	public void handleConfirm() {
 		try {
 			targetTrace.makeTrimmedTrace(startTrimPosition, endTrimPosition);
-			targetTrace.applyAmbiguousSymbol();
 		}
 		catch(Exception ex) {
 			ex.printStackTrace();

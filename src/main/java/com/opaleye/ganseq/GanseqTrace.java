@@ -47,9 +47,6 @@ public class GanseqTrace {
 	protected int alignedRegionStart = 0;
 	protected int alignedRegionEnd = 0; 
 
-	//originally called by KB basecaller. 
-	private String originalSequence;
-
 
 
 	public GanseqTrace() {};
@@ -494,15 +491,7 @@ public class GanseqTrace {
 			throw new IllegalArgumentException("Failed to make a complement file"); 
 		}
 
-		try {
-			SymbolList tempSeq = DNATools.createDNA(originalSequence);
-			tempSeq = DNATools.reverseComplement(tempSeq);
-			originalSequence = (tempSeq.seqString()).toUpperCase();
-		}
-		catch(Exception ex) {
-			throw new IllegalArgumentException("Failed to make a complement file"); 
-		}
-
+		
 
 		for(int i=0; i<sequenceLength; i++) {
 			newQcalls[i] = qCalls[sequenceLength-1-i];
@@ -713,33 +702,6 @@ public class GanseqTrace {
 		return new TwoPeaks(SymbolTools.numberToBase(maxIndex), SymbolTools.numberToBase(secondMaxIndex), maxValue, secondMaxValue, secondPeakExist);
 	}
 
-
-	/**
-	 * Replaces symbols with corresponding ambiguous symbols where second peak exist
-	 * @author Young-gon Kim
-	 */
-	public void applyAmbiguousSymbol() {
-
-		originalSequence = sequence;
-
-		/*
-		char firstChar = 'N', secondChar = 'N', ambiguousChar = 'N';
-		StringBuffer buffer = new StringBuffer();
-		for(int i=0;i<sequenceLength;i++) {
-			TwoPeaks twoPeaks = getTwoPeaks(i, RootController.secondPeakCutoff);
-			if(twoPeaks.secondPeakExist()) {
-				firstChar = twoPeaks.getFirstBase();
-				secondChar = twoPeaks.getSecondBase();
-				ambiguousChar = SymbolTools.makeAmbiguousSymbol(firstChar, secondChar); 
-				buffer.append(ambiguousChar);
-			}
-			else {	//second peak exist : false일때, twoPeaks에서 1개만 나왔을때 (최소 1개는 나옴...)
-				buffer.append(twoPeaks.getFirstBase());	
-			}
-		}
-		sequence = buffer.toString();
-		 */
-	}
 
 	/**
 	 * @return return값 까지 trimming. -1일 경우 trimming 하지 않음.

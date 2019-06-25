@@ -20,8 +20,7 @@
          <items>
             <HBox prefHeight="33.0" prefWidth="890.0" spacing="10.0">
                <children>
-                  <Button fx:id="OpenFwdTraceButton" mnemonicParsing="false" onAction="#handleOpenFwdTrace" prefHeight="23.0" prefWidth="169.0" text="Open Forward Trace File" />
-                  <Button fx:id="OpenRevTraceButton" mnemonicParsing="false" onAction="#handleOpenRevTrace" prefHeight="23.0" prefWidth="164.0" text="Open Reverse Trace File" />
+                  <Button fx:id="OpenTraceButton" mnemonicParsing="false" onAction="#handleOpenTrace" prefHeight="23.0" prefWidth="169.0" text="Open Trace Files" />
                   <Label prefHeight="15.0" prefWidth="98.0" text="Target Region : " />
                   <ComboBox fx:id="cb_targetRegion" prefWidth="150.0" />
                   <HBox alignment="CENTER_RIGHT" prefHeight="23.0" prefWidth="258.0">
@@ -121,5 +120,7 @@
       </Label>
       <Separator layoutX="926.0" layoutY="-6.0" orientation="VERTICAL" prefHeight="847.0" prefWidth="0.0" />
       <Button layoutX="793.0" layoutY="606.0" mnemonicParsing="false" onAction="#handleCSV" prefHeight="23.0" prefWidth="126.0" text="Generate CSV" />
+      <Button layoutX="660.0" layoutY="198.0" mnemonicParsing="false" onAction="#handleFwdEditTrimming" prefHeight="23.0" prefWidth="126.0" text="Edit Trimming" />
+      <Button layoutX="660.0" layoutY="401.0" mnemonicParsing="false" onAction="#handleRevEditTrimming" prefHeight="23.0" prefWidth="126.0" text="Edit Trimming" />
    </children>
 </AnchorPane>

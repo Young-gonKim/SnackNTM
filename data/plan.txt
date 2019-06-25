@@ -22,11 +22,16 @@ edit trimming 버튼 눌러보는거지.
 
 5) 기본화면 : 16S. comboBox 바꾸면 다른 gene 보여주기
 
-   edit trimming 버튼
+   edit trimming 버튼 : 마지막에 구현.
     
 
 똑같이 하되, 3번 반복. 필요한건 저장해두기. 
-edit base할때 : 그 gene 안에서만 doAlignment 다시하기. gene 옮겨다니지 않으니까. 지금있는 그대로 써도 될듯?
+
+edit base할때 
+- 그 gene 안에서만 doAlignment 다시하기. gene 옮겨다니지 않으니까. 지금있는 그대로 써도 될듯?
+- mainframe 비할성화. edit 하는 도중에 context-switch 되면 안됨.
+
+
 
 
 
@@ -36,3 +41,12 @@ edit base할때 : 그 gene 안에서만 doAlignment 다시하기. gene 옮겨다
 세로 zoom
 불필요한 기능빼기
 
+
+
+<Ganseq for variant에도 반영할것>
+Focus() parameter 줄이기
+
+trimming 창 최상위로 하고 trimmingOngoing (boolean) 사용로직 없애기.
+
+trimming 자동으로 일단 한후 (Hetero indel 있을때를위한 trimming 기준 새로 만들어야겠지)
+edit trimming 버튼

@@ -10,12 +10,14 @@ public class NTMSpecies implements Comparable<NTMSpecies> {
 	private ReferenceSeq refSeq = null;
 	private double score = 0;
 	private int qlen = 0;
+	private int alen = 0;
 	private boolean rgm = false;
 
 	protected SimpleStringProperty accessionProperty;
 	protected SimpleStringProperty speciesNameProperty;
 	protected SimpleStringProperty scoreProperty;
 	protected SimpleStringProperty qlenProperty;
+	protected SimpleStringProperty alenProperty;
 	protected SimpleStringProperty rgmProperty;
 
 	
@@ -32,7 +34,7 @@ public class NTMSpecies implements Comparable<NTMSpecies> {
 			return 1;
 		else if (this.score > ntm.getScore()) 
 			return -1;
-		else return ntm.getQlen()-this.getQlen();		
+		else return ntm.getAlen()-this.getAlen();		
 	}
 	
 
@@ -122,10 +124,20 @@ public class NTMSpecies implements Comparable<NTMSpecies> {
 		return qlen;
 	}
 
+	public int getAlen() {
+		return alen;
+	}
+	
 	public void setQlen(int qlen) {
 		this.qlen = qlen;
 		qlenProperty =  new SimpleStringProperty(String.format("%d",  qlen));
 	}
+	
+	public void setAlen(int alen) {
+		this.alen = alen;
+		alenProperty =  new SimpleStringProperty(String.format("%d",  alen));
+	}
+
 
 	public void setScore(double score) {
 		this.score = score;
@@ -151,6 +163,11 @@ public class NTMSpecies implements Comparable<NTMSpecies> {
 	public String getQlenProperty() {
 		return qlenProperty.get();
 	}
+	
+	public String getAlenProperty() {
+		return alenProperty.get();
+	}
+	
 	public String getRgmProperty() {
 		return rgmProperty.get();
 	}

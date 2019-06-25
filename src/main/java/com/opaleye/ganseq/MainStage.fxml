@@ -59,9 +59,10 @@
       <ScrollPane fx:id="variantListPane" layoutX="14.0" layoutY="631.0" prefHeight="195.0" prefWidth="907.0">
       <TableView fx:id="speciesTable" prefHeight="190" prefWidth="903.0">
       <columns>
-      <TableColumn prefWidth="500" text="Species" />
+      <TableColumn prefWidth="400" text="Species" />
       <TableColumn prefWidth="180" text="Accession" />
-      <TableColumn prefWidth="50" text="qLen" />
+      <TableColumn prefWidth="100" text="queryLength" />
+      <TableColumn prefWidth="100" text="alignedLength" />
       <TableColumn prefWidth="50" text="Score" />
       <TableColumn prefWidth="50" text="RGM" />
       </columns>

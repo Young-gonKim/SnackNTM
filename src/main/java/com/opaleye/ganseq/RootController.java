@@ -237,7 +237,23 @@ public class RootController implements Initializable {
 		if(revLoaded) {
 			trimmedRevTrace.editBase(ap.getRevTraceIndex(), ap.getRevChar(), newRevChar);
 		}
+		
+		//새로 alignment 실행 && 원래 보여주고 있던 곳 보여주기
+		NTMSpecies selectedSpecies = speciesTable.getSelectionModel().getSelectedItem();
+		int oldAlignmentPos = selectedAlignmentPos;
+		String selectedSpeciesName = selectedSpecies.getSpeciesName();
+		//System.out.println("selected species : " + selectedSpeciesName);
+		
 		handleRun();
+		
+		for(int i=0;i<speciesList.size();i++) {
+			NTMSpecies ntm = speciesList.get(i);
+			if(ntm.getSpeciesName().equals(selectedSpeciesName)) {
+				speciesTable.getSelectionModel().select(i);
+				focus(oldAlignmentPos);
+				break;
+			}
+		}
 	}
 
 
@@ -873,12 +889,28 @@ public class RootController implements Initializable {
 			popUp(ex.getMessage());
 		}
 
+		
+		int inputLength = 0;
+		if(fwdLoaded && !revLoaded) 
+			inputLength = trimmedFwdTrace.getSequenceLength();
+		else if(!fwdLoaded && revLoaded) 
+			inputLength = trimmedRevTrace.getSequenceLength();
+
+		//fwd, rev 같이있을때는 fwd, rev 두개를 align 시켜서 나오는 길이를 inputLength로. 
+		else if (fwdLoaded && revLoaded) {	 
+			MMAlignment mma = new MMAlignment();
+			AlignedPair ap = null;
+			ap = mma.localAlignment(trimmedFwdTrace.getSequence(), trimmedRevTrace.getSequence());
+			inputLength = Integer.max(ap.getStart1(), ap.getStart2()) 
+					+ Integer.max(trimmedFwdTrace.getSequenceLength()-ap.getStart1(),  trimmedRevTrace.getSequenceLength()-ap.getStart2());
+		}
+		if(inputLength == 0) return;
+		
+		
 		Vector<NTMSpecies> removeList = new Vector<NTMSpecies>();
 		for(int i=0;i<speciesList.size();i++) {
 
 			NTMSpecies thisSpecies = speciesList.get(i);
-
-			//System.out.println(String.format("i : %d, name : %s", i, thisSpecies.getSpeciesName()));
 
 			try {
 				doAlignment(i);
@@ -890,14 +922,6 @@ public class RootController implements Initializable {
 			}
 
 			//너무 짧게 align된 것들은 버림.
-			int inputLength = 0;
-			if(fwdLoaded && !revLoaded) 
-				inputLength = trimmedFwdTrace.getSequenceLength();
-			else if(!fwdLoaded && revLoaded) 
-				inputLength = trimmedRevTrace.getSequenceLength();
-			else if (fwdLoaded && revLoaded)	 
-				inputLength = Integer.max(trimmedFwdTrace.getSequenceLength(),  trimmedRevTrace.getSequenceLength());
-
 			double alignedPortion = alignedPoints.size() / (double)inputLength;
 			if(alignedPortion < 0.5) {
 				removeList.add(thisSpecies);
@@ -909,36 +933,11 @@ public class RootController implements Initializable {
 			double d_score = 0;
 			for(int j=0;j<alignedPoints.size();j++) {
 				AlignedPoint ap = alignedPoints.get(j);
-				
-				/*
-				if(fwdLoaded && revLoaded) {
-					if(j<startRange-1) {
-						if(ap.getRefChar()==ap.getRevChar())
-							i_score++;
-					}
-					else if(j>=startRange-1 && j<=endRange-1) {
-						char base = 'N';
-						if(ap.getFwdQuality()>=ap.getRevQuality())
-							base = ap.getFwdChar();
-						else
-							base = ap.getRevChar();
-						if(base == ap.getRefChar()) 
-							i_score++;
-					}
-					else {
-						if(ap.getRefChar()==ap.getFwdChar())
-							i_score++;
-					}
-				}
-				else {
-					if(ap.getDiscrepency()!='*') i_score++;
-				}
-				*/
-				if(ap.getDiscrepency()!='*') i_score++;
+				if(ap.getDiscrepency()!='*') 
+					i_score++;
 			}
 
-			if(alignedPoints.size() != 0)
-				d_score = (double)i_score / alignedPoints.size();
+			d_score = (double)i_score / (double)alignedPoints.size();
 			d_score*=100;
 
 			//score 너무 낮은것들 버림
@@ -949,7 +948,8 @@ public class RootController implements Initializable {
 
 			//System.out.println("score : " + d_score);
 			thisSpecies.setScore(d_score);
-			thisSpecies.setQlen(alignedPoints.size());
+			thisSpecies.setQlen(inputLength);
+			thisSpecies.setAlen(alignedPoints.size());
 		}
 
 		speciesList.removeAll(removeList);	//align 안된 것들, score 낮은것들 remove
@@ -976,12 +976,14 @@ public class RootController implements Initializable {
 			TableColumn tcSpecies = speciesTable.getColumns().get(0);
 			TableColumn tcAccession = speciesTable.getColumns().get(1);
 			TableColumn tcQlen = speciesTable.getColumns().get(2);
-			TableColumn tcScore = speciesTable.getColumns().get(3);
-			TableColumn tcRgm = speciesTable.getColumns().get(4);
+			TableColumn tcAlen = speciesTable.getColumns().get(3);
+			TableColumn tcScore = speciesTable.getColumns().get(4);
+			TableColumn tcRgm = speciesTable.getColumns().get(5);
 
 			tcSpecies.setCellValueFactory(new PropertyValueFactory("speciesNameProperty"));
 			tcAccession.setCellValueFactory(new PropertyValueFactory("accessionProperty"));
 			tcQlen.setCellValueFactory(new PropertyValueFactory("qlenProperty"));
+			tcAlen.setCellValueFactory(new PropertyValueFactory("alenProperty"));
 			tcScore.setCellValueFactory(new PropertyValueFactory("scoreProperty"));
 			tcRgm.setCellValueFactory(new PropertyValueFactory("rgmProperty"));
 
@@ -1179,7 +1181,7 @@ public class RootController implements Initializable {
 				indexLabel.setText(String.valueOf(i+1));
 				GridPane.setColumnSpan(indexLabel, 10);
 				indexLabel.setPrefSize(100, 10);
-				indexLabel.setOnMouseClicked(new ClickEventHandler(i, fwdTraceIndex, revTraceIndex, point.getFwdChar(), point.getRevChar()));
+				indexLabel.setOnMouseClicked(new ClickEventHandler(i));
 				gridPane.add(indexLabel, i+1, 0);
 			}
 
@@ -1188,7 +1190,7 @@ public class RootController implements Initializable {
 			if(!point.isCoding()) sRefChar = sRefChar.toLowerCase();
 			refLabel.setText(sRefChar);
 			refLabel.setPrefSize(10, 10);
-			refLabel.setOnMouseClicked(new ClickEventHandler(i, fwdTraceIndex, revTraceIndex, point.getFwdChar(), point.getRevChar()));
+			refLabel.setOnMouseClicked(new ClickEventHandler(i));
 
 
 			gridPane.add(refLabel,  i+1, 1);
@@ -1212,7 +1214,7 @@ public class RootController implements Initializable {
 
 				fwdLabel.setPrefSize(10, 10);
 				//System.out.println("forward trace index : " + point.getFwdTraceIndex());
-				fwdLabel.setOnMouseClicked(new ClickEventHandler(i, fwdTraceIndex, revTraceIndex, point.getFwdChar(), point.getRevChar()));
+				fwdLabel.setOnMouseClicked(new ClickEventHandler(i));
 				gridPane.add(fwdLabel,  i+1, 2);
 				labels[1][i] = fwdLabel;
 			}
@@ -1232,7 +1234,7 @@ public class RootController implements Initializable {
 					revLabel.setBackground(new Background(new BackgroundFill(Color.web("#FFBB00"), CornerRadii.EMPTY, Insets.EMPTY)));
 
 				revLabel.setPrefSize(10, 10);
-				revLabel.setOnMouseClicked(new ClickEventHandler(i, fwdTraceIndex, revTraceIndex, point.getFwdChar(), point.getRevChar()));
+				revLabel.setOnMouseClicked(new ClickEventHandler(i));
 				gridPane.add(revLabel,  i+1, 3);
 				labels[2][i] = revLabel;
 			}
@@ -1240,7 +1242,7 @@ public class RootController implements Initializable {
 			//Discrepency
 			discrepencyLabel.setText(Character.toString(point.getDiscrepency()));
 			discrepencyLabel.setPrefSize(10, 10);
-			discrepencyLabel.setOnMouseClicked(new ClickEventHandler(i, fwdTraceIndex, revTraceIndex, point.getFwdChar(), point.getRevChar()));
+			discrepencyLabel.setOnMouseClicked(new ClickEventHandler(i));
 			gridPane.add(discrepencyLabel,  i+1, 4);
 		}
 
@@ -1311,126 +1313,6 @@ public class RootController implements Initializable {
 	}
 
 	/**
-	 * Focus method for Homo deletion variants (highlight range)
-	 * Homo insertion : When test data is available
-	 * Will be finished Later
-	 * @param indel 
-	 */
-	public void focus2(Indel indel) {
-		//다 1부터 시작하는 좌표
-		int startAlignmentPos=0, endAlignmentPos=0;	
-		int startFwdTracePos=0, endFwdTracePos=0;
-		int startRevTracePos=0, endRevTracePos=0;
-
-		AlignedPoint ap = null;
-		if(indel.getType() == Indel.duplication) {
-			startAlignmentPos = indel.getAlignmentIndex();
-			ap = alignedPoints.get(startAlignmentPos-1);
-		}
-
-		else {
-			if(indel.getAlignmentIndex() > 1) 	//이미 맨 왼쪽 아니라면 한칸 왼쪽의 점 선택
-				startAlignmentPos = indel.getAlignmentIndex() - 1;
-			else
-				startAlignmentPos = indel.getAlignmentIndex();
-			ap = alignedPoints.get(startAlignmentPos-1);
-		}
-
-
-		startFwdTracePos =  ap.getFwdTraceIndex();
-		startRevTracePos = ap.getRevTraceIndex();
-
-		int counter = 0;
-		AlignedPoint ap2 = null;
-
-		int endOffset = 0;
-		if(indel.getType()==Indel.deletion || indel.getType() == Indel.duplication)
-			endOffset = 1;
-
-
-		//System.out.println(String.format("g1 : %d, g2 : %d",  indel.getgIndex(), indel.getgIndex2()));
-
-		while(indel.getAlignmentIndex()-1+counter < alignedPoints.size()) {
-			ap2 = alignedPoints.get(indel.getAlignmentIndex()-1+counter);
-			if(ap2.getGIndex() == indel.getgIndex2()+endOffset) {
-				counter++;
-				break;
-			}
-			counter++;
-		}
-		counter--;
-
-
-		endAlignmentPos =  indel.getAlignmentIndex()+counter;
-		endFwdTracePos = ap2.getFwdTraceIndex();
-		endRevTracePos = ap2.getRevTraceIndex();
-
-		if(indel.getType() == Indel.duplication) {
-			endAlignmentPos--;
-			endFwdTracePos--;
-			endRevTracePos--;
-		}
-
-
-		adjustAlignmentPane(startAlignmentPos-1);
-		for(int i=0; i<alignedPoints.size();i++) {
-			Label boxedLabel = labels[0][i];
-			if(boxedLabel == null) continue;
-			if(i >= startAlignmentPos-1 && i<= endAlignmentPos-1) {
-				boxedLabel.setBorder(new Border(new BorderStroke(Color.BLUE, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(2))));
-			}
-			else {
-				boxedLabel.setBorder(Border.EMPTY);
-			}
-		}
-		if(fwdLoaded) {
-			for(int i=0; i<alignedPoints.size();i++) {
-				Label boxedLabel = labels[1][i];
-				if(boxedLabel == null) continue;
-				if(i >= startAlignmentPos-1 && i<= endAlignmentPos-1 && (i+1) >= fwdTraceStart && (i+1) <= fwdTraceEnd) {
-					boxedLabel.setBorder(new Border(new BorderStroke(Color.BLUE, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(2))));
-				}
-				else {
-					boxedLabel.setBorder(Border.EMPTY);
-				}
-			}
-
-
-			int colorStart = Integer.max(0, startFwdTracePos-1);
-			int colorEnd = Integer.max(0, endFwdTracePos-1);
-
-			java.awt.image.BufferedImage awtImage = trimmedFwdTrace.getShadedImage(2, colorStart, colorEnd);
-			javafx.scene.image.Image fxImage = SwingFXUtils.toFXImage(awtImage, null);
-			ImageView imageView = new ImageView(fxImage);
-			fwdPane.setContent(imageView);
-
-			adjustFwdPane(startFwdTracePos);
-		}
-		if(revLoaded) {
-			for(int i=0; i<alignedPoints.size();i++) {
-				Label boxedLabel = labels[2][i];
-				if(boxedLabel == null) continue;
-				if(i >= startAlignmentPos-1 && i<= endAlignmentPos-1 && (i+1) >= revTraceStart && (i+1) <= revTraceEnd) {
-					boxedLabel.setBorder(new Border(new BorderStroke(Color.BLUE, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(2))));
-				}
-				else {
-					boxedLabel.setBorder(Border.EMPTY);
-				}
-			}
-
-			int colorStart = Integer.max(0, startRevTracePos-1);
-			int colorEnd = Integer.max(0, endRevTracePos-1);
-
-			java.awt.image.BufferedImage awtImage2 = trimmedRevTrace.getShadedImage(2, colorStart, colorEnd);
-			javafx.scene.image.Image fxImage2 = SwingFXUtils.toFXImage(awtImage2, null);
-			ImageView imageView2 = new ImageView(fxImage2);
-			revPane.setContent(imageView2);
-
-			adjustRevPane(startRevTracePos);
-		}
-	}
-
-	/**
 	 * Focuses on the designated points (Alignment pane, forward trace pane, reverse trace pane)
 	 * @param selectedAlignmentPos : position to be focused on the alignment pane
 	 * @param selectedFwdPos : position to be focused on the forward trace pane
@@ -1438,15 +1320,32 @@ public class RootController implements Initializable {
 	 * @param fwdChar : If it is gap, not focused
 	 * @param revChar : If it is gap, not focused
 	 */
-	public void focus(int selectedAlignmentPos, int selectedFwdPos, int selectedRevPos, char fwdChar, char revChar) {
-
-
+	//public void focus(int selectedAlignmentPos, int selectedFwdPos, int selectedRevPos, char fwdChar, char revChar) {
+	
+	public void focus(int selectedAlignmentPos) {
+		
 		this.selectedAlignmentPos = selectedAlignmentPos;
+		AlignedPoint ap = alignedPoints.get(selectedAlignmentPos);
+		char fwdChar = Formatter.gapChar;
+		char revChar = Formatter.gapChar;
+		int selectedFwdPos = 0;
+		int selectedRevPos = 0;
+		
+		if(fwdLoaded) {
+			selectedFwdPos = ap.getFwdTraceIndex();
+			fwdChar = ap.getFwdChar();
+		}
+		if(revLoaded) {
+			selectedRevPos = ap.getRevTraceIndex();
+			revChar = ap.getRevChar();
+		}
+
 
 		//selectedAlignmentPos : 이것만 0부터 시작하는 index
 		//selectedFwdPos, selectedRevPos : 1부터 시작하는 index
-		boolean fwdGap = (fwdChar == Formatter.gapChar); 
-		boolean revGap = (revChar == Formatter.gapChar);
+		
+		//boolean fwdGap = (fwdChar == Formatter.gapChar); 
+		//boolean revGap = (revChar == Formatter.gapChar);
 
 		for(int i=0; i<alignedPoints.size();i++) {
 			Label boxedLabel = labels[0][i];
@@ -1475,27 +1374,7 @@ public class RootController implements Initializable {
 			int tempFwdPos = selectedFwdPos;
 
 			BufferedImage awtImage = null;
-			if(fwdGap == true) {
-				/*
-					int endPoint = selectedFwdPos;
-					for(int i=selectedAlignmentPos;i<alignedPoints.size();i++) {
-						AlignedPoint ap = alignedPoints.get(i);
-						if(ap.getFwdChar()!=Formatter.gapChar) {
-							endPoint = ap.getFwdTraceIndex();
-							break;
-						}
-					}
-					
-					int startPoint = selectedFwdPos;
-					for(int i=selectedAlignmentPos;i>=0;i--) {
-						AlignedPoint ap = alignedPoints.get(i);
-						if(ap.getFwdChar()!=Formatter.gapChar) {
-							startPoint = ap.getFwdTraceIndex();
-							break;
-						}
-					}
-					awtImage = trimmedFwdTrace.getShadedImage(2,startPoint-1,endPoint-1);
-					*/
+			if(fwdChar == Formatter.gapChar) {
 				awtImage = trimmedFwdTrace.getShadedImage(3,tempFwdPos-1,tempFwdPos-1);
 				
 			}
@@ -1524,29 +1403,7 @@ public class RootController implements Initializable {
 			BufferedImage awtImage2 = null;
 			
 			
-			if(revGap == true) {
-				/*
-				int endPoint = selectedRevPos;
-				for(int i=selectedAlignmentPos;i<alignedPoints.size();i++) {
-					AlignedPoint ap = alignedPoints.get(i);
-					if(ap.getRevChar()!=Formatter.gapChar) {
-						endPoint = ap.getRevTraceIndex();
-						break;
-					}
-				}
-				
-				int startPoint = selectedRevPos;
-				for(int i=selectedAlignmentPos;i>=0;i--) {
-					AlignedPoint ap = alignedPoints.get(i);
-					if(ap.getRevChar()!=Formatter.gapChar) {
-						startPoint = ap.getRevTraceIndex();
-						break;
-					}
-				}
-				awtImage2 = trimmedRevTrace.getShadedImage(2,startPoint-1,endPoint-1);
-				//awtImage2 = trimmedRevTrace.getShadedImage(0,0,0);
-				*/
-			
+			if(revChar == Formatter.gapChar) {
 				awtImage2 = trimmedRevTrace.getShadedImage(3,tempRevPos-1,tempRevPos-1);
 			}
 			
@@ -1566,20 +1423,16 @@ public class RootController implements Initializable {
 	 * @author Young-gon Kim
 	 */
 	class ClickEventHandler implements EventHandler<MouseEvent> {
-		private int selectedAlignmentPos = 0, selectedFwdPos = 0, selectedRevPos = 0;
+		private int selectedAlignmentPos = 0;
 		char fwdChar, revChar;
-		public ClickEventHandler(int selectedAlignmentPos, int selectedFwdPos, int selectedRevPos, char fwdChar, char revChar) {
+		public ClickEventHandler(int selectedAlignmentPos) {
 			super();
 			this.selectedAlignmentPos = selectedAlignmentPos;
-			this.selectedFwdPos = selectedFwdPos;
-			this.selectedRevPos = selectedRevPos;
-			this.fwdChar = fwdChar;
-			this.revChar = revChar;
 		}
 
 		@Override
 		public void handle(MouseEvent t) {
-			focus(selectedAlignmentPos, selectedFwdPos, selectedRevPos, fwdChar, revChar);
+			focus(selectedAlignmentPos);
 		}
 	}
 

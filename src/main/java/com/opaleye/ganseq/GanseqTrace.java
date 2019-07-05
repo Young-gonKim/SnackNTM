@@ -44,8 +44,8 @@ public class GanseqTrace {
 	protected int[] transformedC = null;
 	protected int maxHeight = -1;
 
-	protected int alignedRegionStart = 0;
-	protected int alignedRegionEnd = 0; 
+	//protected int alignedRegionStart = 0;
+	//protected int alignedRegionEnd = 0; 
 
 
 
@@ -307,7 +307,7 @@ public class GanseqTrace {
 		}
 
 		for(int i=0;i<sequenceLength;i++) {
-			if(i+1<alignedRegionStart || i+1>alignedRegionEnd) continue;
+			//if(i+1<alignedRegionStart || i+1>alignedRegionEnd) continue;
 
 			char baseChar[] = {sequence.charAt(i)};
 			int xPos = startOffset + baseCalls[i]*traceWidth;
@@ -877,18 +877,7 @@ public class GanseqTrace {
 	public int[] getBaseCalls() {
 		return baseCalls;
 	}
-	public int getAlignedRegionStart() {
-		return alignedRegionStart;
-	}
-	public void setAlignedRegionStart(int alignedRegionStart) {
-		this.alignedRegionStart = alignedRegionStart;
-	}
-	public int getAlignedRegionEnd() {
-		return alignedRegionEnd;
-	}
-	public void setAlignedRegionEnd(int alignedRegionEnd) {
-		this.alignedRegionEnd = alignedRegionEnd;
-	}
+	
 
 	public int[] getqCalls() {
 		return qCalls;

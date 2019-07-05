@@ -17,7 +17,7 @@ public class MainStage extends Application {
 	public void start(Stage primaryStage) throws Exception {
 		primaryStage.setX(0);
 		primaryStage.setY(0);
-		primaryStage.setTitle("Ganseq NTM Ver. " + RootController.version);
+		primaryStage.setTitle("SnackNTM Ver. " + RootController.version);
 		FXMLLoader loader = new FXMLLoader(getClass().getResource("MainStage.fxml"));
 		Parent root = loader.load();
 		RootController controller = loader.getController();

@@ -1,9 +1,16 @@
-
 batch : SNU specific 파일이름으로 일단. 
 6개 한번에 읽어 이름으로 구분하기 && trimming은 일단 자동으로 하고 edit trimming 할 수 있게. 
 
-1) multiple 파일 한꺼번에 선택
-2) 파일이름에 키워드 있는지 (예:16s_F) 여부로 6개로 할당 (일단 이름은 다 잘 붙어있다고 가정) 서울대에서만 쓴다고 가정.
+파일 open하는 순간 run까지 자동으로
+그전에 팝업창 띄워서 보여주기 : 파일 assign결과, trimming 결과-->Qlen (여기서 문제있는것만 찾아가서 edit trimming 하면되게)
+context switch : target gene 바꿀떄마다 panel 내용 바뀌게
+
+ 
+
+
+
+
+
 
 s16_trimmedFwdTrace
 s16_alignedPoints

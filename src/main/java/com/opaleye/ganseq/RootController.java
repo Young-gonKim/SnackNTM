@@ -102,7 +102,7 @@ public class RootController implements Initializable {
 	@FXML private Button btn_settings;
 	//@FXML private ImageView fwdRuler, revRuler;
 	@FXML private TableView<NTMSpecies> speciesTable, s16Table, rpoTable, tufTable, finalTable;
-	private String lastVisitedDir="C:\\Users\\user\\Desktop\\ygkim\\1906 NTM";
+	private String lastVisitedDir="f:\\GoogleDrive\\SnackNTM";
 	private Stage primaryStage;
 	public void setPrimaryStage(Stage primaryStage) {
 		this.primaryStage = primaryStage;
@@ -143,8 +143,8 @@ public class RootController implements Initializable {
 
 
 	private void checkVersion() {
-		String homepage = "https://blog.naver.com/opaleye83", email = "opaleye83@naver.com", copyright = "Copyrightⓒ2019 by Young-gon Kim";
-		String comment = "Ganseq NTM Ver " + version;
+		String homepage = "", email = "opaleye83@naver.com", copyright = "";
+		String comment = "SnackNTM Ver " + version;
 		comment += "\n\n" + homepage;
 		comment += "\n" + email;
 		comment += "\n\n" + copyright;
@@ -737,7 +737,6 @@ public class RootController implements Initializable {
 				csvContents += ntm.getQlen() + "\t" + ntm.getScoreProperty() + "\t" + ntm.getAccession() + "\t" + ntm.getSpeciesName() + "\n";
 			}
 		}
-
 	}
 
 

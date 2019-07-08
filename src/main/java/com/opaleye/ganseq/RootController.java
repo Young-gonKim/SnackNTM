@@ -147,7 +147,7 @@ public class RootController implements Initializable {
 
 
 	private void checkVersion() {
-		String homepage = "", email = "opaleye83@naver.com", copyright = "";
+		String homepage = "", email = "", copyright = "";
 		String comment = "SnackNTM Ver " + version;
 		comment += "\n\n" + homepage;
 		comment += "\n" + email;
@@ -670,6 +670,21 @@ public class RootController implements Initializable {
 	
 
 	public void handleReset() {
+		
+		speciesList = new Vector[3];
+		alignmentPerformed = new boolean[3];
+		alignedPoints = new Vector[3];
+		fwdTraceFile = new File[3]; 
+		revTraceFile = new File[3];
+		trimmedFwdTrace = new GanseqTrace[3];
+		trimmedRevTrace = new GanseqTrace[3];
+		fwdLoaded = new boolean[3];
+		revLoaded = new boolean[3];
+		fwdTraceFileName = new String[3];
+		revTraceFileName = new String[3];
+
+		cb_targetRegion.setValue(s16);
+
 		Vector<NTMSpecies> empty = new Vector<NTMSpecies>();
 		handleRemoveFwd();
 		handleRemoveRev();

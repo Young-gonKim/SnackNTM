@@ -83,7 +83,10 @@ public class RootController implements Initializable {
 	private static int fontSize = 13;
 
 
+	private String keyword_16sF, keyword_16sR, keyword_rpoF, keyword_rpoR, keyword_tufF, keyword_tufR;
 
+	
+	
 	private String csvContents = "";
 
 
@@ -165,6 +168,17 @@ public class RootController implements Initializable {
 			fontSize = Integer.parseInt(props.getProperty("fontsize"));
 			chSeq = props.getProperty("chimaera");
 			icSeq = props.getProperty("intracellularae");
+
+			keyword_16sF = props.getProperty("keyword_16sF");
+			keyword_16sR = props.getProperty("keyword_16sR");
+
+			keyword_rpoF = props.getProperty("keyword_rpoF");
+			keyword_rpoR = props.getProperty("keyword_rpoR");
+
+			keyword_tufF = props.getProperty("keyword_tufF");
+			keyword_tufR = props.getProperty("keyword_tufR");
+			
+			
 		}
 		catch(Exception e) {
 			e.printStackTrace();
@@ -452,18 +466,18 @@ public class RootController implements Initializable {
 
 		switch(context) {
 		case 0:
-			forwardTarget = "16s_F";
-			reverseTarget = "16s_R";
+			forwardTarget = keyword_16sF;
+			reverseTarget = keyword_16sR;
 			break;
 
 		case 1:
-			forwardTarget = "rpo_F";
-			reverseTarget = "rpo_R";
+			forwardTarget = keyword_rpoF;
+			reverseTarget = keyword_rpoR;
 			break;
 
 		case 2:
-			forwardTarget = "tuf_F";
-			reverseTarget = "tuf_R";
+			forwardTarget = keyword_tufF;
+			reverseTarget = keyword_tufR;
 			break;
 		}
 

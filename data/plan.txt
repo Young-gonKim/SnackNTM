@@ -1,21 +1,3 @@
-
-얼추 된거같은데??
-
-poor quality로 버린애들 trace 볼수는 있게
-팝업 띄우지말고, trace 그리지말고 그냥 label에 : cannot be used 표시해주고 edit trimming 클릭할 수 있게. 
-
-
-edit base할때 
-- mainframe 비할성화. edit 하는 도중에 context-switch 되면 안됨. (always ontop) -> trimming창도 always ontop
-
-
-
-
-
-
-
-*향후
-세로 zoom
 불필요한 기능빼기
 
 
@@ -25,5 +7,9 @@ Focus() parameter 줄이기
 
 trimming 창 최상위로 하고 trimmingOngoing (boolean) 사용로직 없애기.
 
+Zoom
+
+
 trimming 자동으로 일단 한후 (Hetero indel 있을때를위한 trimming 기준 새로 만들어야겠지)
 edit trimming 버튼
+

@@ -24,7 +24,8 @@ public class GanseqTrace {
 
 	public static final int FORWARD = 1;
 	public static final int REVERSE = -1;
-	public static final int traceHeight = 110;
+	public static final int originalTraceHeight = 110;
+	private int traceHeight = 0;
 	public static final int traceWidth = 2;
 
 	protected int direction = FORWARD;
@@ -43,11 +44,7 @@ public class GanseqTrace {
 	protected int[] transformedG = null;
 	protected int[] transformedC = null;
 	protected int maxHeight = -1;
-
-	//protected int alignedRegionStart = 0;
-	//protected int alignedRegionEnd = 0; 
-
-
+	protected double ratio = 1.0;
 
 	public GanseqTrace() {};
 	public GanseqTrace(File ABIFile) throws Exception {
@@ -161,7 +158,7 @@ public class GanseqTrace {
 			sequence = sequence.substring(0,pos) + newBase + sequence.substring(pos+1, sequence.length());
 	}
 
-	private void transformTrace() {
+	public void transformTrace() {
 		maxHeight = -1;
 		double imageHeightRatio = 0;
 		for(int i=0;i<traceLength;i++) {
@@ -176,6 +173,7 @@ public class GanseqTrace {
 		transformedG = new int[traceLength];
 		transformedC = new int[traceLength];
 
+		traceHeight = (int)(originalTraceHeight * ratio);
 		imageHeightRatio = (double)traceHeight / (double)maxHeight;
 
 		//System.out.println("maxHeight : " + maxHeight);
@@ -893,6 +891,19 @@ public class GanseqTrace {
 	}
 	public void setSequenceLength(int sequenceLength) {
 		this.sequenceLength = sequenceLength;
+	}
+
+	public void zoomIn() {
+		System.out.println("ratio: " + ratio);
+		ratio += 0.5;
+		transformTrace();
+	}
+	
+	public void zoomOut() {
+		System.out.println("ratio: " + ratio);
+		if(ratio>0.6) 
+			ratio -= 0.5;
+		transformTrace();
 	}
 
 

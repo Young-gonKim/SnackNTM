@@ -1,7 +1,10 @@
 package com.opaleye.ganseq;
 
+import java.awt.image.BufferedImage;
 import java.net.URL;
 import java.util.ResourceBundle;
+
+import com.opaleye.ganseq.tools.TooltipDelay;
 
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
@@ -12,6 +15,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
@@ -27,6 +31,9 @@ import javafx.stage.StageStyle;
 public class TrimController implements Initializable {
 	@FXML private ScrollPane tracePane;
 	@FXML private Button confirmBtn;
+	@FXML private Button zoomInButton;
+	@FXML private Button zoomOutButton;
+
 
 	private GanseqTrace targetTrace;
 
@@ -66,7 +73,7 @@ public class TrimController implements Initializable {
 	public void handleReset() {
 		startTrimPosition = targetTrace.getFrontTrimPosition();
 		endTrimPosition = targetTrace.getTailTrimPosition();
-		
+
 		Image image = targetTrace.getTrimmingImage(startTrimPosition, endTrimPosition);
 		imageView.setImage(image);
 		tracePane.setContent(imageView);
@@ -81,13 +88,32 @@ public class TrimController implements Initializable {
 	 * Initialize
 	 */
 	public void init() {
+		Tooltip zoomInTooltip = new Tooltip("Zoom In");
+		Tooltip zoomOutTooltip = new Tooltip("Zoom Out");
+		TooltipDelay.activateTooltipInstantly(zoomInTooltip);
+		TooltipDelay.activateTooltipInstantly(zoomOutTooltip);
+
+
+		zoomInButton.setTooltip(zoomInTooltip);
+		zoomOutButton.setTooltip(zoomOutTooltip);
+
 		startTrimPosition = targetTrace.getFrontTrimPosition();
 		endTrimPosition = targetTrace.getTailTrimPosition();
+		
+		if(startTrimPosition >= endTrimPosition) {
+			startTrimPosition = 0;
+			endTrimPosition = targetTrace.traceLength * GanseqTrace.traceWidth-1;
+		}
+		
 
 		Image ret =targetTrace.getTrimmingImage(startTrimPosition, endTrimPosition);
 		imageView = new ImageView(ret);
 		tracePane.setContent(imageView);
+		setMouseClick();
+		
+	}
 
+	private void setMouseClick() {
 		imageView.setOnMouseClicked(t-> {
 			int tempStart = startTrimPosition, tempEnd = endTrimPosition;
 			if(t.getButton() == MouseButton.PRIMARY) {
@@ -107,11 +133,10 @@ public class TrimController implements Initializable {
 		}
 				);
 	}
-
-
+	
+	
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
-
 	}
 
 	public void setRootController(RootController rootController) {
@@ -159,6 +184,22 @@ public class TrimController implements Initializable {
 			ex.printStackTrace();
 		}
 
+	}
+
+	public void handleZoomIn() {
+		targetTrace.zoomIn();
+		Image ret =targetTrace.getTrimmingImage(startTrimPosition, endTrimPosition);
+		imageView = new ImageView(ret);
+		tracePane.setContent(imageView);
+		setMouseClick();
+	}
+
+	public void handleZoomOut() {
+		targetTrace.zoomOut();
+		Image ret =targetTrace.getTrimmingImage(startTrimPosition, endTrimPosition);
+		imageView = new ImageView(ret);
+		tracePane.setContent(imageView);
+		setMouseClick();
 	}
 
 }

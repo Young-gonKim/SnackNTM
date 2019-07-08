@@ -54,6 +54,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
@@ -100,6 +101,8 @@ public class RootController implements Initializable {
 	@FXML private ComboBox cb_targetRegion;
 	@FXML private Button btnEditBase;
 	@FXML private Button btn_settings;
+	@FXML private Button fwdZoomInButton, fwdZoomOutButton, revZoomInButton, revZoomOutButton; 
+	
 	//@FXML private ImageView fwdRuler, revRuler;
 	@FXML private TableView<NTMSpecies> speciesTable, s16Table, rpoTable, tufTable, finalTable;
 	private String lastVisitedDir="f:\\GoogleDrive\\SnackNTM";
@@ -135,6 +138,10 @@ public class RootController implements Initializable {
 	private File[] fwdTraceFile = new File[3], revTraceFile = new File[3];
 	private GanseqTrace[] trimmedFwdTrace = new GanseqTrace[3], trimmedRevTrace = new GanseqTrace[3];
 	private boolean fwdLoaded[] = {false, false, false}, revLoaded[] = {false, false, false};
+	private String[] fwdTraceFileName = new String[3];
+	private String[] revTraceFileName = new String[3];
+	
+	
 	//edit base 용
 	private int[] selectedAlignmentPos = {-1, -1, -1};
 
@@ -177,6 +184,17 @@ public class RootController implements Initializable {
 		File tempFile = new File(lastVisitedDir);
 		if(!tempFile.exists())
 			lastVisitedDir=".";
+		
+		Tooltip zoomInTooltip = new Tooltip("Zoom In");
+		Tooltip zoomOutTooltip = new Tooltip("Zoom Out");
+		TooltipDelay.activateTooltipInstantly(zoomInTooltip);
+		TooltipDelay.activateTooltipInstantly(zoomOutTooltip);
+		
+		
+		fwdZoomInButton.setTooltip(zoomInTooltip);
+		fwdZoomOutButton.setTooltip(zoomOutTooltip);
+		revZoomInButton.setTooltip(zoomInTooltip);
+		revZoomOutButton.setTooltip(zoomOutTooltip);
 	}
 
 	private void readDefaultProperties() {
@@ -184,19 +202,32 @@ public class RootController implements Initializable {
 		cb_targetRegion.setValue(s16);
 		cb_targetRegion.valueProperty().addListener(new ChangeListener<String>() {
 			@Override public void changed(ObservableValue ov, String t, String t1) {
-				if(t1.equals(s16)) 
+				if(t1.equals(s16)) {
 					context = 0;
-				else if (t1.equals(rpo)) 
+				}
+				else if (t1.equals(rpo)) { 
 					context = 1;
-				else if (t1.equals(tuf)) 
+				}
+				else if (t1.equals(tuf)) { 
 					context = 2;
-				
+				}
+
 				System.out.println("context switched to " + context);
-				
-				handleRemoveFwd();
-				handleRemoveRev();
-				speciesTable.setItems(FXCollections.observableArrayList(new Vector<NTMSpecies>()));
-				csvContents = "";
+
+				if(alignmentPerformed[context] == false) {
+					handleRemoveFwd();
+					handleRemoveRev();
+					speciesTable.setItems(FXCollections.observableArrayList(new Vector<NTMSpecies>()));
+					csvContents = "";
+				}
+				else {
+					printAlignedResult();
+					speciesTable.setItems(FXCollections.observableArrayList(speciesList[context]));
+					makeCsvContents();
+				}
+
+
+
 			}    
 		});
 
@@ -225,6 +256,8 @@ public class RootController implements Initializable {
 			stage.setScene(new Scene(root1));
 			stage.setTitle("Edit base");
 			//stage.setAlwaysOnTop(true);
+			stage.initModality(Modality.WINDOW_MODAL);	
+			
 			stage.initOwner(primaryStage);
 			stage.show();
 		}
@@ -246,6 +279,11 @@ public class RootController implements Initializable {
 
 		//새로 alignment 실행 && 원래 보여주고 있던 곳 보여주기
 		NTMSpecies selectedSpecies = speciesTable.getSelectionModel().getSelectedItem();
+		
+		//speciesTable에서 클릭하기 전에는 맨 위에꺼에 맞추어서 printAlignedResult 되어있으므로.
+		if(selectedSpecies == null) 
+			selectedSpecies = speciesList[context].get(0);
+		
 		int oldAlignmentPos = selectedAlignmentPos[context];
 		String selectedSpeciesName = selectedSpecies.getSpeciesName();
 		//System.out.println("selected species : " + selectedSpeciesName);
@@ -411,13 +449,13 @@ public class RootController implements Initializable {
 
 		String forwardTarget = "";
 		String reverseTarget = "";
-		
+
 		switch(context) {
 		case 0:
 			forwardTarget = "16s_F";
 			reverseTarget = "16s_R";
 			break;
-			
+
 		case 1:
 			forwardTarget = "rpo_F";
 			reverseTarget = "rpo_R";
@@ -428,8 +466,8 @@ public class RootController implements Initializable {
 			reverseTarget = "tuf_R";
 			break;
 		}
-		
-		
+
+
 		for(File file:fileList) {
 			String fileName = file.getName();
 			if(fileName.contains(forwardTarget)) {
@@ -454,7 +492,8 @@ public class RootController implements Initializable {
 				int startTrimPosition = tempTrace.getFrontTrimPosition();
 				int endTrimPosition = tempTrace.getTailTrimPosition();
 				if(startTrimPosition >= endTrimPosition) {
-					popUp("Forward trace file cannot be used due to poor quality");
+					//popUp("Forward trace file cannot be used due to poor quality");
+					poorFwdTrace(tempTrace);
 				}
 				else {
 					tempTrace.makeTrimmedTrace(startTrimPosition, endTrimPosition);
@@ -481,7 +520,8 @@ public class RootController implements Initializable {
 				int endTrimPosition = tempTrace.getTailTrimPosition();
 
 				if(startTrimPosition >= endTrimPosition) {
-					popUp("Reverse trace file cannot be used due to poor quality");
+					//popUp("Reverse trace file cannot be used due to poor quality");
+					poorRevTrace(tempTrace);
 				}
 				else {
 					tempTrace.makeTrimmedTrace(startTrimPosition, endTrimPosition);
@@ -525,7 +565,7 @@ public class RootController implements Initializable {
 			return;
 		}
 	}
-	
+
 	public void handleRevEditTrimming() {
 		GanseqTrace tempTrace = null;
 		try {
@@ -590,7 +630,7 @@ public class RootController implements Initializable {
 			//fwdRuler.setImage(trimmedFwdTrace[context].getRulerImage());
 
 			String fileName = fwdTraceFile[context].getName();
-
+			fwdTraceFileName[context] = fileName;
 			fwdTraceFileLabel.setText(fileName);
 			fwdLoaded[context] = true;
 		}
@@ -604,6 +644,30 @@ public class RootController implements Initializable {
 		resetParameters();
 	}
 
+
+	public void poorFwdTrace(GanseqTrace poorTrace) {
+
+		try {
+			fwdPane.setContent(new Label("Poor Quality Trace File"));
+			String fileName = fwdTraceFile[context].getName();
+			fwdTraceFileName[context] = fileName;
+			fwdTraceFileLabel.setText(fileName);
+			fwdLoaded[context] = false;
+		}
+		catch(Exception ex) {
+			popUp("Error in loading forward trace file\n" + ex.getMessage());
+			ex.printStackTrace();
+		}
+		finally {
+
+		}
+		resetParameters();
+	}
+
+	
+	
+	
+	
 
 	public void handleReset() {
 		Vector<NTMSpecies> empty = new Vector<NTMSpecies>();
@@ -650,6 +714,7 @@ public class RootController implements Initializable {
 
 			//revRuler.setImage(trimmedRevTrace[context].getRulerImage());
 			String fileName = revTraceFile[context].getName();
+			revTraceFileName[context] = fileName;
 			revTraceFileLabel.setText(fileName);
 			revLoaded[context] = true;
 
@@ -661,6 +726,25 @@ public class RootController implements Initializable {
 		resetParameters();
 	}
 
+	
+	public void poorRevTrace(GanseqTrace poorTrace) {
+		try {
+			revPane.setContent(new Label("Poor Quality Trace File"));
+			String fileName = revTraceFile[context].getName();
+			revTraceFileName[context] = fileName;
+			revTraceFileLabel.setText(fileName);
+			revLoaded[context] = false;
+		}
+		catch(Exception ex) {
+			popUp("Error in loading reverse trace file\n" + ex.getMessage());
+			ex.printStackTrace();
+		}
+		finally {
+		}
+		resetParameters();
+	}
+
+	
 	/**
 	 * Remove reverse trace file
 	 */
@@ -1002,6 +1086,7 @@ public class RootController implements Initializable {
 			tcRgm.setCellValueFactory(new PropertyValueFactory("rgmProperty"));
 
 			tcSpecies.setCellFactory(TextFieldTableCell.<NTMSpecies>forTableColumn());
+
 			speciesTable.setItems(FXCollections.observableArrayList(speciesList[context]));
 
 			makeCsvContents();
@@ -1067,6 +1152,7 @@ public class RootController implements Initializable {
 			final_tcSpecies.setCellFactory(TextFieldTableCell.<NTMSpecies>forTableColumn());
 			finalTable.setItems(FXCollections.observableArrayList(getFinalList()));
 
+			
 			speciesTable.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
 				@Override
 				public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
@@ -1100,6 +1186,7 @@ public class RootController implements Initializable {
 		gridPane.add(refTitle, 0,  1);
 
 		if(fwdLoaded[context]) {
+			fwdTraceFileLabel.setText(fwdTraceFileName[context]);
 			Label fwdTitle = new Label("Forward   : ");
 			fwdTitle.setFont(new Font("Consolas", 14));
 			fwdTitle.setMinSize(130,15);
@@ -1108,6 +1195,7 @@ public class RootController implements Initializable {
 		}
 
 		if(revLoaded[context]) {
+			revTraceFileLabel.setText(revTraceFileName[context]);
 			Label revTitle = new Label("Reverse   : ");
 			revTitle.setFont(new Font("Consolas", 14));
 			revTitle.setMinSize(130,15);
@@ -1408,8 +1496,45 @@ public class RootController implements Initializable {
 		}
 	}
 
+	public void handleFwdZoomIn() {
+		if(fwdLoaded[context]) {
+			trimmedFwdTrace[context].zoomIn();
+			BufferedImage awtImage = trimmedFwdTrace[context].getDefaultImage();
+			Image fxImage = SwingFXUtils.toFXImage(awtImage, null);
+			ImageView imageView = new ImageView(fxImage);
+			fwdPane.setContent(imageView);
+		}
+	}
+	public void handleFwdZoomOut() {
+		if(fwdLoaded[context]) {
+			trimmedFwdTrace[context].zoomOut();
+			BufferedImage awtImage = trimmedFwdTrace[context].getDefaultImage();
+			Image fxImage = SwingFXUtils.toFXImage(awtImage, null);
+			ImageView imageView = new ImageView(fxImage);
+			fwdPane.setContent(imageView);
+		}
+	}
+	public void handleRevZoomIn() {
+		if(revLoaded[context]) {
+			trimmedRevTrace[context].zoomIn();
+			BufferedImage awtImage = trimmedRevTrace[context].getDefaultImage();
+			Image fxImage = SwingFXUtils.toFXImage(awtImage, null);
+			ImageView imageView = new ImageView(fxImage);
+			revPane.setContent(imageView);
+		}
+	}
+	public void handleRevZoomOut() {
+		if(revLoaded[context]) {
+			trimmedRevTrace[context].zoomOut();
+			BufferedImage awtImage = trimmedRevTrace[context].getDefaultImage();
+			Image fxImage = SwingFXUtils.toFXImage(awtImage, null);
+			ImageView imageView = new ImageView(fxImage);
+			revPane.setContent(imageView);
+		}
+	}
 
 
+	
 }
 
 

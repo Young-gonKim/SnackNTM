@@ -3,9 +3,6 @@
 
 
 <Ganseq for variant에도 반영할것>
-Focus() parameter 줄이기
-
-trimming 창 최상위로 하고 trimmingOngoing (boolean) 사용로직 없애기.
 
 Zoom
 

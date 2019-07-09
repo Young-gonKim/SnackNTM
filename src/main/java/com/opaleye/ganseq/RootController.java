@@ -570,6 +570,7 @@ public class RootController implements Initializable {
 			stage.setScene(new Scene(root1));
 			//stage.setAlwaysOnTop(true);
 			stage.initOwner(primaryStage);
+			stage.initModality(Modality.WINDOW_MODAL);
 			stage.setTitle("Trim sequences");
 			stage.show();
 		}
@@ -597,6 +598,7 @@ public class RootController implements Initializable {
 			stage.setScene(new Scene(root1));
 			//stage.setAlwaysOnTop(true);
 			stage.initOwner(primaryStage);
+			stage.initModality(Modality.WINDOW_MODAL);
 			stage.setTitle("Trim sequences");
 			stage.show();
 		}

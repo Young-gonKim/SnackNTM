@@ -158,7 +158,7 @@ public class GanseqTrace {
 			sequence = sequence.substring(0,pos) + newBase + sequence.substring(pos+1, sequence.length());
 	}
 
-	public void transformTrace() {
+	private void transformTrace() {
 		maxHeight = -1;
 		double imageHeightRatio = 0;
 		for(int i=0;i<traceLength;i++) {

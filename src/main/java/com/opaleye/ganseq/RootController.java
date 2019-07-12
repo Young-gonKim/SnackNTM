@@ -84,9 +84,9 @@ public class RootController implements Initializable {
 
 
 	private String keyword_16sF, keyword_16sR, keyword_rpoF, keyword_rpoR, keyword_tufF, keyword_tufR;
+	private TreeSet<String> keywordSet_16sF, keywordSet_16sR, keywordSet_rpoF, keywordSet_rpoR, keywordSet_tufF, keywordSet_tufR;
 
-	
-	
+
 	private String csvContents = "";
 
 
@@ -105,7 +105,7 @@ public class RootController implements Initializable {
 	@FXML private Button btnEditBase;
 	@FXML private Button btn_settings;
 	@FXML private Button fwdZoomInButton, fwdZoomOutButton, revZoomInButton, revZoomOutButton; 
-	
+
 	//@FXML private ImageView fwdRuler, revRuler;
 	@FXML private TableView<NTMSpecies> speciesTable, s16Table, rpoTable, tufTable, finalTable;
 	private String lastVisitedDir="f:\\GoogleDrive\\SnackNTM";
@@ -143,8 +143,8 @@ public class RootController implements Initializable {
 	private boolean fwdLoaded[] = {false, false, false}, revLoaded[] = {false, false, false};
 	private String[] fwdTraceFileName = new String[3];
 	private String[] revTraceFileName = new String[3];
-	
-	
+
+
 	//edit base 용
 	private int[] selectedAlignmentPos = {-1, -1, -1};
 
@@ -169,16 +169,57 @@ public class RootController implements Initializable {
 			chSeq = props.getProperty("chimaera");
 			icSeq = props.getProperty("intracellularae");
 
+			keywordSet_16sF = new TreeSet<String>();
+			keywordSet_16sR = new TreeSet<String>();
+			keywordSet_rpoF = new TreeSet<String>();
+			keywordSet_rpoR = new TreeSet<String>();
+			keywordSet_tufF = new TreeSet<String>();
+			keywordSet_tufR = new TreeSet<String>();
+			
+			String[] keywordList;
 			keyword_16sF = props.getProperty("keyword_16sF");
+			keywordList = keyword_16sF.split(",");
+			for(String keyword:keywordList) {
+				keyword = keyword.replace(" ",  "");
+				keywordSet_16sF.add(keyword);
+			}
+
 			keyword_16sR = props.getProperty("keyword_16sR");
+			keywordList = keyword_16sR.split(",");
+			for(String keyword:keywordList) {
+				keyword = keyword.replace(" ",  "");
+				keywordSet_16sR.add(keyword);
+			}
 
 			keyword_rpoF = props.getProperty("keyword_rpoF");
+			keywordList = keyword_rpoF.split(",");
+			for(String keyword:keywordList) {
+				keyword = keyword.replace(" ",  "");
+				keywordSet_rpoF.add(keyword);
+			}
+
 			keyword_rpoR = props.getProperty("keyword_rpoR");
+			keywordList = keyword_rpoR.split(",");
+			for(String keyword:keywordList) {
+				keyword = keyword.replace(" ",  "");
+				keywordSet_rpoR.add(keyword);
+			}
 
 			keyword_tufF = props.getProperty("keyword_tufF");
+			keywordList = keyword_tufF.split(",");
+			for(String keyword:keywordList) {
+				keyword = keyword.replace(" ",  "");
+				keywordSet_tufF.add(keyword);
+			}
+
 			keyword_tufR = props.getProperty("keyword_tufR");
-			
-			
+			keywordList = keyword_tufR.split(",");
+			for(String keyword:keywordList) {
+				keyword = keyword.replace(" ",  "");
+				keywordSet_tufR.add(keyword);
+			}
+
+
 		}
 		catch(Exception e) {
 			e.printStackTrace();
@@ -198,13 +239,13 @@ public class RootController implements Initializable {
 		File tempFile = new File(lastVisitedDir);
 		if(!tempFile.exists())
 			lastVisitedDir=".";
-		
+
 		Tooltip zoomInTooltip = new Tooltip("Zoom In");
 		Tooltip zoomOutTooltip = new Tooltip("Zoom Out");
 		TooltipDelay.activateTooltipInstantly(zoomInTooltip);
 		TooltipDelay.activateTooltipInstantly(zoomOutTooltip);
-		
-		
+
+
 		fwdZoomInButton.setTooltip(zoomInTooltip);
 		fwdZoomOutButton.setTooltip(zoomOutTooltip);
 		revZoomInButton.setTooltip(zoomInTooltip);
@@ -271,7 +312,7 @@ public class RootController implements Initializable {
 			stage.setTitle("Edit base");
 			//stage.setAlwaysOnTop(true);
 			stage.initModality(Modality.WINDOW_MODAL);	
-			
+
 			stage.initOwner(primaryStage);
 			stage.show();
 		}
@@ -293,11 +334,11 @@ public class RootController implements Initializable {
 
 		//새로 alignment 실행 && 원래 보여주고 있던 곳 보여주기
 		NTMSpecies selectedSpecies = speciesTable.getSelectionModel().getSelectedItem();
-		
+
 		//speciesTable에서 클릭하기 전에는 맨 위에꺼에 맞추어서 printAlignedResult 되어있으므로.
 		if(selectedSpecies == null) 
 			selectedSpecies = speciesList[context].get(0);
-		
+
 		int oldAlignmentPos = selectedAlignmentPos[context];
 		String selectedSpeciesName = selectedSpecies.getSpeciesName();
 		//System.out.println("selected species : " + selectedSpeciesName);
@@ -461,37 +502,47 @@ public class RootController implements Initializable {
 		boolean fwdFound = false;
 		boolean revFound = false;
 
-		String forwardTarget = "";
-		String reverseTarget = "";
+		//String forwardTarget = "";
+		//String reverseTarget = "";
+
+		TreeSet<String> forwardTarget = null, reverseTarget = null;
+
 
 		switch(context) {
 		case 0:
-			forwardTarget = keyword_16sF;
-			reverseTarget = keyword_16sR;
+
+			forwardTarget = keywordSet_16sF;
+			reverseTarget = keywordSet_16sR;
 			break;
 
 		case 1:
-			forwardTarget = keyword_rpoF;
-			reverseTarget = keyword_rpoR;
+			forwardTarget = keywordSet_rpoF;
+			reverseTarget = keywordSet_rpoR;
 			break;
 
 		case 2:
-			forwardTarget = keyword_tufF;
-			reverseTarget = keyword_tufR;
+			forwardTarget = keywordSet_tufF;
+			reverseTarget = keywordSet_tufR;
 			break;
 		}
 
-
 		for(File file:fileList) {
 			String fileName = file.getName();
-			if(fileName.contains(forwardTarget)) {
-				fwdTraceFile[context] = file;
-				fwdFound = true;
+
+			for(String target:forwardTarget) {
+				if(fileName.contains(target)) {
+					fwdTraceFile[context] = file;
+					fwdFound = true;
+					break;
+				}
 			}
 
-			else if(fileName.contains(reverseTarget)) {
-				revTraceFile[context] = file;
-				revFound = true;
+			for(String target:reverseTarget) {
+				if(fileName.contains(target)) {
+					revTraceFile[context] = file;
+					revFound = true;
+					break;
+				}
 			}
 		}
 
@@ -680,13 +731,13 @@ public class RootController implements Initializable {
 		resetParameters();
 	}
 
-	
-	
-	
-	
+
+
+
+
 
 	public void handleReset() {
-		
+
 		speciesList = new Vector[3];
 		alignmentPerformed = new boolean[3];
 		alignedPoints = new Vector[3];
@@ -757,7 +808,7 @@ public class RootController implements Initializable {
 		resetParameters();
 	}
 
-	
+
 	public void poorRevTrace(GanseqTrace poorTrace) {
 		try {
 			revPane.setContent(new Label("Poor Quality Trace File"));
@@ -775,7 +826,7 @@ public class RootController implements Initializable {
 		resetParameters();
 	}
 
-	
+
 	/**
 	 * Remove reverse trace file
 	 */
@@ -1183,7 +1234,7 @@ public class RootController implements Initializable {
 			final_tcSpecies.setCellFactory(TextFieldTableCell.<NTMSpecies>forTableColumn());
 			finalTable.setItems(FXCollections.observableArrayList(getFinalList()));
 
-			
+
 			speciesTable.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
 				@Override
 				public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
@@ -1565,7 +1616,7 @@ public class RootController implements Initializable {
 	}
 
 
-	
+
 }
 
 

@@ -1,11 +1,11 @@
-package com.opaleye.ganseq.settings;
+package com.opaleye.snackntm.settings;
 
 import java.io.File;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-import com.opaleye.ganseq.GanseqTrace;
-import com.opaleye.ganseq.RootController;
+import com.opaleye.snackntm.GanseqTrace;
+import com.opaleye.snackntm.RootController;
 
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -59,8 +59,7 @@ public class SettingsController implements Initializable  {
 				throw new NumberFormatException("Gap open penalty should be positive integer");
 
 			rootController.setProperties(gapOpenPenalty);
-			rootController.handleRemoveFwd();
-			rootController.handleRemoveRev();
+			rootController.handleReset();
 			primaryStage.close();
 
 		}

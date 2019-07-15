@@ -1,4 +1,4 @@
-package com.opaleye.ganseq;
+package com.opaleye.snackntm;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -12,11 +12,11 @@ import java.util.ResourceBundle;
 import java.util.TreeSet;
 import java.util.Vector;
 
-import com.opaleye.ganseq.mmalignment.AlignedPair;
-import com.opaleye.ganseq.mmalignment.MMAlignment;
-import com.opaleye.ganseq.reference.ReferenceSeq;
-import com.opaleye.ganseq.settings.SettingsController;
-import com.opaleye.ganseq.tools.TooltipDelay;
+import com.opaleye.snackntm.mmalignment.AlignedPair;
+import com.opaleye.snackntm.mmalignment.MMAlignment;
+import com.opaleye.snackntm.reference.ReferenceSeq;
+import com.opaleye.snackntm.settings.SettingsController;
+import com.opaleye.snackntm.tools.TooltipDelay;
 
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;

@@ -1,4 +1,4 @@
-package com.opaleye.ganseq.reference;
+package com.opaleye.snackntm.reference;
 
 import java.io.BufferedReader;
 import java.io.File;

@@ -1,6 +1,6 @@
-package com.opaleye.ganseq;
+package com.opaleye.snackntm;
 
-import com.opaleye.ganseq.reference.ReferenceSeq;
+import com.opaleye.snackntm.reference.ReferenceSeq;
 
 import javafx.beans.property.SimpleStringProperty;
 

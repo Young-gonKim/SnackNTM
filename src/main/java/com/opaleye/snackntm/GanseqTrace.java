@@ -1,4 +1,4 @@
-package com.opaleye.ganseq;
+package com.opaleye.snackntm;
 
 import java.awt.AlphaComposite;
 import java.awt.Color;
@@ -11,8 +11,8 @@ import org.biojava.bio.program.abi.ABITrace;
 import org.biojava.bio.seq.DNATools;
 import org.biojava.bio.symbol.SymbolList;
 
-import com.opaleye.ganseq.settings.SettingsController;
-import com.opaleye.ganseq.tools.SymbolTools;
+import com.opaleye.snackntm.settings.SettingsController;
+import com.opaleye.snackntm.tools.SymbolTools;
 
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;

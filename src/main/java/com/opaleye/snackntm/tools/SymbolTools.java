@@ -1,4 +1,4 @@
-package com.opaleye.ganseq.tools;
+package com.opaleye.snackntm.tools;
 
 import java.util.Vector;
 

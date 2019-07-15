@@ -1,4 +1,4 @@
-package com.opaleye.ganseq.tools;
+package com.opaleye.snackntm.tools;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.scene.control.Tooltip;

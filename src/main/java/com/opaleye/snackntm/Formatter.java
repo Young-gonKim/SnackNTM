@@ -1,10 +1,10 @@
-package com.opaleye.ganseq;
+package com.opaleye.snackntm;
 
 import java.util.TreeMap;
 import java.util.Vector;
 
-import com.opaleye.ganseq.mmalignment.AlignedPair;
-import com.opaleye.ganseq.reference.ReferenceSeq;
+import com.opaleye.snackntm.mmalignment.AlignedPair;
+import com.opaleye.snackntm.reference.ReferenceSeq;
 
 /**
  * Title : Formatter

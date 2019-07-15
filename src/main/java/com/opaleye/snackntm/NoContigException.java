@@ -1,4 +1,4 @@
-package com.opaleye.ganseq;
+package com.opaleye.snackntm;
 
 /**
  * Title : NoContigException

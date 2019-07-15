@@ -25,7 +25,7 @@
 	  Availability: <ftp://ftp.ncbi.nih.gov/blast/matrices/NUC.4.4>
  **/
 
-package com.opaleye.ganseq.mmalignment;
+package com.opaleye.snackntm.mmalignment;
 
 public class SubstitutionMatrix {
 

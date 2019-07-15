@@ -1,10 +1,10 @@
-package com.opaleye.ganseq.mmalignment;
+package com.opaleye.snackntm.mmalignment;
 
 import java.io.File;
 
-import com.opaleye.ganseq.GanseqTrace;
-import com.opaleye.ganseq.RootController;
-import com.opaleye.ganseq.reference.ReferenceSeq;
+import com.opaleye.snackntm.GanseqTrace;
+import com.opaleye.snackntm.RootController;
+import com.opaleye.snackntm.reference.ReferenceSeq;
 
 public class MMAlignment {
 

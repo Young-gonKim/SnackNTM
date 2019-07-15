@@ -14,7 +14,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="847.0" prefWidth="1128.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.opaleye.ganseq.RootController">
+<AnchorPane prefHeight="847.0" prefWidth="1128.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.opaleye.snackntm.RootController">
    <children>
       <ToolBar layoutX="14.0" layoutY="14.0" prefHeight="43.0" prefWidth="907.0">
          <items>

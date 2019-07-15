@@ -1,10 +1,10 @@
-package com.opaleye.ganseq;
+package com.opaleye.snackntm;
 
 import java.awt.image.BufferedImage;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-import com.opaleye.ganseq.tools.TooltipDelay;
+import com.opaleye.snackntm.tools.TooltipDelay;
 
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;

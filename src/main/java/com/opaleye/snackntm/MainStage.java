@@ -1,4 +1,4 @@
-package com.opaleye.ganseq;
+package com.opaleye.snackntm;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;

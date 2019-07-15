@@ -1,4 +1,4 @@
-package com.opaleye.ganseq.mmalignment;
+package com.opaleye.snackntm.mmalignment;
 
 public class AlignedPair {
 	private String alignedString1 = null;

@@ -6,7 +6,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="328.0" prefWidth="1263.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.opaleye.ganseq.TrimController">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="328.0" prefWidth="1263.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.opaleye.snackntm.TrimController">
    <children>
       <ScrollPane fx:id="tracePane" layoutX="13.0" layoutY="87.0" prefHeight="200.0" prefWidth="1200.0" />
       <Label layoutX="356.0" layoutY="4.0" text="Click on the Trace to Trim Ends (Shaded areas will be trimmed)">

@@ -1,11 +1,12 @@
-불필요한 기능빼기
+1. FXML design
+왼쪽에 ListView 2개
+ListView1 -> ListView2 -> combobox에서 ChangeListener처럼. 
+ 
+
 
 
 
 <Ganseq for variant에도 반영할것>
-
-Zoom
-
 
 trimming 자동으로 일단 한후 (Hetero indel 있을때를위한 trimming 기준 새로 만들어야겠지)
 edit trimming 버튼

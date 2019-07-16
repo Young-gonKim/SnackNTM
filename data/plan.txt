@@ -1,9 +1,56 @@
+selectedSample : sampleListView 선택 바뀔때 (+ 처음 읽을때 : iteration 한 후 0으로 원상복귀)
+context : 밑에 targetTable 선택 바뀔때.  (+처음 읽을때 : localContext따로 씀. 이것도 iteration 시키고 원상복귀?)
+
+이거 두개로 panel 내용 정해지는것. 
+
+
+RootController 330 부터
+alignment performed 변수의 의미.. Batch로 시키니까 전역변수로 될것 같은데. 
+printunaligned result 구현
+combobox -> radio button
+
+removefwd, removerev 필요?
+
+
+* sample dependent variables
+- id
+- tableView들 --> Sample class안으로. 
+
+* context dependent variables
+- 이미 정의되어 있음.
+
+
+
 1. FXML design
 왼쪽에 ListView 2개
 ListView1 -> ListView2 -> combobox에서 ChangeListener처럼. 
+
+2. Sample class 만들기
+- (ID string, + context 변수들 싹다 일단 넣고 나중에 불필요한거빼기)
  
+  
+ 
+3. 일단 파일 읽으면
+- Array of Sample 만들기. (Vector. 어차피 정렬 가능하니까. in out overhead 적은걸로) 사실 빈번하게 in out 일어나는것도 아니지만.
+* 중간점검 : ID 선택하면 chromatogram 나오게. 
+ 
+ 
+ 
+ 
+4. sample iteration 하면서 handleRun()
+- handleRun()을 context별로. 
 
 
+ 
+- 일단 batch로 다 돌려서 저장
+- 50건 정도니까 괜찮지 않을까.
+
+
+
+
+* Batch로 하는 프로그램을 만들다보니 다시 기존 프로그램 개선해서 GUI 기반으로 만들게 되었고, 
+실제 검사에서도 한번에 여러 sample 을 돌릴 수 있기 때문에 지금 보내드리는 버전으로 써 보시는 것이 어떠실지. 
+2017년도 결과 돌려본것 같이 보내드립니다. 
 
 
 <Ganseq for variant에도 반영할것>

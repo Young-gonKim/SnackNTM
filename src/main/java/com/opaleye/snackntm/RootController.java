@@ -32,6 +32,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -67,6 +68,14 @@ import javafx.stage.StageStyle;
  */
 public class RootController implements Initializable {
 
+	private TreeSet<String> sampleIdList = new TreeSet<String>();
+	private Vector<Sample> sampleList = new Vector<Sample>();
+	private int selectedSample = 0;
+
+	//error 줄이기 위해 context는 Global 개념으로 사용.
+	//0: 16S rRNA, 1: rpoB, 2: tuf
+	private int context = 0;
+
 	//constants
 	private static final double paneWidth = 907; 
 	private static final String s16 = "16s rRNA";
@@ -84,7 +93,9 @@ public class RootController implements Initializable {
 
 
 	private String keyword_16sF, keyword_16sR, keyword_rpoF, keyword_rpoR, keyword_tufF, keyword_tufR;
-	private TreeSet<String> keywordSet_16sF, keywordSet_16sR, keywordSet_rpoF, keywordSet_rpoR, keywordSet_tufF, keywordSet_tufR;
+	//private TreeSet<String> keywordSet_F[0], keywordSet_R[0], keywordSet_F[1], keywordSet_R[1], keywordSet_F[2], keywordSet_R[2];
+	private TreeSet<String> keywordSet_F[] = new TreeSet[3];
+	private TreeSet<String> keywordSet_R[] = new TreeSet[3];
 
 
 	private String csvContents = "";
@@ -106,8 +117,10 @@ public class RootController implements Initializable {
 	@FXML private Button btn_settings;
 	@FXML private Button fwdZoomInButton, fwdZoomOutButton, revZoomInButton, revZoomOutButton; 
 
-	//@FXML private ImageView fwdRuler, revRuler;
-	@FXML private TableView<NTMSpecies> speciesTable, s16Table, rpoTable, tufTable, finalTable;
+
+	@FXML private TableView<NTMSpecies> speciesTable, s16Table, rpoTable, tufTable, finalTable, targetTable;
+	@FXML private ListView<String> sampleListView;
+
 	private String lastVisitedDir="f:\\GoogleDrive\\SnackNTM";
 	private Stage primaryStage;
 	public void setPrimaryStage(Stage primaryStage) {
@@ -116,7 +129,6 @@ public class RootController implements Initializable {
 
 	private GridPane gridPane = null;
 	private Label[][] labels = null;
-
 
 	/**
 	 * Settings parameters
@@ -131,8 +143,9 @@ public class RootController implements Initializable {
 	 * For context switching
 	 */
 
-	//0: 16S rRNA, 1: rpoB, 2: tuf
-	private int context = 0;
+
+
+
 
 	//context-specific variables
 	private Vector<NTMSpecies>[] speciesList = new Vector[3];
@@ -143,10 +156,9 @@ public class RootController implements Initializable {
 	private boolean fwdLoaded[] = {false, false, false}, revLoaded[] = {false, false, false};
 	private String[] fwdTraceFileName = new String[3];
 	private String[] revTraceFileName = new String[3];
-
-
 	//edit base 용
 	private int[] selectedAlignmentPos = {-1, -1, -1};
+
 
 
 	private void checkVersion() {
@@ -169,54 +181,52 @@ public class RootController implements Initializable {
 			chSeq = props.getProperty("chimaera");
 			icSeq = props.getProperty("intracellularae");
 
-			keywordSet_16sF = new TreeSet<String>();
-			keywordSet_16sR = new TreeSet<String>();
-			keywordSet_rpoF = new TreeSet<String>();
-			keywordSet_rpoR = new TreeSet<String>();
-			keywordSet_tufF = new TreeSet<String>();
-			keywordSet_tufR = new TreeSet<String>();
-			
+			for(int i=0;i<3;i++) {
+				keywordSet_F[i] = new TreeSet<String>();
+				keywordSet_R[i] = new TreeSet<String>();
+			}
+
 			String[] keywordList;
 			keyword_16sF = props.getProperty("keyword_16sF");
 			keywordList = keyword_16sF.split(",");
 			for(String keyword:keywordList) {
 				keyword = keyword.replace(" ",  "");
-				keywordSet_16sF.add(keyword);
+				keywordSet_F[0].add(keyword);
 			}
 
 			keyword_16sR = props.getProperty("keyword_16sR");
 			keywordList = keyword_16sR.split(",");
 			for(String keyword:keywordList) {
 				keyword = keyword.replace(" ",  "");
-				keywordSet_16sR.add(keyword);
+				keywordSet_R[0].add(keyword);
 			}
 
 			keyword_rpoF = props.getProperty("keyword_rpoF");
 			keywordList = keyword_rpoF.split(",");
 			for(String keyword:keywordList) {
 				keyword = keyword.replace(" ",  "");
-				keywordSet_rpoF.add(keyword);
+				keywordSet_F[1].add(keyword);
 			}
 
 			keyword_rpoR = props.getProperty("keyword_rpoR");
 			keywordList = keyword_rpoR.split(",");
 			for(String keyword:keywordList) {
 				keyword = keyword.replace(" ",  "");
-				keywordSet_rpoR.add(keyword);
+				keywordSet_R[1].add(keyword);
 			}
 
 			keyword_tufF = props.getProperty("keyword_tufF");
 			keywordList = keyword_tufF.split(",");
 			for(String keyword:keywordList) {
 				keyword = keyword.replace(" ",  "");
-				keywordSet_tufF.add(keyword);
+				keywordSet_F[2].add(keyword);
 			}
 
 			keyword_tufR = props.getProperty("keyword_tufR");
 			keywordList = keyword_tufR.split(",");
 			for(String keyword:keywordList) {
 				keyword = keyword.replace(" ",  "");
-				keywordSet_tufR.add(keyword);
+				keywordSet_R[2].add(keyword);
 			}
 
 
@@ -250,9 +260,56 @@ public class RootController implements Initializable {
 		fwdZoomOutButton.setTooltip(zoomOutTooltip);
 		revZoomInButton.setTooltip(zoomInTooltip);
 		revZoomOutButton.setTooltip(zoomOutTooltip);
+
+		sampleListView.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
+			@Override
+			public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+				selectedSample = newValue.intValue();
+				Sample sample = sampleList.get(selectedSample);
+				context = 0;
+				try {
+					if(sample.fwdLoaded[context]) {
+						BufferedImage awtImage = sample.trimmedFwdTrace[context].getDefaultImage();
+						Image fxImage = SwingFXUtils.toFXImage(awtImage, null);
+						ImageView imageView = new ImageView(fxImage);
+						fwdPane.setContent(imageView);
+						fwdTraceFileLabel.setText(sample.fwdTraceFileName[context]);
+					}
+					else if(sample.fwdTraceFileName[context] != null) {
+						fwdTraceFileLabel.setText(sample.fwdTraceFileName[context]);
+						fwdPane.setContent(new Label("Poor Quality Trace File"));
+					}
+					else {
+						fwdTraceFileLabel.setText("No file exists");
+						fwdPane.setContent(new Label("No file exists"));
+					}
+					
+					if(sample.revLoaded[context]) {
+						BufferedImage awtImage = sample.trimmedRevTrace[context].getDefaultImage();
+						Image fxImage = SwingFXUtils.toFXImage(awtImage, null);
+						ImageView imageView = new ImageView(fxImage);
+						revPane.setContent(imageView);
+						revTraceFileLabel.setText(sample.revTraceFileName[context]);
+					}
+					else if(sample.revTraceFileName[context] != null) {
+						revTraceFileLabel.setText(sample.revTraceFileName[context]);
+						revPane.setContent(new Label("Poor Quality Trace File"));
+					}
+					else {
+						revTraceFileLabel.setText("No file exists");
+						revPane.setContent(new Label("No file exists"));
+					}
+				}
+				catch(Exception ex) {
+				}
+			}
+		});
+
+
 	}
 
 	private void readDefaultProperties() {
+
 		cb_targetRegion.getItems().addAll(s16, rpo, tuf);
 		cb_targetRegion.setValue(s16);
 		cb_targetRegion.valueProperty().addListener(new ChangeListener<String>() {
@@ -269,7 +326,8 @@ public class RootController implements Initializable {
 
 				System.out.println("context switched to " + context);
 
-				if(alignmentPerformed[context] == false) {
+				if(sampleList.get(selectedSample).alignmentPerformed[context] == false) {
+					//printUnAlignedData();
 					handleRemoveFwd();
 					handleRemoveRev();
 					speciesTable.setItems(FXCollections.observableArrayList(new Vector<NTMSpecies>()));
@@ -379,15 +437,6 @@ public class RootController implements Initializable {
 	}
 
 
-	private void resetParameters() {
-		alignmentPerformed[context] = false;
-		alignedPoints[context] = null;
-		selectedAlignmentPos[context] = -1;
-		gridPane = null;
-		labels = null;
-		alignmentPane.setContent(new Label(""));
-	}
-
 
 	private void makeSpeciesList() throws Exception {
 		speciesList[context] = new Vector<NTMSpecies>();
@@ -475,8 +524,6 @@ public class RootController implements Initializable {
 			ex.printStackTrace();
 			throw new Exception("Error in reading reference file");
 		}
-
-
 	}
 
 	/** 
@@ -499,30 +546,122 @@ public class RootController implements Initializable {
 		if (fileList==null || fileList.size()==0) return;
 		lastVisitedDir=fileList.get(0).getParent();
 
-		boolean fwdFound = false;
-		boolean revFound = false;
-
-		//String forwardTarget = "";
-		//String reverseTarget = "";
 
 		TreeSet<String> forwardTarget = null, reverseTarget = null;
 
 
+		//sampleListView.setItems
+		for(File file:fileList) {
+			String fileName = file.getName();
+			if(fileName.length()<9) continue;
+
+			Sample sample = new Sample(fileName.substring(0,  4));
+			sampleList.add(sample);
+			sampleIdList.add(sample.sampleId);
+		}
+
+		//tableView에서는 되는데. 
+		sampleListView.setItems(FXCollections.observableArrayList(sampleIdList));
+
+		selectedSample = 0;
+		for(String sampleId:sampleIdList) {
+			Sample sample = sampleList.get(selectedSample);
+			for(File file:fileList) {
+				String fileName = file.getName();
+				if(fileName.contains(sampleId)) {
+					for(context=0;context<3;context++) {
+						forwardTarget = keywordSet_F[context];
+						reverseTarget = keywordSet_R[context];
+
+						for(String target:forwardTarget) {
+							if(fileName.contains(target)) {
+								sample.fwdTraceFile[context] = file;
+								try {
+									GanseqTrace tempTrace = new GanseqTrace(sample.fwdTraceFile[context]);
+									if(tempTrace.getSequenceLength()<30) {
+										popUp("Invalid trace file: too short sequence length(<30bp) or too poor quality of sequence");
+										return;
+									}
+									int startTrimPosition = tempTrace.getFrontTrimPosition();
+									int endTrimPosition = tempTrace.getTailTrimPosition();
+									if(startTrimPosition >= endTrimPosition) {
+										//popUp("Forward trace file cannot be used due to poor quality");
+										poorFwdTrace(tempTrace);
+									}
+									else {
+										tempTrace.makeTrimmedTrace(startTrimPosition, endTrimPosition);
+										confirmFwdTrace(tempTrace);
+									}
+
+								}
+								catch (Exception ex) {
+									ex.printStackTrace();
+									popUp("Error in loading trace files\n" + ex.getMessage());
+									return;
+								}
+								break;
+							}
+						}
+
+						for(String target:reverseTarget) {
+							if(fileName.contains(target)) {
+								sample.revTraceFile[context] = file;
+								try {
+									GanseqTrace tempTrace = new GanseqTrace(sample.revTraceFile[context]);
+									if(tempTrace.getSequenceLength()<30) {
+										popUp("Invalid trace file: too short sequence length(<30bp) or too poor quality of sequence");
+										return;
+									}
+									int startTrimPosition = tempTrace.getFrontTrimPosition();
+									int endTrimPosition = tempTrace.getTailTrimPosition();
+
+									if(startTrimPosition >= endTrimPosition) {
+										//popUp("Reverse trace file cannot be used due to poor quality");
+										poorRevTrace(tempTrace);
+									}
+									else {
+										tempTrace.makeTrimmedTrace(startTrimPosition, endTrimPosition);
+										//make complement
+										tempTrace.makeComplement();
+										confirmRevTrace(tempTrace);
+									}
+								}
+								catch (Exception ex) {
+									ex.printStackTrace();
+									popUp("Error in loading trace files\n" + ex.getMessage());
+									return;
+								}
+								break;
+							}
+						}
+					}
+				}
+			}
+			selectedSample++;
+		}
+
+		//원상복귀. 읽은 다음 맨 위 가리키게.
+		selectedSample = 0;
+		context = 0;
+
+
+
+		/*		
 		switch(context) {
 		case 0:
 
-			forwardTarget = keywordSet_16sF;
-			reverseTarget = keywordSet_16sR;
+			forwardTarget = keywordSet_F[0];
+			reverseTarget = keywordSet_R[0];
 			break;
 
 		case 1:
-			forwardTarget = keywordSet_rpoF;
-			reverseTarget = keywordSet_rpoR;
+			forwardTarget = keywordSet_F[1];
+			reverseTarget = keywordSet_R[1];
 			break;
 
 		case 2:
-			forwardTarget = keywordSet_tufF;
-			reverseTarget = keywordSet_tufR;
+			forwardTarget = keywordSet_F[2];
+			reverseTarget = keywordSet_R[2];
 			break;
 		}
 
@@ -601,13 +740,13 @@ public class RootController implements Initializable {
 				return;
 			}
 		}
-
+		 */
 	}
 
 	public void handleFwdEditTrimming() {
 		GanseqTrace tempTrace = null;
 		try {
-			tempTrace = new GanseqTrace(fwdTraceFile[context]);
+			tempTrace = new GanseqTrace(sampleList.get(selectedSample).fwdTraceFile[context]);
 			FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("Trim.fxml"));
 			Parent root1 = (Parent) fxmlLoader.load();
 			Stage stage = new Stage();
@@ -635,7 +774,7 @@ public class RootController implements Initializable {
 	public void handleRevEditTrimming() {
 		GanseqTrace tempTrace = null;
 		try {
-			tempTrace = new GanseqTrace(revTraceFile[context]);
+			tempTrace = new GanseqTrace(sampleList.get(selectedSample).revTraceFile[context]);
 			FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("Trim.fxml"));
 			Parent root1 = (Parent) fxmlLoader.load();
 			Stage stage = new Stage();
@@ -661,45 +800,28 @@ public class RootController implements Initializable {
 	}
 
 
-	/*
-	 * 	FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("Trim.fxml"));
-			Parent root1 = (Parent) fxmlLoader.load();
-			Stage stage = new Stage();
-			TrimController controller = fxmlLoader.getController();
-			controller.setPrimaryStage(stage);
-
-			controller.setTargetTrace(tempTrace, GanseqTrace.FORWARD);
-
-			controller.setRootController(this);
-			controller.init();
-			stage.setScene(new Scene(root1));
-			//stage.setAlwaysOnTop(true);
-			stage.initOwner(primaryStage);
-			stage.setTitle("Trim sequences");
-			stage.show();
-	 */
-
-
 	/**
 	 * Loads the image of trimmed forward trace file
 	 * @param trace : trimmed forward trace file
 	 */
 	public void confirmFwdTrace(GanseqTrace trimmedTrace) {
 
-		trimmedFwdTrace[context] = trimmedTrace;
+		sampleList.get(selectedSample).trimmedFwdTrace[context] = trimmedTrace;
 
 		try {
 
+			/*
 			BufferedImage awtImage = trimmedFwdTrace[context].getDefaultImage();
 			Image fxImage = SwingFXUtils.toFXImage(awtImage, null);
 			ImageView imageView = new ImageView(fxImage);
 			fwdPane.setContent(imageView);
+			 */
 			//fwdRuler.setImage(trimmedFwdTrace[context].getRulerImage());
 
-			String fileName = fwdTraceFile[context].getName();
-			fwdTraceFileName[context] = fileName;
-			fwdTraceFileLabel.setText(fileName);
-			fwdLoaded[context] = true;
+			String fileName = sampleList.get(selectedSample).fwdTraceFile[context].getName();
+			sampleList.get(selectedSample).fwdTraceFileName[context] = fileName;
+			//fwdTraceFileLabel.setText(fileName);
+			sampleList.get(selectedSample).fwdLoaded[context] = true;
 		}
 		catch(Exception ex) {
 			popUp("Error in loading forward trace file\n" + ex.getMessage());
@@ -715,11 +837,11 @@ public class RootController implements Initializable {
 	public void poorFwdTrace(GanseqTrace poorTrace) {
 
 		try {
-			fwdPane.setContent(new Label("Poor Quality Trace File"));
-			String fileName = fwdTraceFile[context].getName();
-			fwdTraceFileName[context] = fileName;
-			fwdTraceFileLabel.setText(fileName);
-			fwdLoaded[context] = false;
+			//fwdPane.setContent(new Label("Poor Quality Trace File"));
+			String fileName = sampleList.get(selectedSample).fwdTraceFile[context].getName();
+			sampleList.get(selectedSample).fwdTraceFileName[context] = fileName;
+			//fwdTraceFileLabel.setText(fileName);
+			sampleList.get(selectedSample).fwdLoaded[context] = false;
 		}
 		catch(Exception ex) {
 			popUp("Error in loading forward trace file\n" + ex.getMessage());
@@ -732,6 +854,15 @@ public class RootController implements Initializable {
 	}
 
 
+
+	private void resetParameters() {
+		sampleList.get(selectedSample).alignmentPerformed[context] = false;
+		sampleList.get(selectedSample).alignedPoints[context] = null;
+		sampleList.get(selectedSample).selectedAlignmentPos[context] = -1;
+		gridPane = null;
+		labels = null;
+		alignmentPane.setContent(new Label(""));
+	}
 
 
 
@@ -786,19 +917,21 @@ public class RootController implements Initializable {
 	 * @param trace : trimmed reverse trace file
 	 */
 	public void confirmRevTrace(GanseqTrace trimmedTrace) {
-		trimmedRevTrace[context] = trimmedTrace;
+		sampleList.get(selectedSample).trimmedRevTrace[context] = trimmedTrace;
 
 		try {
+			/*
 			BufferedImage awtImage = trimmedRevTrace[context].getDefaultImage();
 			Image fxImage = SwingFXUtils.toFXImage(awtImage, null);
 			ImageView imageView = new ImageView(fxImage);
 			revPane.setContent(imageView);
+			 */
 
 			//revRuler.setImage(trimmedRevTrace[context].getRulerImage());
-			String fileName = revTraceFile[context].getName();
-			revTraceFileName[context] = fileName;
-			revTraceFileLabel.setText(fileName);
-			revLoaded[context] = true;
+			String fileName = sampleList.get(selectedSample).revTraceFile[context].getName();
+			sampleList.get(selectedSample).revTraceFileName[context] = fileName;
+			//revTraceFileLabel.setText(fileName);
+			sampleList.get(selectedSample).revLoaded[context] = true;
 
 		}
 		catch(Exception ex) {
@@ -811,11 +944,11 @@ public class RootController implements Initializable {
 
 	public void poorRevTrace(GanseqTrace poorTrace) {
 		try {
-			revPane.setContent(new Label("Poor Quality Trace File"));
-			String fileName = revTraceFile[context].getName();
-			revTraceFileName[context] = fileName;
-			revTraceFileLabel.setText(fileName);
-			revLoaded[context] = false;
+			//revPane.setContent(new Label("Poor Quality Trace File"));
+			String fileName = sampleList.get(selectedSample).revTraceFile[context].getName();
+			sampleList.get(selectedSample).revTraceFileName[context] = fileName;
+			//revTraceFileLabel.setText(fileName);
+			sampleList.get(selectedSample).revLoaded[context] = false;
 		}
 		catch(Exception ex) {
 			popUp("Error in loading reverse trace file\n" + ex.getMessage());

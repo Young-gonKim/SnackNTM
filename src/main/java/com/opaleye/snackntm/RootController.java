@@ -72,6 +72,10 @@ public class RootController implements Initializable {
 	private Vector<Sample> sampleList = new Vector<Sample>();
 	private int selectedSample = 0;
 
+	private boolean alignmentPerformed = false;
+	private Vector<NTMSpecies>[] globalSpeciesList = new Vector[3];	//이건 공통으로 사요
+
+
 	//error 줄이기 위해 context는 Global 개념으로 사용.
 	//0: 16S rRNA, 1: rpoB, 2: tuf
 	private int context = 0;
@@ -98,12 +102,12 @@ public class RootController implements Initializable {
 	private TreeSet<String> keywordSet_R[] = new TreeSet[3];
 
 
-	private String csvContents = "";
 
-
+	/*
 	private boolean s16Loaded = false;
 	private boolean rpoLoaded = false;
 	private boolean tufLoaded = false;
+	 */
 
 	private String targetRegion = null;
 
@@ -118,7 +122,7 @@ public class RootController implements Initializable {
 	@FXML private Button fwdZoomInButton, fwdZoomOutButton, revZoomInButton, revZoomOutButton; 
 
 
-	@FXML private TableView<NTMSpecies> speciesTable, s16Table, rpoTable, tufTable, finalTable, targetTable;
+	@FXML private TableView<NTMSpecies> speciesTable, s16Table, rpoTable, tufTable, finalTable;
 	@FXML private ListView<String> sampleListView;
 
 	private String lastVisitedDir="f:\\GoogleDrive\\SnackNTM";
@@ -148,8 +152,9 @@ public class RootController implements Initializable {
 
 
 	//context-specific variables
+
+	/*
 	private Vector<NTMSpecies>[] speciesList = new Vector[3];
-	public static boolean[] alignmentPerformed = {false, false, false};
 	public static Vector<AlignedPoint>[] alignedPoints = new Vector[3];
 	private File[] fwdTraceFile = new File[3], revTraceFile = new File[3];
 	private GanseqTrace[] trimmedFwdTrace = new GanseqTrace[3], trimmedRevTrace = new GanseqTrace[3];
@@ -158,7 +163,7 @@ public class RootController implements Initializable {
 	private String[] revTraceFileName = new String[3];
 	//edit base 용
 	private int[] selectedAlignmentPos = {-1, -1, -1};
-
+	 */
 
 
 	private void checkVersion() {
@@ -245,70 +250,12 @@ public class RootController implements Initializable {
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
 		checkVersion();
-		readDefaultProperties();
+
 		File tempFile = new File(lastVisitedDir);
 		if(!tempFile.exists())
 			lastVisitedDir=".";
 
-		Tooltip zoomInTooltip = new Tooltip("Zoom In");
-		Tooltip zoomOutTooltip = new Tooltip("Zoom Out");
-		TooltipDelay.activateTooltipInstantly(zoomInTooltip);
-		TooltipDelay.activateTooltipInstantly(zoomOutTooltip);
-
-
-		fwdZoomInButton.setTooltip(zoomInTooltip);
-		fwdZoomOutButton.setTooltip(zoomOutTooltip);
-		revZoomInButton.setTooltip(zoomInTooltip);
-		revZoomOutButton.setTooltip(zoomOutTooltip);
-
-		sampleListView.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
-			@Override
-			public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-				selectedSample = newValue.intValue();
-				Sample sample = sampleList.get(selectedSample);
-				context = 0;
-				try {
-					if(sample.fwdLoaded[context]) {
-						BufferedImage awtImage = sample.trimmedFwdTrace[context].getDefaultImage();
-						Image fxImage = SwingFXUtils.toFXImage(awtImage, null);
-						ImageView imageView = new ImageView(fxImage);
-						fwdPane.setContent(imageView);
-						fwdTraceFileLabel.setText(sample.fwdTraceFileName[context]);
-					}
-					else if(sample.fwdTraceFileName[context] != null) {
-						fwdTraceFileLabel.setText(sample.fwdTraceFileName[context]);
-						fwdPane.setContent(new Label("Poor Quality Trace File"));
-					}
-					else {
-						fwdTraceFileLabel.setText("No file exists");
-						fwdPane.setContent(new Label("No file exists"));
-					}
-					
-					if(sample.revLoaded[context]) {
-						BufferedImage awtImage = sample.trimmedRevTrace[context].getDefaultImage();
-						Image fxImage = SwingFXUtils.toFXImage(awtImage, null);
-						ImageView imageView = new ImageView(fxImage);
-						revPane.setContent(imageView);
-						revTraceFileLabel.setText(sample.revTraceFileName[context]);
-					}
-					else if(sample.revTraceFileName[context] != null) {
-						revTraceFileLabel.setText(sample.revTraceFileName[context]);
-						revPane.setContent(new Label("Poor Quality Trace File"));
-					}
-					else {
-						revTraceFileLabel.setText("No file exists");
-						revPane.setContent(new Label("No file exists"));
-					}
-				}
-				catch(Exception ex) {
-				}
-			}
-		});
-
-
-	}
-
-	private void readDefaultProperties() {
+		gapOpenPenalty = defaultGOP;
 
 		cb_targetRegion.getItems().addAll(s16, rpo, tuf);
 		cb_targetRegion.setValue(s16);
@@ -326,25 +273,163 @@ public class RootController implements Initializable {
 
 				System.out.println("context switched to " + context);
 
-				if(sampleList.get(selectedSample).alignmentPerformed[context] == false) {
-					//printUnAlignedData();
-					handleRemoveFwd();
-					handleRemoveRev();
-					speciesTable.setItems(FXCollections.observableArrayList(new Vector<NTMSpecies>()));
-					csvContents = "";
+				if(alignmentPerformed == false) {
+					printUnAlignedData();
 				}
 				else {
 					printAlignedResult();
-					speciesTable.setItems(FXCollections.observableArrayList(speciesList[context]));
+					speciesTable.setItems(FXCollections.observableArrayList(sampleList.get(selectedSample).speciesList[context]));
 					makeCsvContents();
 				}
-
-
-
 			}    
 		});
 
-		gapOpenPenalty = defaultGOP;
+		sampleListView.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
+			@Override
+			public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+				selectedSample = newValue.intValue();
+				context = 0;
+				cb_targetRegion.setValue(s16);
+
+				Sample sample = sampleList.get(selectedSample);
+				if(alignmentPerformed == false) {
+					printUnAlignedData();
+				}
+				else {
+					printAlignedResult();
+					speciesTable.setItems(FXCollections.observableArrayList(sample.speciesList[context]));
+					s16Table.setItems(FXCollections.observableArrayList(sample.speciesList[0]));
+					rpoTable.setItems(FXCollections.observableArrayList(sample.speciesList[1]));
+					tufTable.setItems(FXCollections.observableArrayList(sample.speciesList[2]));
+					finalTable.setItems(FXCollections.observableArrayList(sample.finalList));
+				}
+			}
+		});
+
+
+		for(int i=0;i<3;i++) {
+			try {
+				makeGlobalSpeciesList(i);
+			}
+			catch(Exception ex) {
+				popUp(ex.getMessage());
+				ex.printStackTrace();
+			}
+		}
+		initTableViews();
+
+		Tooltip zoomInTooltip = new Tooltip("Zoom In");
+		Tooltip zoomOutTooltip = new Tooltip("Zoom Out");
+		TooltipDelay.activateTooltipInstantly(zoomInTooltip);
+		TooltipDelay.activateTooltipInstantly(zoomOutTooltip);
+
+		fwdZoomInButton.setTooltip(zoomInTooltip);
+		fwdZoomOutButton.setTooltip(zoomOutTooltip);
+		revZoomInButton.setTooltip(zoomInTooltip);
+		revZoomOutButton.setTooltip(zoomOutTooltip);
+	}
+
+	private void printUnAlignedData() {
+		Sample sample = sampleList.get(selectedSample);
+		if(sample.fwdLoaded[context]) {
+			BufferedImage awtImage = sample.trimmedFwdTrace[context].getDefaultImage();
+			Image fxImage = SwingFXUtils.toFXImage(awtImage, null);
+			ImageView imageView = new ImageView(fxImage);
+			fwdPane.setContent(imageView);
+			fwdTraceFileLabel.setText(sample.fwdTraceFileName[context]);
+		}
+		else if(sample.fwdTraceFileName[context] != null) {
+			fwdTraceFileLabel.setText(sample.fwdTraceFileName[context]);
+			fwdPane.setContent(new Label("Poor Quality Trace File"));
+		}
+		else {
+			fwdTraceFileLabel.setText("No file exists");
+			fwdPane.setContent(new Label("No file exists"));
+		}
+
+		if(sample.revLoaded[context]) {
+			BufferedImage awtImage = sample.trimmedRevTrace[context].getDefaultImage();
+			Image fxImage = SwingFXUtils.toFXImage(awtImage, null);
+			ImageView imageView = new ImageView(fxImage);
+			revPane.setContent(imageView);
+			revTraceFileLabel.setText(sample.revTraceFileName[context]);
+		}
+		else if(sample.revTraceFileName[context] != null) {
+			revTraceFileLabel.setText(sample.revTraceFileName[context]);
+			revPane.setContent(new Label("Poor Quality Trace File"));
+		}
+		else {
+			revTraceFileLabel.setText("No file exists");
+			revPane.setContent(new Label("No file exists"));
+		}
+	}
+
+	private void initTableViews() {
+		speciesTable.setEditable(true);
+		TableColumn tcSpecies = speciesTable.getColumns().get(0);
+		TableColumn tcAccession = speciesTable.getColumns().get(1);
+		TableColumn tcQlen = speciesTable.getColumns().get(2);
+		TableColumn tcAlen = speciesTable.getColumns().get(3);
+		TableColumn tcScore = speciesTable.getColumns().get(4);
+		TableColumn tcRgm = speciesTable.getColumns().get(5);
+
+		tcSpecies.setCellValueFactory(new PropertyValueFactory("speciesNameProperty"));
+		tcAccession.setCellValueFactory(new PropertyValueFactory("accessionProperty"));
+		tcQlen.setCellValueFactory(new PropertyValueFactory("qlenProperty"));
+		tcAlen.setCellValueFactory(new PropertyValueFactory("alenProperty"));
+		tcScore.setCellValueFactory(new PropertyValueFactory("scoreProperty"));
+		tcRgm.setCellValueFactory(new PropertyValueFactory("rgmProperty"));
+
+		tcSpecies.setCellFactory(TextFieldTableCell.<NTMSpecies>forTableColumn());
+
+		speciesTable.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
+			@Override
+			public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+				//Sysem.out.println("selected Index : " + newValue.intValue());
+				try {
+					doAlignment(newValue.intValue());
+				}
+				catch(Exception ex) {
+					popUp(ex.getMessage());
+					ex.printStackTrace();
+				}
+				printAlignedResult();
+			}
+		});
+
+		s16Table.setEditable(true);
+		TableColumn s16_tcSpecies = s16Table.getColumns().get(0);
+		TableColumn s16_tcScore = s16Table.getColumns().get(1);
+		s16_tcSpecies.setCellValueFactory(new PropertyValueFactory("speciesNameProperty"));
+		s16_tcScore.setCellValueFactory(new PropertyValueFactory("scoreProperty"));
+		s16_tcSpecies.setCellFactory(TextFieldTableCell.<NTMSpecies>forTableColumn());
+
+		rpoTable.setEditable(true);
+		TableColumn rpo_tcSpecies = rpoTable.getColumns().get(0);
+		TableColumn rpo_tcScore = rpoTable.getColumns().get(1);
+		rpo_tcSpecies.setCellValueFactory(new PropertyValueFactory("speciesNameProperty"));
+		rpo_tcScore.setCellValueFactory(new PropertyValueFactory("scoreProperty"));
+		rpo_tcSpecies.setCellFactory(TextFieldTableCell.<NTMSpecies>forTableColumn());
+
+		tufTable.setEditable(true);
+		TableColumn tuf_tcSpecies = tufTable.getColumns().get(0);
+		TableColumn tuf_tcScore = tufTable.getColumns().get(1);
+		tuf_tcSpecies.setCellValueFactory(new PropertyValueFactory("speciesNameProperty"));
+		tuf_tcScore.setCellValueFactory(new PropertyValueFactory("scoreProperty"));
+		tuf_tcSpecies.setCellFactory(TextFieldTableCell.<NTMSpecies>forTableColumn());
+
+		speciesTable.setFixedCellSize(tableRowHeight);
+		s16Table.setFixedCellSize(tableRowHeight);
+		rpoTable.setFixedCellSize(tableRowHeight);
+		tufTable.setFixedCellSize(tableRowHeight);
+		finalTable.setFixedCellSize(tableRowHeight);
+
+		finalTable.setEditable(true);
+		TableColumn final_tcSpecies = finalTable.getColumns().get(0);
+		TableColumn final_tcScore = finalTable.getColumns().get(1);
+		final_tcSpecies.setCellValueFactory(new PropertyValueFactory("speciesNameProperty"));
+		final_tcScore.setCellValueFactory(new PropertyValueFactory("scoreProperty"));
+		final_tcSpecies.setCellFactory(TextFieldTableCell.<NTMSpecies>forTableColumn());
 	}
 
 	public void setProperties(int gapOpenPenalty) {
@@ -354,9 +439,10 @@ public class RootController implements Initializable {
 
 
 	public void handleEditBase() {
-		if(!alignmentPerformed[context]) return;
-		if(selectedAlignmentPos[context] == -1) return;
-		AlignedPoint ap = alignedPoints[context].get(selectedAlignmentPos[context]);
+		if(!alignmentPerformed) return;
+		Sample sample = sampleList.get(selectedSample);
+		if(sample.selectedAlignmentPos[context] == -1) return;
+		AlignedPoint ap = sample.alignedPoints[context].get(sample.selectedAlignmentPos[context]);
 
 		try {
 			FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("editbase.fxml"));
@@ -381,13 +467,14 @@ public class RootController implements Initializable {
 	}
 
 	public void updateBase(char newFwdChar, char newRevChar) {
-		AlignedPoint ap = alignedPoints[context].get(selectedAlignmentPos[context]);
+		Sample sample = sampleList.get(selectedSample);
+		AlignedPoint ap = sample.alignedPoints[context].get(sample.selectedAlignmentPos[context]);
 
-		if(fwdLoaded[context]) {
-			trimmedFwdTrace[context].editBase(ap.getFwdTraceIndex(), ap.getFwdChar(), newFwdChar);
+		if(sample.fwdLoaded[context]) {
+			sample.trimmedFwdTrace[context].editBase(ap.getFwdTraceIndex(), ap.getFwdChar(), newFwdChar);
 		}
-		if(revLoaded[context]) {
-			trimmedRevTrace[context].editBase(ap.getRevTraceIndex(), ap.getRevChar(), newRevChar);
+		if(sample.revLoaded[context]) {
+			sample.trimmedRevTrace[context].editBase(ap.getRevTraceIndex(), ap.getRevChar(), newRevChar);
 		}
 
 		//새로 alignment 실행 && 원래 보여주고 있던 곳 보여주기
@@ -395,16 +482,16 @@ public class RootController implements Initializable {
 
 		//speciesTable에서 클릭하기 전에는 맨 위에꺼에 맞추어서 printAlignedResult 되어있으므로.
 		if(selectedSpecies == null) 
-			selectedSpecies = speciesList[context].get(0);
+			selectedSpecies = sample.speciesList[context].get(0);
 
-		int oldAlignmentPos = selectedAlignmentPos[context];
+		int oldAlignmentPos = sample.selectedAlignmentPos[context];
 		String selectedSpeciesName = selectedSpecies.getSpeciesName();
 		//System.out.println("selected species : " + selectedSpeciesName);
 
 		handleRun();
 
-		for(int i=0;i<speciesList[context].size();i++) {
-			NTMSpecies ntm = speciesList[context].get(i);
+		for(int i=0;i<sample.speciesList[context].size();i++) {
+			NTMSpecies ntm = sample.speciesList[context].get(i);
 			if(ntm.getSpeciesName().equals(selectedSpeciesName)) {
 				speciesTable.getSelectionModel().select(i);
 				focus(oldAlignmentPos);
@@ -412,8 +499,6 @@ public class RootController implements Initializable {
 			}
 		}
 	}
-
-
 
 	public void handleSettings() {
 		try {
@@ -438,8 +523,8 @@ public class RootController implements Initializable {
 
 
 
-	private void makeSpeciesList() throws Exception {
-		speciesList[context] = new Vector<NTMSpecies>();
+	private void makeGlobalSpeciesList(int target) throws Exception {
+		globalSpeciesList[target] = new Vector<NTMSpecies>();
 		targetRegion = (String)cb_targetRegion.getValue();
 
 		//read rgm list
@@ -494,11 +579,11 @@ public class RootController implements Initializable {
 		}
 
 		file = null;
-		if(targetRegion.equals(s16))
+		if(target == 0)
 			file = new File("reference/ref16s.fasta");
-		else if(targetRegion.equals(rpo))
+		else if(target == 1)
 			file = new File("reference/refrpob.fasta");
-		else if(targetRegion.equals(tuf))
+		else if(target == 2)
 			file = new File("reference/reftuf.fasta");
 
 		buffer = new StringBuffer();
@@ -517,7 +602,7 @@ public class RootController implements Initializable {
 			//  맨앞에 공백 한칸 들어감 --> 1부터 시작 
 			for(int i=1;i<tokens.length;i++) {
 				NTMSpecies tempSpecies = new NTMSpecies(tokens[i]);
-				speciesList[context].add(tempSpecies);
+				globalSpeciesList[target].add(tempSpecies);
 			}
 
 		}catch (Exception ex) {
@@ -590,7 +675,7 @@ public class RootController implements Initializable {
 									}
 									else {
 										tempTrace.makeTrimmedTrace(startTrimPosition, endTrimPosition);
-										confirmFwdTrace(tempTrace);
+										confirmFwdTrace(tempTrace, false);
 									}
 
 								}
@@ -623,7 +708,7 @@ public class RootController implements Initializable {
 										tempTrace.makeTrimmedTrace(startTrimPosition, endTrimPosition);
 										//make complement
 										tempTrace.makeComplement();
-										confirmRevTrace(tempTrace);
+										confirmRevTrace(tempTrace, false);
 									}
 								}
 								catch (Exception ex) {
@@ -644,103 +729,6 @@ public class RootController implements Initializable {
 		selectedSample = 0;
 		context = 0;
 
-
-
-		/*		
-		switch(context) {
-		case 0:
-
-			forwardTarget = keywordSet_F[0];
-			reverseTarget = keywordSet_R[0];
-			break;
-
-		case 1:
-			forwardTarget = keywordSet_F[1];
-			reverseTarget = keywordSet_R[1];
-			break;
-
-		case 2:
-			forwardTarget = keywordSet_F[2];
-			reverseTarget = keywordSet_R[2];
-			break;
-		}
-
-		for(File file:fileList) {
-			String fileName = file.getName();
-
-			for(String target:forwardTarget) {
-				if(fileName.contains(target)) {
-					fwdTraceFile[context] = file;
-					fwdFound = true;
-					break;
-				}
-			}
-
-			for(String target:reverseTarget) {
-				if(fileName.contains(target)) {
-					revTraceFile[context] = file;
-					revFound = true;
-					break;
-				}
-			}
-		}
-
-		//load fwd
-		if(fwdFound) {
-			try {
-				GanseqTrace tempTrace = new GanseqTrace(fwdTraceFile[context]);
-				if(tempTrace.getSequenceLength()<30) {
-					popUp("Invalid trace file: too short sequence length(<30bp) or too poor quality of sequence");
-					return;
-				}
-				int startTrimPosition = tempTrace.getFrontTrimPosition();
-				int endTrimPosition = tempTrace.getTailTrimPosition();
-				if(startTrimPosition >= endTrimPosition) {
-					//popUp("Forward trace file cannot be used due to poor quality");
-					poorFwdTrace(tempTrace);
-				}
-				else {
-					tempTrace.makeTrimmedTrace(startTrimPosition, endTrimPosition);
-					confirmFwdTrace(tempTrace);
-				}
-
-			}
-			catch (Exception ex) {
-				ex.printStackTrace();
-				popUp("Error in loading trace files\n" + ex.getMessage());
-				return;
-			}
-		}
-
-		//Load rev
-		if(revFound) {
-			try {
-				GanseqTrace tempTrace = new GanseqTrace(revTraceFile[context]);
-				if(tempTrace.getSequenceLength()<30) {
-					popUp("Invalid trace file: too short sequence length(<30bp) or too poor quality of sequence");
-					return;
-				}
-				int startTrimPosition = tempTrace.getFrontTrimPosition();
-				int endTrimPosition = tempTrace.getTailTrimPosition();
-
-				if(startTrimPosition >= endTrimPosition) {
-					//popUp("Reverse trace file cannot be used due to poor quality");
-					poorRevTrace(tempTrace);
-				}
-				else {
-					tempTrace.makeTrimmedTrace(startTrimPosition, endTrimPosition);
-					//make complement
-					tempTrace.makeComplement();
-					confirmRevTrace(tempTrace);
-				}
-			}
-			catch (Exception ex) {
-				ex.printStackTrace();
-				popUp("Error in loading trace files\n" + ex.getMessage());
-				return;
-			}
-		}
-		 */
 	}
 
 	public void handleFwdEditTrimming() {
@@ -804,24 +792,25 @@ public class RootController implements Initializable {
 	 * Loads the image of trimmed forward trace file
 	 * @param trace : trimmed forward trace file
 	 */
-	public void confirmFwdTrace(GanseqTrace trimmedTrace) {
-
-		sampleList.get(selectedSample).trimmedFwdTrace[context] = trimmedTrace;
+	public void confirmFwdTrace(GanseqTrace trimmedTrace, boolean resetImage) {
+		Sample sample = sampleList.get(selectedSample);
+		sample.trimmedFwdTrace[context] = trimmedTrace;
 
 		try {
 
-			/*
-			BufferedImage awtImage = trimmedFwdTrace[context].getDefaultImage();
-			Image fxImage = SwingFXUtils.toFXImage(awtImage, null);
-			ImageView imageView = new ImageView(fxImage);
-			fwdPane.setContent(imageView);
-			 */
+			if(resetImage) {
+				BufferedImage awtImage = sample.trimmedFwdTrace[context].getDefaultImage();
+				Image fxImage = SwingFXUtils.toFXImage(awtImage, null);
+				ImageView imageView = new ImageView(fxImage);
+				fwdPane.setContent(imageView);
+			}
+
 			//fwdRuler.setImage(trimmedFwdTrace[context].getRulerImage());
 
-			String fileName = sampleList.get(selectedSample).fwdTraceFile[context].getName();
-			sampleList.get(selectedSample).fwdTraceFileName[context] = fileName;
+			String fileName = sample.fwdTraceFile[context].getName();
+			sample.fwdTraceFileName[context] = fileName;
 			//fwdTraceFileLabel.setText(fileName);
-			sampleList.get(selectedSample).fwdLoaded[context] = true;
+			sample.fwdLoaded[context] = true;
 		}
 		catch(Exception ex) {
 			popUp("Error in loading forward trace file\n" + ex.getMessage());
@@ -856,7 +845,7 @@ public class RootController implements Initializable {
 
 
 	private void resetParameters() {
-		sampleList.get(selectedSample).alignmentPerformed[context] = false;
+		alignmentPerformed = false;
 		sampleList.get(selectedSample).alignedPoints[context] = null;
 		sampleList.get(selectedSample).selectedAlignmentPos[context] = -1;
 		gridPane = null;
@@ -865,12 +854,11 @@ public class RootController implements Initializable {
 	}
 
 
-
-
 	public void handleReset() {
 
+		/*
 		speciesList = new Vector[3];
-		alignmentPerformed = new boolean[3];
+		alignmentPerformed = false;
 		alignedPoints = new Vector[3];
 		fwdTraceFile = new File[3]; 
 		revTraceFile = new File[3];
@@ -896,6 +884,7 @@ public class RootController implements Initializable {
 		s16Loaded = false;
 		rpoLoaded = false;
 		tufLoaded = false;
+		 */
 	}
 
 
@@ -903,12 +892,14 @@ public class RootController implements Initializable {
 	 * Remove forward trace file
 	 */
 	public void handleRemoveFwd() {
+		/*
 		resetParameters();
 		fwdTraceFileLabel.setText("");
 		fwdPane.setContent(new Label(""));
 		fwdTraceFile[context] = null;
 		trimmedFwdTrace[context] = null;
 		fwdLoaded[context] = false;
+		 */
 	}
 
 
@@ -916,22 +907,23 @@ public class RootController implements Initializable {
 	 * Loads the image of trimmed reverse trace file
 	 * @param trace : trimmed reverse trace file
 	 */
-	public void confirmRevTrace(GanseqTrace trimmedTrace) {
-		sampleList.get(selectedSample).trimmedRevTrace[context] = trimmedTrace;
+	public void confirmRevTrace(GanseqTrace trimmedTrace, boolean resetImage) {
+		Sample sample = sampleList.get(selectedSample);
+		sample.trimmedRevTrace[context] = trimmedTrace;
 
 		try {
-			/*
-			BufferedImage awtImage = trimmedRevTrace[context].getDefaultImage();
-			Image fxImage = SwingFXUtils.toFXImage(awtImage, null);
-			ImageView imageView = new ImageView(fxImage);
-			revPane.setContent(imageView);
-			 */
+			if(resetImage) {
+				BufferedImage awtImage = sample.trimmedRevTrace[context].getDefaultImage();
+				Image fxImage = SwingFXUtils.toFXImage(awtImage, null);
+				ImageView imageView = new ImageView(fxImage);
+				revPane.setContent(imageView);
+			}
 
 			//revRuler.setImage(trimmedRevTrace[context].getRulerImage());
-			String fileName = sampleList.get(selectedSample).revTraceFile[context].getName();
-			sampleList.get(selectedSample).revTraceFileName[context] = fileName;
+			String fileName = sample.revTraceFile[context].getName();
+			sample.revTraceFileName[context] = fileName;
 			//revTraceFileLabel.setText(fileName);
-			sampleList.get(selectedSample).revLoaded[context] = true;
+			sample.revLoaded[context] = true;
 
 		}
 		catch(Exception ex) {
@@ -964,6 +956,7 @@ public class RootController implements Initializable {
 	 * Remove reverse trace file
 	 */
 	public void handleRemoveRev() {
+		/*
 		resetParameters();
 		revTraceFileLabel.setText("");
 		revPane.setContent(new Label(""));
@@ -971,6 +964,7 @@ public class RootController implements Initializable {
 		revTraceFile[context] = null;
 		trimmedRevTrace[context] = null;
 		revLoaded[context] = false;
+		 */
 	}
 
 
@@ -1006,6 +1000,7 @@ public class RootController implements Initializable {
 
 
 	public void handleCSV() {
+		Sample sample = sampleList.get(selectedSample);
 		Stage dialog = new Stage(StageStyle.DECORATED);
 		dialog.initOwner(primaryStage);
 		dialog.setTitle("CSV");
@@ -1015,7 +1010,7 @@ public class RootController implements Initializable {
 			TextArea ta_csv = (TextArea)parent.lookup("#ta_csv");
 
 
-			ta_csv.setText(csvContents);
+			ta_csv.setText(sample.csvContents[context]);
 			Button okButton = (Button) parent.lookup("#okButton");
 			okButton.setOnAction(event->dialog.close());
 			Scene scene = new Scene(parent);
@@ -1062,48 +1057,50 @@ public class RootController implements Initializable {
 
 
 	private void makeCsvContents() {
-		csvContents = "";
-		for(NTMSpecies ntm : speciesList[context]) {
+		Sample sample = sampleList.get(selectedSample);
+		sample.csvContents[context] = "";
+		for(NTMSpecies ntm : sample.speciesList[context]) {
 			if(ntm.getScore()>=98) {
 				//csvContents += ntm.getQlen() + "\t\t" + ntm.getScoreProperty() + "\t" + ntm.getAccession() + "\t" + ntm.getSpeciesName() + "\n";
-				csvContents += ntm.getQlen() + "\t" + ntm.getScoreProperty() + "\t" + ntm.getAccession() + "\t" + ntm.getSpeciesName() + "\n";
+				sample.csvContents[context] += ntm.getQlen() + "\t" + ntm.getScoreProperty() + "\t" + ntm.getAccession() + "\t" + ntm.getSpeciesName() + "\n";
 			}
 		}
 	}
 
 
 	private void doAlignment(int selectedSpecies) throws Exception{
+		Sample sample = sampleList.get(selectedSample);
 		resetParameters();
 		Formatter.init();
-		ReferenceSeq refFile = speciesList[context].get(selectedSpecies).getRefSeq();
+		ReferenceSeq refFile = sample.speciesList[context].get(selectedSpecies).getRefSeq();
 		//When only fwd trace is given as input
 
 		MMAlignment mma = new MMAlignment();
 		AlignedPair fwdAp = null;
 		AlignedPair revAp = null;
 
-		if(fwdLoaded[context] == true) {
-			fwdAp = mma.localAlignment(refFile.getRefString(), trimmedFwdTrace[context].getSequence());
+		if(sample.fwdLoaded[context] == true) {
+			fwdAp = mma.localAlignment(refFile.getRefString(), sample.trimmedFwdTrace[context].getSequence());
 		}
 
-		if(revLoaded[context] == true) {
-			revAp = mma.localAlignment(refFile.getRefString(), trimmedRevTrace[context].getSequence());
+		if(sample.revLoaded[context] == true) {
+			revAp = mma.localAlignment(refFile.getRefString(), sample.trimmedRevTrace[context].getSequence());
 		}
 
 
-		if(fwdLoaded[context] == true && revLoaded[context] == false) {
-			alignedPoints[context] = Formatter.format2(fwdAp, refFile, trimmedFwdTrace[context], 1);
+		if(sample.fwdLoaded[context] == true && sample.revLoaded[context] == false) {
+			sample.alignedPoints[context] = Formatter.format2(fwdAp, refFile, sample.trimmedFwdTrace[context], 1);
 		}
 
 		//When only rev trace is given as input
-		else if(fwdLoaded[context] == false && revLoaded[context] == true) {
-			alignedPoints[context] = Formatter.format2(revAp, refFile, trimmedRevTrace[context], -1);
+		else if(sample.fwdLoaded[context] == false && sample.revLoaded[context] == true) {
+			sample.alignedPoints[context] = Formatter.format2(revAp, refFile, sample.trimmedRevTrace[context], -1);
 		}
 
 		//When both of fwd trace and rev trace are given
-		else  if(fwdLoaded[context] == true && revLoaded[context] == true) {
+		else  if(sample.fwdLoaded[context] == true && sample.revLoaded[context] == true) {
 
-			alignedPoints[context] = Formatter.format3(fwdAp, revAp, refFile, trimmedFwdTrace[context], trimmedRevTrace[context]);
+			sample.alignedPoints[context] = Formatter.format3(fwdAp, revAp, refFile, sample.trimmedFwdTrace[context], sample.trimmedRevTrace[context]);
 		}
 	}
 
@@ -1115,7 +1112,9 @@ public class RootController implements Initializable {
 		Vector<NTMSpecies> s16_100List = new Vector<NTMSpecies>();
 		Vector<NTMSpecies> retList = new Vector<NTMSpecies>();
 
-		if(s16Loaded) {
+		Sample sample = sampleList.get(selectedSample);
+
+		if(sample.s16Loaded) {
 			for(NTMSpecies ntm : s16List) {
 				if(ntm.getScore() == 100) 
 					s16_100List.add(ntm);
@@ -1134,9 +1133,9 @@ public class RootController implements Initializable {
 				strScore = "most closely";
 			}
 
-			if(retList.size() > 1 && rpoLoaded) {
+			if(retList.size() > 1 && sample.rpoLoaded) {
 				retList.retainAll(rpoList);
-				if(retList.size() > 1 && tufLoaded)
+				if(retList.size() > 1 && sample.tufLoaded)
 					retList.retainAll(tufList);
 			}
 
@@ -1156,16 +1155,16 @@ public class RootController implements Initializable {
 			if(specificSeq && targetRegion.equals(s16)) {
 				boolean containsIcSeq = false;
 				boolean containsChSeq = false;
-				if(fwdLoaded[context]) {
-					if(trimmedFwdTrace[context].getSequence().contains(icSeq)) 
+				if(sample.fwdLoaded[context]) {
+					if(sample.trimmedFwdTrace[context].getSequence().contains(icSeq)) 
 						containsIcSeq = true;
-					if(trimmedFwdTrace[context].getSequence().contains(chSeq)) 
+					if(sample.trimmedFwdTrace[context].getSequence().contains(chSeq)) 
 						containsChSeq = true;
 				}
-				if(revLoaded[context]) {
-					if(trimmedRevTrace[context].getSequence().contains(icSeq)) 
+				if(sample.revLoaded[context]) {
+					if(sample.trimmedRevTrace[context].getSequence().contains(icSeq)) 
 						containsIcSeq = true;
-					if(trimmedRevTrace[context].getSequence().contains(chSeq)) 
+					if(sample.trimmedRevTrace[context].getSequence().contains(chSeq)) 
 						containsChSeq = true;
 				}
 				if(containsIcSeq)
@@ -1176,8 +1175,6 @@ public class RootController implements Initializable {
 					chimaeraSeqLabel.setText("M. chimaera specific sequence : O");
 				else
 					chimaeraSeqLabel.setText("M. chimaera specific sequence : X");
-
-
 			}
 
 		}
@@ -1188,42 +1185,56 @@ public class RootController implements Initializable {
 	 * Performs alignment, Detects variants, Shows results
 	 */
 	public void handleRun() {
+		for(int i=0;i<sampleList.size();i++) {
+			System.out.println(i + "th sample processing..");
+			selectedSample = i;
+			Sample sample = sampleList.get(selectedSample);
+			for(int j=0;j<3;j++) {
+				context = j;
+				if(sample.fwdLoaded[context] || sample.revLoaded[context]) {
+					actualRun();
+				}
+			}
+		}
+		
+		//원상복귀. 
+		selectedSample = 0;
+		context = 0;
+	}
 
-		if(fwdLoaded[context] == false && revLoaded[context] == false) {  
+
+	public void actualRun() {
+
+		Sample sample = sampleList.get(selectedSample);
+
+		if(sample.fwdLoaded[context] == false && sample.revLoaded[context] == false) {  
 			popUp("At least one of forward trace file and reverse trace file \n should be loaded before running.");
 			return;
 		}
-
-		try {
-			makeSpeciesList();
-		}
-		catch (Exception ex) {
-			ex.printStackTrace();
-			popUp(ex.getMessage());
-		}
-
-
+		
+		sample.speciesList[context] = new Vector(globalSpeciesList[context]);
+		
 		int inputLength = 0;
-		if(fwdLoaded[context] && !revLoaded[context]) 
-			inputLength = trimmedFwdTrace[context].getSequenceLength();
-		else if(!fwdLoaded[context] && revLoaded[context]) 
-			inputLength = trimmedRevTrace[context].getSequenceLength();
+		if(sample.fwdLoaded[context] && !sample.revLoaded[context]) 
+			inputLength = sample.trimmedFwdTrace[context].getSequenceLength();
+		else if(!sample.fwdLoaded[context] && sample.revLoaded[context]) 
+			inputLength = sample.trimmedRevTrace[context].getSequenceLength();
 
 		//fwd, rev 같이있을때는 fwd, rev 두개를 align 시켜서 나오는 길이를 inputLength로. 
-		else if (fwdLoaded[context] && revLoaded[context]) {	 
+		else if (sample.fwdLoaded[context] && sample.revLoaded[context]) {	 
 			MMAlignment mma = new MMAlignment();
 			AlignedPair ap = null;
-			ap = mma.localAlignment(trimmedFwdTrace[context].getSequence(), trimmedRevTrace[context].getSequence());
+			ap = mma.localAlignment(sample.trimmedFwdTrace[context].getSequence(), sample.trimmedRevTrace[context].getSequence());
 			inputLength = Integer.max(ap.getStart1(), ap.getStart2()) 
-					+ Integer.max(trimmedFwdTrace[context].getSequenceLength()-ap.getStart1(),  trimmedRevTrace[context].getSequenceLength()-ap.getStart2());
+					+ Integer.max(sample.trimmedFwdTrace[context].getSequenceLength()-ap.getStart1(),  sample.trimmedRevTrace[context].getSequenceLength()-ap.getStart2());
 		}
 		if(inputLength == 0) return;
 
 
 		Vector<NTMSpecies> removeList = new Vector<NTMSpecies>();
-		for(int i=0;i<speciesList[context].size();i++) {
+		for(int i=0;i<sample.speciesList[context].size();i++) {
 
-			NTMSpecies thisSpecies = speciesList[context].get(i);
+			NTMSpecies thisSpecies = sample.speciesList[context].get(i);
 
 			try {
 				doAlignment(i);
@@ -1235,7 +1246,7 @@ public class RootController implements Initializable {
 			}
 
 			//너무 짧게 align된 것들은 버림.
-			double alignedPortion = alignedPoints[context].size() / (double)inputLength;
+			double alignedPortion = sample.alignedPoints[context].size() / (double)inputLength;
 			if(alignedPortion < 0.5) {
 				removeList.add(thisSpecies);
 				continue;
@@ -1244,13 +1255,13 @@ public class RootController implements Initializable {
 			//score 계산
 			int i_score = 0;
 			double d_score = 0;
-			for(int j=0;j<alignedPoints[context].size();j++) {
-				AlignedPoint ap = alignedPoints[context].get(j);
+			for(int j=0;j<sample.alignedPoints[context].size();j++) {
+				AlignedPoint ap = sample.alignedPoints[context].get(j);
 				if(ap.getDiscrepency()!='*') 
 					i_score++;
 			}
 
-			d_score = (double)i_score / (double)alignedPoints[context].size();
+			d_score = (double)i_score / (double)sample.alignedPoints[context].size();
 			d_score*=100;
 
 			//score 너무 낮은것들 버림
@@ -1262,17 +1273,12 @@ public class RootController implements Initializable {
 			//System.out.println("score : " + d_score);
 			thisSpecies.setScore(d_score);
 			thisSpecies.setQlen(inputLength);
-			thisSpecies.setAlen(alignedPoints[context].size());
+			thisSpecies.setAlen(sample.alignedPoints[context].size());
 		}
 
-		speciesList[context].removeAll(removeList);	//align 안된 것들, score 낮은것들 remove
+		sample.speciesList[context].removeAll(removeList);	//align 안된 것들, score 낮은것들 remove
 
-		if(speciesList[context].size()>0) 
-			Collections.sort(speciesList[context]);
-
-
-		if(speciesList[context].size()==0) popUp("No matching species!");
-		else {
+		if(sample.speciesList[context].size()>0) { 
 
 			// 점수 제일 높은걸로 align
 			try {
@@ -1283,32 +1289,10 @@ public class RootController implements Initializable {
 				ex.printStackTrace();
 			}
 
-			printAlignedResult();
-
-			speciesTable.setEditable(true);
-			TableColumn tcSpecies = speciesTable.getColumns().get(0);
-			TableColumn tcAccession = speciesTable.getColumns().get(1);
-			TableColumn tcQlen = speciesTable.getColumns().get(2);
-			TableColumn tcAlen = speciesTable.getColumns().get(3);
-			TableColumn tcScore = speciesTable.getColumns().get(4);
-			TableColumn tcRgm = speciesTable.getColumns().get(5);
-
-			tcSpecies.setCellValueFactory(new PropertyValueFactory("speciesNameProperty"));
-			tcAccession.setCellValueFactory(new PropertyValueFactory("accessionProperty"));
-			tcQlen.setCellValueFactory(new PropertyValueFactory("qlenProperty"));
-			tcAlen.setCellValueFactory(new PropertyValueFactory("alenProperty"));
-			tcScore.setCellValueFactory(new PropertyValueFactory("scoreProperty"));
-			tcRgm.setCellValueFactory(new PropertyValueFactory("rgmProperty"));
-
-			tcSpecies.setCellFactory(TextFieldTableCell.<NTMSpecies>forTableColumn());
-
-			speciesTable.setItems(FXCollections.observableArrayList(speciesList[context]));
-
 			makeCsvContents();
 
-
-			Vector<NTMSpecies> selectedSpeciesList = new Vector<NTMSpecies>();
-			for(NTMSpecies ntm:speciesList[context]) {
+			sample.selectedSpeciesList[context] = new Vector<NTMSpecies>();
+			for(NTMSpecies ntm:sample.speciesList[context]) {
 				double cutoff = 99;
 				if(targetRegion.equals(rpo)) {
 					if(ntm.isRgm()) 
@@ -1316,74 +1300,22 @@ public class RootController implements Initializable {
 					else cutoff = 99.3;
 				}
 				if(ntm.getScore() >= cutoff)
-					selectedSpeciesList.add(ntm);
+					sample.selectedSpeciesList[context].add(ntm);
 				else
 					break;
 			}
 
-			if(targetRegion.equals(s16)) {
-				s16Loaded = true;
-				s16Table.setEditable(true);
-				TableColumn s16_tcSpecies = s16Table.getColumns().get(0);
-				TableColumn s16_tcScore = s16Table.getColumns().get(1);
-				s16_tcSpecies.setCellValueFactory(new PropertyValueFactory("speciesNameProperty"));
-				s16_tcScore.setCellValueFactory(new PropertyValueFactory("scoreProperty"));
-				s16_tcSpecies.setCellFactory(TextFieldTableCell.<NTMSpecies>forTableColumn());
-				s16Table.setItems(FXCollections.observableArrayList(selectedSpeciesList));
+
+			if(context == 0) {
+				sample.s16Loaded = true;
 			}
-			else if(targetRegion.equals(rpo)) {
-				rpoLoaded = true;
-				rpoTable.setEditable(true);
-				TableColumn rpo_tcSpecies = rpoTable.getColumns().get(0);
-				TableColumn rpo_tcScore = rpoTable.getColumns().get(1);
-				rpo_tcSpecies.setCellValueFactory(new PropertyValueFactory("speciesNameProperty"));
-				rpo_tcScore.setCellValueFactory(new PropertyValueFactory("scoreProperty"));
-				rpo_tcSpecies.setCellFactory(TextFieldTableCell.<NTMSpecies>forTableColumn());
-				rpoTable.setItems(FXCollections.observableArrayList(selectedSpeciesList));
+			else if(context == 1) {
+				sample.rpoLoaded = true;
 			}
-			else if(targetRegion.equals(tuf)) {
-				tufLoaded = true;
-				tufTable.setEditable(true);
-				TableColumn tuf_tcSpecies = tufTable.getColumns().get(0);
-				TableColumn tuf_tcScore = tufTable.getColumns().get(1);
-				tuf_tcSpecies.setCellValueFactory(new PropertyValueFactory("speciesNameProperty"));
-				tuf_tcScore.setCellValueFactory(new PropertyValueFactory("scoreProperty"));
-				tuf_tcSpecies.setCellFactory(TextFieldTableCell.<NTMSpecies>forTableColumn());
-				tufTable.setItems(FXCollections.observableArrayList(selectedSpeciesList));
+			else if(context == 2) {
+				sample.tufLoaded = true;
 			}
-
-			speciesTable.setFixedCellSize(tableRowHeight);
-			s16Table.setFixedCellSize(tableRowHeight);
-			rpoTable.setFixedCellSize(tableRowHeight);
-			tufTable.setFixedCellSize(tableRowHeight);
-			finalTable.setFixedCellSize(tableRowHeight);
-
-			//finalTable 
-			finalTable.setEditable(true);
-			TableColumn final_tcSpecies = finalTable.getColumns().get(0);
-			TableColumn final_tcScore = finalTable.getColumns().get(1);
-			final_tcSpecies.setCellValueFactory(new PropertyValueFactory("speciesNameProperty"));
-			final_tcScore.setCellValueFactory(new PropertyValueFactory("scoreProperty"));
-			final_tcSpecies.setCellFactory(TextFieldTableCell.<NTMSpecies>forTableColumn());
-			finalTable.setItems(FXCollections.observableArrayList(getFinalList()));
-
-
-			speciesTable.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
-				@Override
-				public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-					if(newValue.intValue()<0 || newValue.intValue()>= speciesList[context].size()) return; 
-
-					//Sysem.out.println("selected Index : " + newValue.intValue());
-					try {
-						doAlignment(newValue.intValue());
-					}
-					catch(Exception ex) {
-						popUp(ex.getMessage());
-						ex.printStackTrace();
-					}
-					printAlignedResult();
-				}
-			});
+			sample.finalList = getFinalList();
 		}
 	}
 
@@ -1391,7 +1323,9 @@ public class RootController implements Initializable {
 	 * Prints the result of alignment on the alignment pane
 	 */
 	private void printAlignedResult() {
-		labels = new Label[3][alignedPoints[context].size()];
+		Sample sample = sampleList.get(selectedSample);
+
+		labels = new Label[3][sample.alignedPoints[context].size()];
 		gridPane = new GridPane();
 
 		Label refTitle = new Label("Reference : ");
@@ -1400,8 +1334,8 @@ public class RootController implements Initializable {
 		refTitle.setPrefSize(130, 15);
 		gridPane.add(refTitle, 0,  1);
 
-		if(fwdLoaded[context]) {
-			fwdTraceFileLabel.setText(fwdTraceFileName[context]);
+		if(sample.fwdLoaded[context]) {
+			fwdTraceFileLabel.setText(sample.fwdTraceFileName[context]);
 			Label fwdTitle = new Label("Forward   : ");
 			fwdTitle.setFont(new Font("Consolas", 14));
 			fwdTitle.setMinSize(130,15);
@@ -1409,8 +1343,8 @@ public class RootController implements Initializable {
 			gridPane.add(fwdTitle, 0,  2);
 		}
 
-		if(revLoaded[context]) {
-			revTraceFileLabel.setText(revTraceFileName[context]);
+		if(sample.revLoaded[context]) {
+			revTraceFileLabel.setText(sample.revTraceFileName[context]);
 			Label revTitle = new Label("Reverse   : ");
 			revTitle.setFont(new Font("Consolas", 14));
 			revTitle.setMinSize(130,15);
@@ -1418,8 +1352,9 @@ public class RootController implements Initializable {
 			gridPane.add(revTitle, 0,  3);
 		}
 
-		for (int i=0;i<alignedPoints[context].size();i++) {
-			AlignedPoint point = alignedPoints[context].get(i);
+
+		for (int i=0;i<sample.alignedPoints[context].size();i++) {
+			AlignedPoint point = sample.alignedPoints[context].get(i);
 
 			//Tooltip 설정
 			String tooltipText = (i+1) + "\nCoding DNA : " + point.getStringCIndex() + "\nBase # in reference : " + point.getGIndex() + "\n";
@@ -1452,7 +1387,7 @@ public class RootController implements Initializable {
 			revLabel.setTooltip(tooltip);
 
 			//Index  
-			if(i%10==0 && alignedPoints[context].size()-i >= 5) {
+			if(i%10==0 && sample.alignedPoints[context].size()-i >= 5) {
 				indexLabel.setText(String.valueOf(i+1));
 				GridPane.setColumnSpan(indexLabel, 10);
 				indexLabel.setPrefSize(100, 10);
@@ -1472,7 +1407,7 @@ public class RootController implements Initializable {
 			labels[0][i] = refLabel;
 
 			//Forward
-			if(fwdLoaded[context]) {
+			if(sample.fwdLoaded[context]) {
 				fwdLabel.setText(Character.toString(point.getFwdChar()));
 				//fwdLabel.setTextFill(Color.web("#8BBCFF"));
 
@@ -1495,7 +1430,7 @@ public class RootController implements Initializable {
 			}
 
 			//Reverse
-			if(revLoaded[context]) {
+			if(sample.revLoaded[context]) {
 				revLabel.setText(Character.toString(point.getRevChar()));
 				if(point.getRevChar() == Formatter.gapChar || point.getRevQuality()>=40)
 					revLabel.setBackground(new Background(new BackgroundFill(Color.web("#FFFFFF"), CornerRadii.EMPTY, Insets.EMPTY)));
@@ -1522,23 +1457,40 @@ public class RootController implements Initializable {
 		}
 
 		alignmentPane.setContent(gridPane);
-		alignmentPerformed[context] = true;
+		alignmentPerformed = true;
 
-		if(fwdLoaded[context]) {
+		if(sample.fwdLoaded[context]) {
 			// 새로운 좌표로 update (fwdPane, revPane)
-			java.awt.image.BufferedImage awtImage = trimmedFwdTrace[context].getShadedImage(0,0,0);
+			java.awt.image.BufferedImage awtImage = sample.trimmedFwdTrace[context].getShadedImage(0,0,0);
 			javafx.scene.image.Image fxImage = SwingFXUtils.toFXImage(awtImage, null);
 			ImageView imageView = new ImageView(fxImage);
 			fwdPane.setContent(imageView);
 			// 시작점에 화면 align
 			adjustFwdPane(Formatter.fwdTraceAlignStartPoint);
 		}
-		if(revLoaded[context]) {
-			java.awt.image.BufferedImage awtImage2 = trimmedRevTrace[context].getShadedImage(0,0,0);
+		else if(sample.fwdTraceFileName[context] != null) {
+			fwdTraceFileLabel.setText(sample.fwdTraceFileName[context]);
+			fwdPane.setContent(new Label("Poor Quality Trace File"));
+		}
+		else {
+			fwdTraceFileLabel.setText("No file exists");
+			fwdPane.setContent(new Label("No file exists"));
+		}
+
+		if(sample.revLoaded[context]) {
+			java.awt.image.BufferedImage awtImage2 = sample.trimmedRevTrace[context].getShadedImage(0,0,0);
 			javafx.scene.image.Image fxImage2 = SwingFXUtils.toFXImage(awtImage2, null);
 			ImageView imageView2 = new ImageView(fxImage2);
 			revPane.setContent(imageView2);
 			adjustRevPane(Formatter.revTraceAlignStartPoint);
+		}
+		else if(sample.revTraceFileName[context] != null) {
+			revTraceFileLabel.setText(sample.revTraceFileName[context]);
+			revPane.setContent(new Label("Poor Quality Trace File"));
+		}
+		else {
+			revTraceFileLabel.setText("No file exists");
+			revPane.setContent(new Label("No file exists"));
 		}
 	}
 
@@ -1547,10 +1499,11 @@ public class RootController implements Initializable {
 	 * @param fwdTraceIndex : the point to be focused
 	 */
 	private void adjustFwdPane(int fwdTraceIndex) {
+		Sample sample = sampleList.get(selectedSample);
 		if(Formatter.fwdNewLength <= paneWidth) return;
-		if(fwdTraceIndex > trimmedFwdTrace[context].getBaseCalls().length)
-			fwdTraceIndex = trimmedFwdTrace[context].getBaseCalls().length;
-		double coordinate = Formatter.fwdStartOffset + trimmedFwdTrace[context].getBaseCalls()[fwdTraceIndex-1]*2;
+		if(fwdTraceIndex >sample.trimmedFwdTrace[context].getBaseCalls().length)
+			fwdTraceIndex = sample.trimmedFwdTrace[context].getBaseCalls().length;
+		double coordinate = Formatter.fwdStartOffset + sample.trimmedFwdTrace[context].getBaseCalls()[fwdTraceIndex-1]*2;
 		double hValue = (coordinate - paneWidth/2) / (Formatter.fwdNewLength - paneWidth);
 		fwdPane.setHvalue(hValue);
 	}
@@ -1560,11 +1513,12 @@ public class RootController implements Initializable {
 	 * @param revTraceIndex : the point to be focused
 	 */
 	private void adjustRevPane(int revTraceIndex) {
+		Sample sample = sampleList.get(selectedSample);
 		if(Formatter.revNewLength <= paneWidth) return;
-		if(revTraceIndex > trimmedRevTrace[context].getBaseCalls().length)
-			revTraceIndex = trimmedRevTrace[context].getBaseCalls().length;
+		if(revTraceIndex > sample.trimmedRevTrace[context].getBaseCalls().length)
+			revTraceIndex = sample.trimmedRevTrace[context].getBaseCalls().length;
 
-		double coordinate = Formatter.revStartOffset + trimmedRevTrace[context].getBaseCalls()[revTraceIndex-1]*2;
+		double coordinate = Formatter.revStartOffset + sample.trimmedRevTrace[context].getBaseCalls()[revTraceIndex-1]*2;
 
 		double hValue = (coordinate - paneWidth/2) / (Formatter.revNewLength - paneWidth);
 		revPane.setHvalue(hValue);
@@ -1598,19 +1552,19 @@ public class RootController implements Initializable {
 	//public void focus(int selectedAlignmentPos, int selectedFwdPos, int selectedRevPos, char fwdChar, char revChar) {
 
 	public void focus(int selectedAlignmentPos) {
-
-		this.selectedAlignmentPos[context] = selectedAlignmentPos;
-		AlignedPoint ap = alignedPoints[context].get(selectedAlignmentPos);
+		Sample sample = sampleList.get(selectedSample);
+		sample.selectedAlignmentPos[context] = selectedAlignmentPos;
+		AlignedPoint ap = sample.alignedPoints[context].get(selectedAlignmentPos);
 		char fwdChar = Formatter.gapChar;
 		char revChar = Formatter.gapChar;
 		int selectedFwdPos = 0;
 		int selectedRevPos = 0;
 
-		if(fwdLoaded[context]) {
+		if(sample.fwdLoaded[context]) {
 			selectedFwdPos = ap.getFwdTraceIndex();
 			fwdChar = ap.getFwdChar();
 		}
-		if(revLoaded[context]) {
+		if(sample.revLoaded[context]) {
 			selectedRevPos = ap.getRevTraceIndex();
 			revChar = ap.getRevChar();
 		}
@@ -1622,7 +1576,7 @@ public class RootController implements Initializable {
 		//boolean fwdGap = (fwdChar == Formatter.gapChar); 
 		//boolean revGap = (revChar == Formatter.gapChar);
 
-		for(int i=0; i<alignedPoints[context].size();i++) {
+		for(int i=0; i<sample.alignedPoints[context].size();i++) {
 			Label boxedLabel = labels[0][i];
 			if(boxedLabel == null) continue;
 			if(i==selectedAlignmentPos) {
@@ -1633,8 +1587,8 @@ public class RootController implements Initializable {
 				boxedLabel.setBorder(Border.EMPTY);
 			}
 		}
-		if(fwdLoaded[context]) {
-			for(int i=0; i<alignedPoints[context].size();i++) {
+		if(sample.fwdLoaded[context]) {
+			for(int i=0; i<sample.alignedPoints[context].size();i++) {
 				Label boxedLabel = labels[1][i];
 				if(boxedLabel == null) continue;
 				if(i==selectedAlignmentPos) {
@@ -1650,10 +1604,10 @@ public class RootController implements Initializable {
 
 			BufferedImage awtImage = null;
 			if(fwdChar == Formatter.gapChar) {
-				awtImage = trimmedFwdTrace[context].getShadedImage(3,tempFwdPos-1,tempFwdPos-1);
+				awtImage = sample.trimmedFwdTrace[context].getShadedImage(3,tempFwdPos-1,tempFwdPos-1);
 
 			}
-			else awtImage = trimmedFwdTrace[context].getShadedImage(1, tempFwdPos-1, tempFwdPos-1);
+			else awtImage = sample.trimmedFwdTrace[context].getShadedImage(1, tempFwdPos-1, tempFwdPos-1);
 
 			javafx.scene.image.Image fxImage = SwingFXUtils.toFXImage(awtImage, null);
 			ImageView imageView = new ImageView(fxImage);
@@ -1661,8 +1615,8 @@ public class RootController implements Initializable {
 
 			adjustFwdPane(selectedFwdPos);
 		}
-		if(revLoaded[context]) {
-			for(int i=0; i<alignedPoints[context].size();i++) {
+		if(sample.revLoaded[context]) {
+			for(int i=0; i<sample.alignedPoints[context].size();i++) {
 				Label boxedLabel = labels[2][i];
 				if(boxedLabel == null) continue;
 				if(i==selectedAlignmentPos) {
@@ -1679,11 +1633,11 @@ public class RootController implements Initializable {
 
 
 			if(revChar == Formatter.gapChar) {
-				awtImage2 = trimmedRevTrace[context].getShadedImage(3,tempRevPos-1,tempRevPos-1);
+				awtImage2 = sample.trimmedRevTrace[context].getShadedImage(3,tempRevPos-1,tempRevPos-1);
 			}
 
 			else 
-				awtImage2 = trimmedRevTrace[context].getShadedImage(1, tempRevPos-1, tempRevPos-1);
+				awtImage2 = sample.trimmedRevTrace[context].getShadedImage(1, tempRevPos-1, tempRevPos-1);
 			javafx.scene.image.Image fxImage2 = SwingFXUtils.toFXImage(awtImage2, null);
 			ImageView imageView2 = new ImageView(fxImage2);
 			revPane.setContent(imageView2);
@@ -1712,36 +1666,40 @@ public class RootController implements Initializable {
 	}
 
 	public void handleFwdZoomIn() {
-		if(fwdLoaded[context]) {
-			trimmedFwdTrace[context].zoomIn();
-			BufferedImage awtImage = trimmedFwdTrace[context].getDefaultImage();
+		Sample sample = sampleList.get(selectedSample);
+		if(sample.fwdLoaded[context]) {
+			sample.trimmedFwdTrace[context].zoomIn();
+			BufferedImage awtImage = sample.trimmedFwdTrace[context].getDefaultImage();
 			Image fxImage = SwingFXUtils.toFXImage(awtImage, null);
 			ImageView imageView = new ImageView(fxImage);
 			fwdPane.setContent(imageView);
 		}
 	}
 	public void handleFwdZoomOut() {
-		if(fwdLoaded[context]) {
-			trimmedFwdTrace[context].zoomOut();
-			BufferedImage awtImage = trimmedFwdTrace[context].getDefaultImage();
+		Sample sample = sampleList.get(selectedSample);
+		if(sample.fwdLoaded[context]) {
+			sample.trimmedFwdTrace[context].zoomOut();
+			BufferedImage awtImage = sample.trimmedFwdTrace[context].getDefaultImage();
 			Image fxImage = SwingFXUtils.toFXImage(awtImage, null);
 			ImageView imageView = new ImageView(fxImage);
 			fwdPane.setContent(imageView);
 		}
 	}
 	public void handleRevZoomIn() {
-		if(revLoaded[context]) {
-			trimmedRevTrace[context].zoomIn();
-			BufferedImage awtImage = trimmedRevTrace[context].getDefaultImage();
+		Sample sample = sampleList.get(selectedSample);
+		if(sample.revLoaded[context]) {
+			sample.trimmedRevTrace[context].zoomIn();
+			BufferedImage awtImage = sample.trimmedRevTrace[context].getDefaultImage();
 			Image fxImage = SwingFXUtils.toFXImage(awtImage, null);
 			ImageView imageView = new ImageView(fxImage);
 			revPane.setContent(imageView);
 		}
 	}
 	public void handleRevZoomOut() {
-		if(revLoaded[context]) {
-			trimmedRevTrace[context].zoomOut();
-			BufferedImage awtImage = trimmedRevTrace[context].getDefaultImage();
+		Sample sample = sampleList.get(selectedSample);
+		if(sample.revLoaded[context]) {
+			sample.trimmedRevTrace[context].zoomOut();
+			BufferedImage awtImage = sample.trimmedRevTrace[context].getDefaultImage();
 			Image fxImage = SwingFXUtils.toFXImage(awtImage, null);
 			ImageView imageView = new ImageView(fxImage);
 			revPane.setContent(imageView);

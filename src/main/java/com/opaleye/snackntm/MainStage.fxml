@@ -128,9 +128,9 @@
       <Button fx:id="fwdZoomOutButton" layoutX="1050.0" layoutY="315.0" mnemonicParsing="false" onAction="#handleFwdZoomOut" prefHeight="83.0" prefWidth="28.0" text="-" />
       <Button fx:id="revZoomInButton" layoutX="1050.0" layoutY="438.0" mnemonicParsing="false" onAction="#handleRevZoomIn" prefHeight="83.0" prefWidth="28.0" text="+" />
       <Button fx:id="revZoomOutButton" layoutX="1050.0" layoutY="523.0" mnemonicParsing="false" onAction="#handleRevZoomOut" prefHeight="83.0" prefWidth="28.0" text="-" />
-      <ScrollPane layoutX="7.0" layoutY="100.0" prefHeight="556.0" prefWidth="150.0">
+      <ScrollPane layoutX="7.0" layoutY="100.0" prefHeight="733.0" prefWidth="150.0">
          <content>
-            <ListView fx:id="sampleListView" prefHeight="552.0" prefWidth="145.0" />
+            <ListView fx:id="sampleListView" prefHeight="726.0" prefWidth="145.0" />
          </content>
       </ScrollPane>
       <Separator layoutX="157.0" layoutY="65.0" orientation="VERTICAL" prefHeight="779.0" prefWidth="6.0" />
@@ -139,16 +139,5 @@
             <Font name="System Bold" size="14.0" />
          </font>
       </Label>
-      <Label layoutX="6.0" layoutY="660.0" prefHeight="18.0" prefWidth="126.0" text="Target Regions">
-         <font>
-            <Font name="System Bold" size="14.0" />
-         </font>
-      </Label>
-      <TableView fx:id="targetTable" layoutX="5.0" layoutY="685.0" prefHeight="150.0" prefWidth="150.0">
-        <columns>
-          <TableColumn prefWidth="55.000030517578125" text="Target" />
-          <TableColumn prefWidth="94.99993896484375" text="Input" />
-        </columns>
-      </TableView>
    </children>
 </AnchorPane>

@@ -15,15 +15,20 @@ public class Sample {
 
 	//context-specific variables
 	public Vector<NTMSpecies>[] speciesList = new Vector[3];
-	public boolean[] alignmentPerformed = {false, false, false};
+	public Vector<NTMSpecies>[] selectedSpeciesList = new Vector[3];
+	public Vector<NTMSpecies> finalList = null;
 	public Vector<AlignedPoint>[] alignedPoints = new Vector[3];
 	public File[] fwdTraceFile = new File[3], revTraceFile = new File[3];
 	public GanseqTrace[] trimmedFwdTrace = new GanseqTrace[3], trimmedRevTrace = new GanseqTrace[3];
 	public boolean fwdLoaded[] = {false, false, false}, revLoaded[] = {false, false, false};
+	public boolean s16Loaded = false, rpoLoaded = false, tufLoaded = false;
+	
+	
 	public String[] fwdTraceFileName = new String[3];
 	public String[] revTraceFileName = new String[3];
 	//edit base 용
 	public int[] selectedAlignmentPos = {-1, -1, -1};
+	public String[] csvContents = new String[3];
 
 	public Sample(String sampleId) {
 		this.sampleId = sampleId;

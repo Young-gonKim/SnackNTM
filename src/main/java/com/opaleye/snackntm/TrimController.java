@@ -58,11 +58,11 @@ public class TrimController implements Initializable {
 			return;
 		}
 		if(direction == GanseqTrace.FORWARD) {
-			rootController.confirmFwdTrace(targetTrace);
+			rootController.confirmFwdTrace(targetTrace, true);
 		}
 		else {
 			targetTrace.makeComplement();
-			rootController.confirmRevTrace(targetTrace);
+			rootController.confirmRevTrace(targetTrace, true);
 		}
 		primaryStage.close();
 	}

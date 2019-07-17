@@ -4,12 +4,13 @@ context : 밑에 targetTable 선택 바뀔때.  (+처음 읽을때 : localContex
 이거 두개로 panel 내용 정해지는것. 
 
 
-RootController 330 부터
-alignment performed 변수의 의미.. Batch로 시키니까 전역변수로 될것 같은데. 
-printunaligned result 구현
-combobox -> radio button
+progress 표시
 
-removefwd, removerev 필요?
+
+removefwd, removerev, reset 필요?
+Realign (current target)
+
+
 
 
 * sample dependent variables
@@ -33,11 +34,12 @@ ListView1 -> ListView2 -> combobox에서 ChangeListener처럼.
 3. 일단 파일 읽으면
 - Array of Sample 만들기. (Vector. 어차피 정렬 가능하니까. in out overhead 적은걸로) 사실 빈번하게 in out 일어나는것도 아니지만.
 * 중간점검 : ID 선택하면 chromatogram 나오게. 
+printunaligned result 구현 --> 나중에 run 되고나면 지우기. 
  
  
  
  
-4. sample iteration 하면서 handleRun()
+4. open file과 동시에 sample iteration 하면서 handleRun()
 - handleRun()을 context별로. 
 
 

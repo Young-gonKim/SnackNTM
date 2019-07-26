@@ -1,8 +1,9 @@
 1. Batch
 
 rootcontroller
-- Alignment Performed : sample 에 있는거 쓰기.
-- printAligned result 왜 안되는지 확인. 
+- Sample List 중복제거해서 만들기 
+- Alignment Performed : sample 에 있는거 쓰기
+ 
 
 2. discrepency 분석
 차이나는 원인

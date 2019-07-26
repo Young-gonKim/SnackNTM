@@ -72,7 +72,6 @@ public class RootController implements Initializable {
 	private Vector<Sample> sampleList = new Vector<Sample>();
 	private int selectedSample = 0;
 
-	private boolean alignmentPerformed = false;
 	private Vector<NTMSpecies>[] globalSpeciesList = new Vector[3];	//이건 공통으로 사요
 
 
@@ -1185,7 +1184,7 @@ public class RootController implements Initializable {
 	 * Performs alignment, Detects variants, Shows results
 	 */
 	public void handleRun() {
-		for(int i=0;i<sampleList.size();i++) {
+		for(int i=0;i<sampleIdList.size();i++) {
 			System.out.println(i + "th sample processing..");
 			selectedSample = i;
 			Sample sample = sampleList.get(selectedSample);

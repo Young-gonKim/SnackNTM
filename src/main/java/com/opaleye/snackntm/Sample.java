@@ -23,6 +23,7 @@ public class Sample {
 	public boolean fwdLoaded[] = {false, false, false}, revLoaded[] = {false, false, false};
 	public boolean s16Loaded = false, rpoLoaded = false, tufLoaded = false;
 	
+	public boolean alignmentPerformed = false;
 	
 	public String[] fwdTraceFileName = new String[3];
 	public String[] revTraceFileName = new String[3];

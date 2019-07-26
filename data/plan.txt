@@ -1,3 +1,18 @@
+1. Batch
+
+rootcontroller
+- Alignment Performed : sample 에 있는거 쓰기.
+- printAligned result 왜 안되는지 확인. 
+
+2. discrepency 분석
+차이나는 원인
+- trimming 차이 (sequencher 모방 더 해보기? 과연 그게 맞다고 할 수 있나?) --> 이게 제일 클듯.
+- base calling 차이? 이거는 둘다 저장되어 있는거 쓰는거 아님? 큰 차이 안날듯. double peak 없으니 더더욱
+- Alignment algorithm 차이
+
+3. consensus sequence 보여주는 기능
+
+
 selectedSample : sampleListView 선택 바뀔때 (+ 처음 읽을때 : iteration 한 후 0으로 원상복귀)
 context : 밑에 targetTable 선택 바뀔때.  (+처음 읽을때 : localContext따로 씀. 이것도 iteration 시키고 원상복귀?)
 

@@ -68,7 +68,6 @@ import javafx.stage.StageStyle;
  */
 public class RootController implements Initializable {
 
-	private TreeSet<String> sampleIdList = new TreeSet<String>();
 	private Vector<Sample> sampleList = new Vector<Sample>();
 	private int selectedSample = 0;
 
@@ -260,6 +259,7 @@ public class RootController implements Initializable {
 		cb_targetRegion.setValue(s16);
 		cb_targetRegion.valueProperty().addListener(new ChangeListener<String>() {
 			@Override public void changed(ObservableValue ov, String t, String t1) {
+				Sample sample = sampleList.get(selectedSample);
 				if(t1.equals(s16)) {
 					context = 0;
 				}
@@ -272,12 +272,12 @@ public class RootController implements Initializable {
 
 				System.out.println("context switched to " + context);
 
-				if(alignmentPerformed == false) {
+				if(sample.alignmentPerformed == false) {
 					printUnAlignedData();
 				}
 				else {
 					printAlignedResult();
-					speciesTable.setItems(FXCollections.observableArrayList(sampleList.get(selectedSample).speciesList[context]));
+					speciesTable.setItems(FXCollections.observableArrayList(sample.speciesList[context]));
 					makeCsvContents();
 				}
 			}    
@@ -291,7 +291,7 @@ public class RootController implements Initializable {
 				cb_targetRegion.setValue(s16);
 
 				Sample sample = sampleList.get(selectedSample);
-				if(alignmentPerformed == false) {
+				if(sample.alignmentPerformed == false) {
 					printUnAlignedData();
 				}
 				else {
@@ -438,8 +438,8 @@ public class RootController implements Initializable {
 
 
 	public void handleEditBase() {
-		if(!alignmentPerformed) return;
 		Sample sample = sampleList.get(selectedSample);
+		if(!sample.alignmentPerformed) return;
 		if(sample.selectedAlignmentPos[context] == -1) return;
 		AlignedPoint ap = sample.alignedPoints[context].get(sample.selectedAlignmentPos[context]);
 
@@ -633,6 +633,8 @@ public class RootController implements Initializable {
 
 		TreeSet<String> forwardTarget = null, reverseTarget = null;
 
+		TreeSet<Sample> tempList = new TreeSet<Sample>();
+		TreeSet<String> idList = new TreeSet<String>();
 
 		//sampleListView.setItems
 		for(File file:fileList) {
@@ -640,16 +642,23 @@ public class RootController implements Initializable {
 			if(fileName.length()<9) continue;
 
 			Sample sample = new Sample(fileName.substring(0,  4));
-			sampleList.add(sample);
-			sampleIdList.add(sample.sampleId);
+			tempList.add(sample);
 		}
+		sampleList = new Vector<Sample>(tempList);
+		for(Sample sample:sampleList) {
+			System.out.println(sample.sampleId);
+			idList.add(sample.sampleId);
+		}
+		
+		
 
 		//tableView에서는 되는데. 
-		sampleListView.setItems(FXCollections.observableArrayList(sampleIdList));
+		sampleListView.setItems(FXCollections.observableArrayList(idList));
 
 		selectedSample = 0;
-		for(String sampleId:sampleIdList) {
+		for(selectedSample=0; selectedSample<sampleList.size(); selectedSample++) {
 			Sample sample = sampleList.get(selectedSample);
+			String sampleId = sample.sampleId;
 			for(File file:fileList) {
 				String fileName = file.getName();
 				if(fileName.contains(sampleId)) {
@@ -844,9 +853,10 @@ public class RootController implements Initializable {
 
 
 	private void resetParameters() {
-		alignmentPerformed = false;
-		sampleList.get(selectedSample).alignedPoints[context] = null;
-		sampleList.get(selectedSample).selectedAlignmentPos[context] = -1;
+		Sample sample = sampleList.get(selectedSample);
+		sample.alignmentPerformed = false;
+		sample.alignedPoints[context] = null;
+		sample.selectedAlignmentPos[context] = -1;
 		gridPane = null;
 		labels = null;
 		alignmentPane.setContent(new Label(""));
@@ -1184,8 +1194,8 @@ public class RootController implements Initializable {
 	 * Performs alignment, Detects variants, Shows results
 	 */
 	public void handleRun() {
-		for(int i=0;i<sampleIdList.size();i++) {
-			System.out.println(i + "th sample processing..");
+		for(int i=0;i<sampleList.size();i++) {
+			System.out.println(i+1 + "th sample processing..");
 			selectedSample = i;
 			Sample sample = sampleList.get(selectedSample);
 			for(int j=0;j<3;j++) {
@@ -1206,11 +1216,6 @@ public class RootController implements Initializable {
 
 		Sample sample = sampleList.get(selectedSample);
 
-		if(sample.fwdLoaded[context] == false && sample.revLoaded[context] == false) {  
-			popUp("At least one of forward trace file and reverse trace file \n should be loaded before running.");
-			return;
-		}
-		
 		sample.speciesList[context] = new Vector(globalSpeciesList[context]);
 		
 		int inputLength = 0;
@@ -1281,10 +1286,10 @@ public class RootController implements Initializable {
 
 			// 점수 제일 높은걸로 align
 			try {
+				//doAlignment 위에서 한번 했던거니까 error 날 일 없음.  
 				doAlignment(0);
 			}
 			catch(Exception ex) {
-				popUp(ex.getMessage());
 				ex.printStackTrace();
 			}
 
@@ -1315,6 +1320,8 @@ public class RootController implements Initializable {
 				sample.tufLoaded = true;
 			}
 			sample.finalList = getFinalList();
+			sample.alignmentPerformed = true;
+
 		}
 	}
 
@@ -1456,7 +1463,6 @@ public class RootController implements Initializable {
 		}
 
 		alignmentPane.setContent(gridPane);
-		alignmentPerformed = true;
 
 		if(sample.fwdLoaded[context]) {
 			// 새로운 좌표로 update (fwdPane, revPane)

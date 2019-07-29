@@ -69,14 +69,22 @@ import javafx.stage.StageStyle;
 public class RootController implements Initializable {
 
 	private Vector<Sample> sampleList = new Vector<Sample>();
+	
+	/**
+	selectedSample : sampleListView 선택 바뀔때 (+ 처음 읽을때 : iteration 한 후 0으로 원상복귀)
+	context : 밑에 targetTable 선택 바뀔때.  (+처음 읽을때 : localContext따로 씀. 이것도 iteration 시키고 원상복귀?)
+	이거 두개로 panel 내용 정해지는것.
+	*/
+	
 	private int selectedSample = 0;
+	private int context = 0;
+
 
 	private Vector<NTMSpecies>[] globalSpeciesList = new Vector[3];	//이건 공통으로 사요
 
 
 	//error 줄이기 위해 context는 Global 개념으로 사용.
 	//0: 16S rRNA, 1: rpoB, 2: tuf
-	private int context = 0;
 
 	//constants
 	private static final double paneWidth = 907; 
@@ -272,7 +280,7 @@ public class RootController implements Initializable {
 
 				System.out.println("context switched to " + context);
 
-				if(sample.alignmentPerformed == false) {
+				if(sample.alignmentPerformed[context] == false) {
 					printUnAlignedData();
 				}
 				else {
@@ -291,7 +299,7 @@ public class RootController implements Initializable {
 				cb_targetRegion.setValue(s16);
 
 				Sample sample = sampleList.get(selectedSample);
-				if(sample.alignmentPerformed == false) {
+				if(sample.alignmentPerformed[context] == false) {
 					printUnAlignedData();
 				}
 				else {
@@ -439,7 +447,7 @@ public class RootController implements Initializable {
 
 	public void handleEditBase() {
 		Sample sample = sampleList.get(selectedSample);
-		if(!sample.alignmentPerformed) return;
+		if(!sample.alignmentPerformed[context]) return;
 		if(sample.selectedAlignmentPos[context] == -1) return;
 		AlignedPoint ap = sample.alignedPoints[context].get(sample.selectedAlignmentPos[context]);
 
@@ -646,16 +654,12 @@ public class RootController implements Initializable {
 		}
 		sampleList = new Vector<Sample>(tempList);
 		for(Sample sample:sampleList) {
-			System.out.println(sample.sampleId);
+			//System.out.println(sample.sampleId);
 			idList.add(sample.sampleId);
 		}
 		
-		
-
-		//tableView에서는 되는데. 
 		sampleListView.setItems(FXCollections.observableArrayList(idList));
 
-		selectedSample = 0;
 		for(selectedSample=0; selectedSample<sampleList.size(); selectedSample++) {
 			Sample sample = sampleList.get(selectedSample);
 			String sampleId = sample.sampleId;
@@ -730,7 +734,6 @@ public class RootController implements Initializable {
 					}
 				}
 			}
-			selectedSample++;
 		}
 
 		//원상복귀. 읽은 다음 맨 위 가리키게.
@@ -854,7 +857,7 @@ public class RootController implements Initializable {
 
 	private void resetParameters() {
 		Sample sample = sampleList.get(selectedSample);
-		sample.alignmentPerformed = false;
+		sample.alignmentPerformed[context] = false;
 		sample.alignedPoints[context] = null;
 		sample.selectedAlignmentPos[context] = -1;
 		gridPane = null;
@@ -1194,12 +1197,10 @@ public class RootController implements Initializable {
 	 * Performs alignment, Detects variants, Shows results
 	 */
 	public void handleRun() {
-		for(int i=0;i<sampleList.size();i++) {
-			System.out.println(i+1 + "th sample processing..");
-			selectedSample = i;
+		for(selectedSample=0;selectedSample<sampleList.size();selectedSample++) {
+			System.out.println(selectedSample+1 + "th sample processing..");
 			Sample sample = sampleList.get(selectedSample);
-			for(int j=0;j<3;j++) {
-				context = j;
+			for(context=0;context<3;context++) {
 				if(sample.fwdLoaded[context] || sample.revLoaded[context]) {
 					actualRun();
 				}
@@ -1320,7 +1321,7 @@ public class RootController implements Initializable {
 				sample.tufLoaded = true;
 			}
 			sample.finalList = getFinalList();
-			sample.alignmentPerformed = true;
+			sample.alignmentPerformed[context] = true;
 
 		}
 	}
@@ -1331,6 +1332,11 @@ public class RootController implements Initializable {
 	private void printAlignedResult() {
 		Sample sample = sampleList.get(selectedSample);
 
+//Alignment panel
+		
+		if(sample.fwdLoaded[context] || sample.revLoaded[context])
+			
+		
 		labels = new Label[3][sample.alignedPoints[context].size()];
 		gridPane = new GridPane();
 
@@ -1464,6 +1470,9 @@ public class RootController implements Initializable {
 
 		alignmentPane.setContent(gridPane);
 
+		
+		
+//fwdTracePane
 		if(sample.fwdLoaded[context]) {
 			// 새로운 좌표로 update (fwdPane, revPane)
 			java.awt.image.BufferedImage awtImage = sample.trimmedFwdTrace[context].getShadedImage(0,0,0);

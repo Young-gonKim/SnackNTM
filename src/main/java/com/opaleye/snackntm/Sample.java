@@ -29,7 +29,7 @@ public class Sample implements Comparable {
 	public boolean fwdLoaded[] = {false, false, false}, revLoaded[] = {false, false, false};
 	public boolean s16Loaded = false, rpoLoaded = false, tufLoaded = false;
 	
-	public boolean alignmentPerformed = false;
+	public boolean alignmentPerformed[] = new boolean[3];
 	
 	public String[] fwdTraceFileName = new String[3];
 	public String[] revTraceFileName = new String[3];

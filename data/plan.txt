@@ -1,9 +1,10 @@
-1. Batch
+1. Batch 완성 - 디버깅
+java.lang.IllegalArgumentException: Width (0) and height (140) must be > 0
 
-rootcontroller
-- Sample List 중복제거해서 만들기 
-- Alignment Performed : sample 에 있는거 쓰기
- 
+Alignment 안된거에 대해서 getShadedImage를 호출해서 그런듯. (getDefaultImage해야하는데)
+(Alignment해야 format 해서 가로값이 정해짐)
+
+
 
 2. discrepency 분석
 차이나는 원인
@@ -13,63 +14,19 @@ rootcontroller
 
 3. consensus sequence 보여주는 기능
 
-
-selectedSample : sampleListView 선택 바뀔때 (+ 처음 읽을때 : iteration 한 후 0으로 원상복귀)
-context : 밑에 targetTable 선택 바뀔때.  (+처음 읽을때 : localContext따로 씀. 이것도 iteration 시키고 원상복귀?)
-
-이거 두개로 panel 내용 정해지는것. 
-
+ 
 
 progress 표시
 
-
 removefwd, removerev, reset 필요?
-Realign (current target)
 
-
-
-
-* sample dependent variables
-- id
-- tableView들 --> Sample class안으로. 
-
-* context dependent variables
-- 이미 정의되어 있음.
-
+selected sample만 새로 run 
 
 
 1. FXML design
-왼쪽에 ListView 2개
-ListView1 -> ListView2 -> combobox에서 ChangeListener처럼. 
-
-2. Sample class 만들기
-- (ID string, + context 변수들 싹다 일단 넣고 나중에 불필요한거빼기)
- 
-  
- 
-3. 일단 파일 읽으면
-- Array of Sample 만들기. (Vector. 어차피 정렬 가능하니까. in out overhead 적은걸로) 사실 빈번하게 in out 일어나는것도 아니지만.
-* 중간점검 : ID 선택하면 chromatogram 나오게. 
-printunaligned result 구현 --> 나중에 run 되고나면 지우기. 
- 
- 
- 
- 
-4. open file과 동시에 sample iteration 하면서 handleRun()
-- handleRun()을 context별로. 
-
+radio or listview 1개 추가 (combobox대신) 
 
  
-- 일단 batch로 다 돌려서 저장
-- 50건 정도니까 괜찮지 않을까.
-
-
-
-
-* Batch로 하는 프로그램을 만들다보니 다시 기존 프로그램 개선해서 GUI 기반으로 만들게 되었고, 
-실제 검사에서도 한번에 여러 sample 을 돌릴 수 있기 때문에 지금 보내드리는 버전으로 써 보시는 것이 어떠실지. 
-2017년도 결과 돌려본것 같이 보내드립니다. 
-
 
 <Ganseq for variant에도 반영할것>
 

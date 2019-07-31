@@ -156,9 +156,6 @@ public class NTMSpecies implements Comparable<NTMSpecies> {
 		return scoreProperty.get();
 	}
 	
-	public void setScoreProperty(String score) {
-		scoreProperty = new SimpleStringProperty(score);
-	}
 
 	public String getQlenProperty() {
 		return qlenProperty.get();

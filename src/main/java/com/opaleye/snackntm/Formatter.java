@@ -16,22 +16,22 @@ import com.opaleye.snackntm.reference.ReferenceSeq;
 
 public class Formatter {
 	public static final char gapChar = '-';
-	public static TreeMap<Integer, Integer> fwdCoordinateMap = new TreeMap<Integer, Integer>();
-	public static TreeMap<Integer, Integer> revCoordinateMap = new TreeMap<Integer, Integer>();;
+	public TreeMap<Integer, Integer> fwdCoordinateMap = new TreeMap<Integer, Integer>();
+	public TreeMap<Integer, Integer> revCoordinateMap = new TreeMap<Integer, Integer>();
 
 	//public static BiMap<Integer, Integer> fwdCoordinateMap = HashBiMap.create();
 	//public static BiMap<Integer, Integer> revCoordinateMap = HashBiMap.create();
 
-	public static int fwdStartOffset = 700;
-	public static int revStartOffset = 700;
-	public static int fwdEndOffset = 700;
-	public static int revEndOffset = 700;
-	public static int fwdNewLength = 0;
-	public static int revNewLength = 0;
-	public static int fwdTraceAlignStartPoint = 1;
-	public static int revTraceAlignStartPoint = 1;
+	public int fwdStartOffset = 700;
+	public int revStartOffset = 700;
+	public int fwdEndOffset = 700;
+	public int revEndOffset = 700;
+	public int fwdNewLength = 0;
+	public int revNewLength = 0;
+	public int fwdTraceAlignStartPoint = 1;
+	public int revTraceAlignStartPoint = 1;
 
-	public static void init() {
+	public void init() {
 		//fwdCoordinateMap = HashBiMap.create();
 		//revCoordinateMap = HashBiMap.create();
 
@@ -66,7 +66,7 @@ public class Formatter {
 	 * 2018.5
 	 */
 
-	public static Vector<AlignedPoint> format2(AlignedPair ap, ReferenceSeq refFile, GanseqTrace trace, int direction) throws ArrayIndexOutOfBoundsException {
+	public Vector<AlignedPoint> format2(AlignedPair ap, ReferenceSeq refFile, GanseqTrace trace, int direction) throws ArrayIndexOutOfBoundsException {
 
 
 		//(1) Reference 상에서의 좌표. 1부터 시작. +1 해줌. genomic DNA의 의미. 실제 array access에 사용되지 않음. 
@@ -174,7 +174,7 @@ public class Formatter {
 	 * This functions is derived from jaligner.formats.Pair.format()
 	 * 2018.5
 	 */
-	public static Vector<AlignedPoint> format3(AlignedPair fwdAp, AlignedPair revAp, ReferenceSeq refFile, GanseqTrace fwdTrace, GanseqTrace revTrace) throws ArrayIndexOutOfBoundsException, NoContigException {
+	public Vector<AlignedPoint> format3(AlignedPair fwdAp, AlignedPair revAp, ReferenceSeq refFile, GanseqTrace fwdTrace, GanseqTrace revTrace) throws ArrayIndexOutOfBoundsException, NoContigException {
 
 		int fwdAlignmentLength = fwdAp.getAlignedString1().length();
 		int revAlignmentLength = revAp.getAlignedString1().length();
@@ -490,7 +490,7 @@ public class Formatter {
 	 * @param endGIndex : end position on genomic DNA
 	 * @param refFile : reference file
 	 */
-	private static Vector<AlignedPoint> addCDnaNumber (Vector<AlignedPoint> alignedPoints, int startGIndex, int endGIndex, ReferenceSeq refFile) {
+	private Vector<AlignedPoint> addCDnaNumber (Vector<AlignedPoint> alignedPoints, int startGIndex, int endGIndex, ReferenceSeq refFile) {
 		TreeMap<Integer, String> cdnaMap = new TreeMap<Integer, String>();
 
 		int intCDnaStart = 0, intCDnaEnd = 0;
@@ -587,6 +587,4 @@ public class Formatter {
 		}
 		return tempAlignedPoints;
 	}
-
-
 }

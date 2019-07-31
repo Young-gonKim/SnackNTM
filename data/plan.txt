@@ -1,10 +1,15 @@
 1. Batch 완성 - 디버깅
-java.lang.IllegalArgumentException: Width (0) and height (140) must be > 0
 
-Alignment 안된거에 대해서 getShadedImage를 호출해서 그런듯. (getDefaultImage해야하는데)
-(Alignment해야 format 해서 가로값이 정해짐)
+score는 왜 다르게 나온거임??
+귀신이 곡할노릇이네. 균종까진 똑같은데 숫자로 된것만 뒤섞임. tableview 문제 아님. 값 프린트해보면 값 자체가 바뀜
+call by reference 문제. 어디서 꼬이는거임. 
+CSV 만들대 까지는 괜찮음. 그 이후 잘 보기.
 
 
+
+
+
+getFinalList : 다 새로 짜야함. selectedSpeciesList 사용해서.
 
 2. discrepency 분석
 차이나는 원인
@@ -23,10 +28,6 @@ removefwd, removerev, reset 필요?
 selected sample만 새로 run 
 
 
-1. FXML design
-radio or listview 1개 추가 (combobox대신) 
-
- 
 
 <Ganseq for variant에도 반영할것>
 

@@ -30,13 +30,15 @@ import javafx.geometry.Insets;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.control.RadioButton;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.Toggle;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
@@ -69,13 +71,13 @@ import javafx.stage.StageStyle;
 public class RootController implements Initializable {
 
 	private Vector<Sample> sampleList = new Vector<Sample>();
-	
+
 	/**
 	selectedSample : sampleListView 선택 바뀔때 (+ 처음 읽을때 : iteration 한 후 0으로 원상복귀)
 	context : 밑에 targetTable 선택 바뀔때.  (+처음 읽을때 : localContext따로 씀. 이것도 iteration 시키고 원상복귀?)
 	이거 두개로 panel 내용 정해지는것.
-	*/
-	
+	 */
+
 	private int selectedSample = 0;
 	private int context = 0;
 
@@ -88,7 +90,7 @@ public class RootController implements Initializable {
 
 	//constants
 	private static final double paneWidth = 907; 
-	private static final String s16 = "16s rRNA";
+	private static final String s16 = "16sRNA";
 	private static final String rpo = "rpo";
 	private static final String tuf = "tuf";
 	public static final int defaultGOP = 30;
@@ -107,22 +109,9 @@ public class RootController implements Initializable {
 	private TreeSet<String> keywordSet_F[] = new TreeSet[3];
 	private TreeSet<String> keywordSet_R[] = new TreeSet[3];
 
-
-
-	/*
-	private boolean s16Loaded = false;
-	private boolean rpoLoaded = false;
-	private boolean tufLoaded = false;
-	 */
-
-	private String targetRegion = null;
-
-
-
 	@FXML private ScrollPane  fwdPane, revPane, alignmentPane, newAlignmentPane;
 	@FXML private Label fwdTraceFileLabel, revTraceFileLabel, icSeqLabel, chimaeraSeqLabel;
 	@FXML private Button removeRef, removeFwd, removeRev, removeVariant;
-	@FXML private ComboBox cb_targetRegion;
 	@FXML private Button btnEditBase;
 	@FXML private Button btn_settings;
 	@FXML private Button fwdZoomInButton, fwdZoomOutButton, revZoomInButton, revZoomOutButton; 
@@ -130,6 +119,10 @@ public class RootController implements Initializable {
 
 	@FXML private TableView<NTMSpecies> speciesTable, s16Table, rpoTable, tufTable, finalTable;
 	@FXML private ListView<String> sampleListView;
+
+	ToggleGroup toggleGroup = new ToggleGroup();
+	@FXML private RadioButton s16Radio, rpoRadio, tufRadio;
+
 
 	private String lastVisitedDir="f:\\GoogleDrive\\SnackNTM";
 	private Stage primaryStage;
@@ -152,11 +145,6 @@ public class RootController implements Initializable {
 	/**
 	 * For context switching
 	 */
-
-
-
-
-
 	//context-specific variables
 
 	/*
@@ -250,6 +238,33 @@ public class RootController implements Initializable {
 
 	}
 
+	
+	private void fillResults() {
+		Sample sample = sampleList.get(selectedSample);
+		if(sample.alignmentPerformed[context] == false) {
+			printUnAlignedData();
+		}
+		else {
+			printAlignedResult();
+			
+			for(NTMSpecies ntm:sample.speciesList[context]) {
+				System.out.println(String.format("%s, %s, %s, %s, %.2f", ntm.getSpeciesName(), ntm.getAccession(), ntm.getQlen(), ntm.getAlen(), ntm.getScore()));
+				System.out.println(String.format("%s, %s, %s, %s, %s", ntm.getSpeciesNameProperty(), ntm.getAccessionProperty(), ntm.getQlenProperty(), ntm.getAlenProperty(), ntm.getScoreProperty()));
+			}
+			
+			
+			speciesTable.setItems(FXCollections.observableArrayList(sample.speciesList[context]));
+			//finalTable.setItems(FXCollections.observableArrayList(sample.finalList));
+			
+			if(sample.alignmentPerformed[0]) 
+				s16Table.setItems(FXCollections.observableArrayList(sample.selectedSpeciesList[0]));
+			if(sample.alignmentPerformed[1])
+				rpoTable.setItems(FXCollections.observableArrayList(sample.selectedSpeciesList[1]));
+			if(sample.alignmentPerformed[2])
+				tufTable.setItems(FXCollections.observableArrayList(sample.selectedSpeciesList[2]));
+		}
+	}
+	
 	/**
 	 * Initializes required settings
 	 */
@@ -263,32 +278,37 @@ public class RootController implements Initializable {
 
 		gapOpenPenalty = defaultGOP;
 
-		cb_targetRegion.getItems().addAll(s16, rpo, tuf);
-		cb_targetRegion.setValue(s16);
-		cb_targetRegion.valueProperty().addListener(new ChangeListener<String>() {
-			@Override public void changed(ObservableValue ov, String t, String t1) {
-				Sample sample = sampleList.get(selectedSample);
-				if(t1.equals(s16)) {
-					context = 0;
-				}
-				else if (t1.equals(rpo)) { 
-					context = 1;
-				}
-				else if (t1.equals(tuf)) { 
-					context = 2;
-				}
+		s16Radio.setToggleGroup(toggleGroup);
+		s16Radio.setSelected(true);
+		rpoRadio.setToggleGroup(toggleGroup);
+		tufRadio.setToggleGroup(toggleGroup);
 
-				System.out.println("context switched to " + context);
+		s16Radio.setUserData(s16);
+		rpoRadio.setUserData(rpo);
+		tufRadio.setUserData(tuf);
 
-				if(sample.alignmentPerformed[context] == false) {
-					printUnAlignedData();
-				}
-				else {
-					printAlignedResult();
-					speciesTable.setItems(FXCollections.observableArrayList(sample.speciesList[context]));
-					makeCsvContents();
-				}
-			}    
+		toggleGroup.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
+			public void changed(ObservableValue<? extends Toggle> ov,
+					Toggle old_toggle, Toggle new_toggle) {
+				if (toggleGroup.getSelectedToggle() != null) {
+					String t1 = (String)toggleGroup.getSelectedToggle().getUserData();
+					if(t1.equals(s16)) {
+						context = 0;
+					}
+					else if (t1.equals(rpo)) { 
+						context = 1;
+					}
+					else if (t1.equals(tuf)) { 
+						context = 2;
+					}
+
+					System.out.println("context switched to " + context);
+
+					if(sampleList.size()>0) {	//alignment 누르기전에 radiobutton 클릭하는 경우 방지위해 if문.
+						fillResults();
+					}
+				}                
+			}
 		});
 
 		sampleListView.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
@@ -296,20 +316,9 @@ public class RootController implements Initializable {
 			public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
 				selectedSample = newValue.intValue();
 				context = 0;
-				cb_targetRegion.setValue(s16);
+				s16Radio.setSelected(true);
 
-				Sample sample = sampleList.get(selectedSample);
-				if(sample.alignmentPerformed[context] == false) {
-					printUnAlignedData();
-				}
-				else {
-					printAlignedResult();
-					speciesTable.setItems(FXCollections.observableArrayList(sample.speciesList[context]));
-					s16Table.setItems(FXCollections.observableArrayList(sample.speciesList[0]));
-					rpoTable.setItems(FXCollections.observableArrayList(sample.speciesList[1]));
-					tufTable.setItems(FXCollections.observableArrayList(sample.speciesList[2]));
-					finalTable.setItems(FXCollections.observableArrayList(sample.finalList));
-				}
+				fillResults();
 			}
 		});
 
@@ -392,7 +401,7 @@ public class RootController implements Initializable {
 		speciesTable.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
 			@Override
 			public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-				//Sysem.out.println("selected Index : " + newValue.intValue());
+				System.out.println("selected Index : " + newValue.intValue());
 				try {
 					doAlignment(newValue.intValue());
 				}
@@ -532,7 +541,6 @@ public class RootController implements Initializable {
 
 	private void makeGlobalSpeciesList(int target) throws Exception {
 		globalSpeciesList[target] = new Vector<NTMSpecies>();
-		targetRegion = (String)cb_targetRegion.getValue();
 
 		//read rgm list
 		File file = new File("reference/rgm.txt");
@@ -657,7 +665,7 @@ public class RootController implements Initializable {
 			//System.out.println(sample.sampleId);
 			idList.add(sample.sampleId);
 		}
-		
+
 		sampleListView.setItems(FXCollections.observableArrayList(idList));
 
 		for(selectedSample=0; selectedSample<sampleList.size(); selectedSample++) {
@@ -1083,7 +1091,8 @@ public class RootController implements Initializable {
 	private void doAlignment(int selectedSpecies) throws Exception{
 		Sample sample = sampleList.get(selectedSample);
 		resetParameters();
-		Formatter.init();
+		Formatter formatter = new Formatter();
+		formatter.init();
 		ReferenceSeq refFile = sample.speciesList[context].get(selectedSpecies).getRefSeq();
 		//When only fwd trace is given as input
 
@@ -1101,19 +1110,19 @@ public class RootController implements Initializable {
 
 
 		if(sample.fwdLoaded[context] == true && sample.revLoaded[context] == false) {
-			sample.alignedPoints[context] = Formatter.format2(fwdAp, refFile, sample.trimmedFwdTrace[context], 1);
+			sample.alignedPoints[context] = formatter.format2(fwdAp, refFile, sample.trimmedFwdTrace[context], 1);
 		}
 
 		//When only rev trace is given as input
 		else if(sample.fwdLoaded[context] == false && sample.revLoaded[context] == true) {
-			sample.alignedPoints[context] = Formatter.format2(revAp, refFile, sample.trimmedRevTrace[context], -1);
+			sample.alignedPoints[context] = formatter.format2(revAp, refFile, sample.trimmedRevTrace[context], -1);
 		}
 
 		//When both of fwd trace and rev trace are given
 		else  if(sample.fwdLoaded[context] == true && sample.revLoaded[context] == true) {
-
-			sample.alignedPoints[context] = Formatter.format3(fwdAp, revAp, refFile, sample.trimmedFwdTrace[context], sample.trimmedRevTrace[context]);
+			sample.alignedPoints[context] = formatter.format3(fwdAp, revAp, refFile, sample.trimmedFwdTrace[context], sample.trimmedRevTrace[context]);
 		}
+		sample.formatter[context] = formatter;
 	}
 
 	private Vector<NTMSpecies> getFinalList() {
@@ -1126,7 +1135,7 @@ public class RootController implements Initializable {
 
 		Sample sample = sampleList.get(selectedSample);
 
-		if(sample.s16Loaded) {
+		if(sample.alignmentPerformed[0]) {
 			for(NTMSpecies ntm : s16List) {
 				if(ntm.getScore() == 100) 
 					s16_100List.add(ntm);
@@ -1145,9 +1154,9 @@ public class RootController implements Initializable {
 				strScore = "most closely";
 			}
 
-			if(retList.size() > 1 && sample.rpoLoaded) {
+			if(retList.size() > 1 && sample.alignmentPerformed[1]) {
 				retList.retainAll(rpoList);
-				if(retList.size() > 1 && sample.tufLoaded)
+				if(retList.size() > 1 && sample.alignmentPerformed[2])
 					retList.retainAll(tufList);
 			}
 
@@ -1164,7 +1173,7 @@ public class RootController implements Initializable {
 			icSeqLabel.setText("");
 			chimaeraSeqLabel.setText("");
 
-			if(specificSeq && targetRegion.equals(s16)) {
+			if(specificSeq && context == 0) {
 				boolean containsIcSeq = false;
 				boolean containsChSeq = false;
 				if(sample.fwdLoaded[context]) {
@@ -1206,19 +1215,20 @@ public class RootController implements Initializable {
 				}
 			}
 		}
+		System.out.println("Finished");
 		
-		//원상복귀. 
+		//다 돌리고 나면 첫번째 sample 16s로 채우기.
 		selectedSample = 0;
 		context = 0;
+		s16Radio.setSelected(true);
+		fillResults();
 	}
 
 
 	public void actualRun() {
-
 		Sample sample = sampleList.get(selectedSample);
-
 		sample.speciesList[context] = new Vector(globalSpeciesList[context]);
-		
+
 		int inputLength = 0;
 		if(sample.fwdLoaded[context] && !sample.revLoaded[context]) 
 			inputLength = sample.trimmedFwdTrace[context].getSequenceLength();
@@ -1235,12 +1245,9 @@ public class RootController implements Initializable {
 		}
 		if(inputLength == 0) return;
 
-
 		Vector<NTMSpecies> removeList = new Vector<NTMSpecies>();
 		for(int i=0;i<sample.speciesList[context].size();i++) {
-
 			NTMSpecies thisSpecies = sample.speciesList[context].get(i);
-
 			try {
 				doAlignment(i);
 			}
@@ -1283,8 +1290,10 @@ public class RootController implements Initializable {
 
 		sample.speciesList[context].removeAll(removeList);	//align 안된 것들, score 낮은것들 remove
 
-		if(sample.speciesList[context].size()>0) { 
-
+		
+		
+		if(sample.speciesList[context].size()>0) {
+			Collections.sort(sample.speciesList[context]);
 			// 점수 제일 높은걸로 align
 			try {
 				//doAlignment 위에서 한번 했던거니까 error 날 일 없음.  
@@ -1299,7 +1308,7 @@ public class RootController implements Initializable {
 			sample.selectedSpeciesList[context] = new Vector<NTMSpecies>();
 			for(NTMSpecies ntm:sample.speciesList[context]) {
 				double cutoff = 99;
-				if(targetRegion.equals(rpo)) {
+				if(context == 1) {
 					if(ntm.isRgm()) 
 						cutoff = 98.3;
 					else cutoff = 99.3;
@@ -1311,16 +1320,7 @@ public class RootController implements Initializable {
 			}
 
 
-			if(context == 0) {
-				sample.s16Loaded = true;
-			}
-			else if(context == 1) {
-				sample.rpoLoaded = true;
-			}
-			else if(context == 2) {
-				sample.tufLoaded = true;
-			}
-			sample.finalList = getFinalList();
+			//sample.finalList = getFinalList();
 			sample.alignmentPerformed[context] = true;
 
 		}
@@ -1332,12 +1332,12 @@ public class RootController implements Initializable {
 	private void printAlignedResult() {
 		Sample sample = sampleList.get(selectedSample);
 
-//Alignment panel
-		
+		//Alignment panel
+
 		if(sample.fwdLoaded[context] || sample.revLoaded[context])
-			
-		
-		labels = new Label[3][sample.alignedPoints[context].size()];
+
+
+			labels = new Label[3][sample.alignedPoints[context].size()];
 		gridPane = new GridPane();
 
 		Label refTitle = new Label("Reference : ");
@@ -1470,17 +1470,19 @@ public class RootController implements Initializable {
 
 		alignmentPane.setContent(gridPane);
 
-		
-		
-//fwdTracePane
+
+
+		//fwdTracePane
+		Formatter formatter = sample.formatter[context];
+
 		if(sample.fwdLoaded[context]) {
 			// 새로운 좌표로 update (fwdPane, revPane)
-			java.awt.image.BufferedImage awtImage = sample.trimmedFwdTrace[context].getShadedImage(0,0,0);
+			java.awt.image.BufferedImage awtImage = sample.trimmedFwdTrace[context].getShadedImage(0,0,0, sample.formatter[context]);
 			javafx.scene.image.Image fxImage = SwingFXUtils.toFXImage(awtImage, null);
 			ImageView imageView = new ImageView(fxImage);
 			fwdPane.setContent(imageView);
 			// 시작점에 화면 align
-			adjustFwdPane(Formatter.fwdTraceAlignStartPoint);
+			adjustFwdPane(formatter.fwdTraceAlignStartPoint);
 		}
 		else if(sample.fwdTraceFileName[context] != null) {
 			fwdTraceFileLabel.setText(sample.fwdTraceFileName[context]);
@@ -1492,11 +1494,11 @@ public class RootController implements Initializable {
 		}
 
 		if(sample.revLoaded[context]) {
-			java.awt.image.BufferedImage awtImage2 = sample.trimmedRevTrace[context].getShadedImage(0,0,0);
+			java.awt.image.BufferedImage awtImage2 = sample.trimmedRevTrace[context].getShadedImage(0,0,0, sample.formatter[context]);
 			javafx.scene.image.Image fxImage2 = SwingFXUtils.toFXImage(awtImage2, null);
 			ImageView imageView2 = new ImageView(fxImage2);
 			revPane.setContent(imageView2);
-			adjustRevPane(Formatter.revTraceAlignStartPoint);
+			adjustRevPane(formatter.revTraceAlignStartPoint);
 		}
 		else if(sample.revTraceFileName[context] != null) {
 			revTraceFileLabel.setText(sample.revTraceFileName[context]);
@@ -1514,11 +1516,12 @@ public class RootController implements Initializable {
 	 */
 	private void adjustFwdPane(int fwdTraceIndex) {
 		Sample sample = sampleList.get(selectedSample);
-		if(Formatter.fwdNewLength <= paneWidth) return;
+		Formatter formatter = sample.formatter[context];
+		if(formatter.fwdNewLength <= paneWidth) return;
 		if(fwdTraceIndex >sample.trimmedFwdTrace[context].getBaseCalls().length)
 			fwdTraceIndex = sample.trimmedFwdTrace[context].getBaseCalls().length;
-		double coordinate = Formatter.fwdStartOffset + sample.trimmedFwdTrace[context].getBaseCalls()[fwdTraceIndex-1]*2;
-		double hValue = (coordinate - paneWidth/2) / (Formatter.fwdNewLength - paneWidth);
+		double coordinate = formatter.fwdStartOffset + sample.trimmedFwdTrace[context].getBaseCalls()[fwdTraceIndex-1]*2;
+		double hValue = (coordinate - paneWidth/2) / (formatter.fwdNewLength - paneWidth);
 		fwdPane.setHvalue(hValue);
 	}
 
@@ -1528,13 +1531,14 @@ public class RootController implements Initializable {
 	 */
 	private void adjustRevPane(int revTraceIndex) {
 		Sample sample = sampleList.get(selectedSample);
-		if(Formatter.revNewLength <= paneWidth) return;
+		Formatter formatter = sample.formatter[context];
+		if(formatter.revNewLength <= paneWidth) return;
 		if(revTraceIndex > sample.trimmedRevTrace[context].getBaseCalls().length)
 			revTraceIndex = sample.trimmedRevTrace[context].getBaseCalls().length;
 
-		double coordinate = Formatter.revStartOffset + sample.trimmedRevTrace[context].getBaseCalls()[revTraceIndex-1]*2;
+		double coordinate = formatter.revStartOffset + sample.trimmedRevTrace[context].getBaseCalls()[revTraceIndex-1]*2;
 
-		double hValue = (coordinate - paneWidth/2) / (Formatter.revNewLength - paneWidth);
+		double hValue = (coordinate - paneWidth/2) / (formatter.revNewLength - paneWidth);
 		revPane.setHvalue(hValue);
 
 	}
@@ -1618,10 +1622,10 @@ public class RootController implements Initializable {
 
 			BufferedImage awtImage = null;
 			if(fwdChar == Formatter.gapChar) {
-				awtImage = sample.trimmedFwdTrace[context].getShadedImage(3,tempFwdPos-1,tempFwdPos-1);
+				awtImage = sample.trimmedFwdTrace[context].getShadedImage(3,tempFwdPos-1,tempFwdPos-1, sample.formatter[context]);
 
 			}
-			else awtImage = sample.trimmedFwdTrace[context].getShadedImage(1, tempFwdPos-1, tempFwdPos-1);
+			else awtImage = sample.trimmedFwdTrace[context].getShadedImage(1, tempFwdPos-1, tempFwdPos-1, sample.formatter[context]);
 
 			javafx.scene.image.Image fxImage = SwingFXUtils.toFXImage(awtImage, null);
 			ImageView imageView = new ImageView(fxImage);
@@ -1647,11 +1651,11 @@ public class RootController implements Initializable {
 
 
 			if(revChar == Formatter.gapChar) {
-				awtImage2 = sample.trimmedRevTrace[context].getShadedImage(3,tempRevPos-1,tempRevPos-1);
+				awtImage2 = sample.trimmedRevTrace[context].getShadedImage(3,tempRevPos-1,tempRevPos-1, sample.formatter[context]);
 			}
 
 			else 
-				awtImage2 = sample.trimmedRevTrace[context].getShadedImage(1, tempRevPos-1, tempRevPos-1);
+				awtImage2 = sample.trimmedRevTrace[context].getShadedImage(1, tempRevPos-1, tempRevPos-1, sample.formatter[context]);
 			javafx.scene.image.Image fxImage2 = SwingFXUtils.toFXImage(awtImage2, null);
 			ImageView imageView2 = new ImageView(fxImage2);
 			revPane.setContent(imageView2);

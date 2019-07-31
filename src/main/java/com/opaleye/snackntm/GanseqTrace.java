@@ -267,18 +267,18 @@ public class GanseqTrace {
 	 * @param option  : 0:no shading, 1:point (based on traceBaseNumbering) 2:area (based on newBaseNumbering) 
 	 * @return
 	 */
-	public BufferedImage getShadedImage(int option, int startPosition, int endPosition) {
+	public BufferedImage getShadedImage(int option, int startPosition, int endPosition, Formatter formatter) {
 
 		int newTraceLength = 0;
 		int startOffset = 0;
 
 		if(direction == FORWARD) {
-			newTraceLength = Formatter.fwdNewLength;
-			startOffset = Formatter.fwdStartOffset;
+			newTraceLength = formatter.fwdNewLength;
+			startOffset = formatter.fwdStartOffset;
 		}
 		else {
-			newTraceLength = Formatter.revNewLength;
-			startOffset = Formatter.revStartOffset;
+			newTraceLength = formatter.revNewLength;
+			startOffset = formatter.revStartOffset;
 		}
 
 		BufferedImage image = new BufferedImage(newTraceLength, traceHeight+30, BufferedImage.TYPE_BYTE_INDEXED);
@@ -287,8 +287,8 @@ public class GanseqTrace {
 		g.clearRect(0, 0, newTraceLength, traceHeight+30);
 
 
-		TreeMap<Integer, Integer> fwdMap = Formatter.fwdCoordinateMap;
-		TreeMap<Integer, Integer> revMap = Formatter.revCoordinateMap;
+		TreeMap<Integer, Integer> fwdMap = formatter.fwdCoordinateMap;
+		TreeMap<Integer, Integer> revMap = formatter.revCoordinateMap;
 
 		for(int i=0;i<traceLength-1;i++) {
 			g.setColor(Color.GREEN);

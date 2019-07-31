@@ -1,6 +1,7 @@
 package com.opaleye.snackntm;
 
 import java.io.File;
+import java.util.TreeMap;
 import java.util.Vector;
 
 
@@ -27,7 +28,6 @@ public class Sample implements Comparable {
 	public File[] fwdTraceFile = new File[3], revTraceFile = new File[3];
 	public GanseqTrace[] trimmedFwdTrace = new GanseqTrace[3], trimmedRevTrace = new GanseqTrace[3];
 	public boolean fwdLoaded[] = {false, false, false}, revLoaded[] = {false, false, false};
-	public boolean s16Loaded = false, rpoLoaded = false, tufLoaded = false;
 	
 	public boolean alignmentPerformed[] = new boolean[3];
 	
@@ -37,6 +37,9 @@ public class Sample implements Comparable {
 	public int[] selectedAlignmentPos = {-1, -1, -1};
 	public String[] csvContents = new String[3];
 
+	public Formatter[] formatter = new Formatter[3];
+
+	
 	public Sample(String sampleId) {
 		this.sampleId = sampleId;
 	}

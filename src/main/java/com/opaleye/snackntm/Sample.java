@@ -36,8 +36,11 @@ public class Sample implements Comparable {
 	//edit base 용
 	public int[] selectedAlignmentPos = {-1, -1, -1};
 	public String[] csvContents = new String[3];
+	public String[] consensusSequence= new String[3];
 
 	public Formatter[] formatter = new Formatter[3];
+	
+	
 
 	
 	public Sample(String sampleId) {

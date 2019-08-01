@@ -1,15 +1,12 @@
+
+
 1. Batch 완성 - 디버깅
 
-score는 왜 다르게 나온거임??
-귀신이 곡할노릇이네. 균종까진 똑같은데 숫자로 된것만 뒤섞임. tableview 문제 아님. 값 프린트해보면 값 자체가 바뀜
-call by reference 문제. 어디서 꼬이는거임. 
-CSV 만들대 까지는 괜찮음. 그 이후 잘 보기.
+edit base 테스트. 이거는 consensus를 바로 바꾸긴 어려움.. alignment 맞추기가..
 
 
+getFinalList 수정 : consensus sequence에 icSeq, chimaeraSeq 있는지 여부 , 이것도 있고 list에도 있으면 그냥 그걸로 final list 만들어보리고 끝.
 
-
-
-getFinalList : 다 새로 짜야함. selectedSpeciesList 사용해서.
 
 2. discrepency 분석
 차이나는 원인
@@ -17,15 +14,21 @@ getFinalList : 다 새로 짜야함. selectedSpeciesList 사용해서.
 - base calling 차이? 이거는 둘다 저장되어 있는거 쓰는거 아님? 큰 차이 안날듯. double peak 없으니 더더욱
 - Alignment algorithm 차이
 
-3. consensus sequence 보여주는 기능
-
- 
 
 progress 표시
 
-removefwd, removerev, reset 필요?
+removefwd, removerev, rest : 필요함.
 
 selected sample만 새로 run 
+
+
+*이메일
+- batch
+- consensus seq : by definition alignment결과에 dependent, ref까지 align 시킨다음 얻는다. 필요하신게 fwd, rev 두개만 align시켜서 나오는 거면 수정해드리겠다.
+ 
+
+- discrepency 원인 : double peak 없으면 어느정도 basecalling 정확할듯.. 대부분은 trimming 차이에서 오는듯.
+
 
 
 

@@ -9,8 +9,7 @@ package com.opaleye.snackntm;
  */
 public class AlignedPoint {
 	
-	private char refChar, fwdChar, revChar;
-	private char discrepency;
+	private char refChar, fwdChar, revChar, consensusChar;
 	private boolean coding;
 	//private boolean exon;
 	private String stringCIndex;
@@ -28,12 +27,12 @@ public class AlignedPoint {
 	 * @param fwdTraceIndex : forward trace index
 	 * @param revTraceIndex : reverse trace index
 	 */
-	public AlignedPoint(char refChar, char fwdChar, char revChar, char discrepency, int gIndex, int fwdTraceIndex, int revTraceIndex) {
+	public AlignedPoint(char refChar, char fwdChar, char revChar, char consensusChar, int gIndex, int fwdTraceIndex, int revTraceIndex) {
 		super();
 		this.refChar = refChar;
 		this.fwdChar = fwdChar;
 		this.revChar = revChar;
-		this.discrepency = discrepency;
+		this.consensusChar = consensusChar;
 		this.gIndex = gIndex;
 		this.fwdTraceIndex = fwdTraceIndex;
 		this.revTraceIndex = revTraceIndex;
@@ -87,12 +86,15 @@ public class AlignedPoint {
 	public void setRevChar(char revChar) {
 		this.revChar = revChar;
 	}
-	public char getDiscrepency() {
-		return discrepency;
+	
+	public char getConsensusChar() {
+		return consensusChar;
 	}
-	public void setDiscrepency(char discrepency) {
-		this.discrepency = discrepency;
+
+	public void setConsensusChar(char consensusChar) {
+		this.consensusChar = consensusChar;
 	}
+
 	public boolean isCoding() {
 		return coding;
 	}

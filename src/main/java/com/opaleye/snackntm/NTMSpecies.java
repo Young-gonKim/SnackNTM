@@ -4,7 +4,7 @@ import com.opaleye.snackntm.reference.ReferenceSeq;
 
 import javafx.beans.property.SimpleStringProperty;
 
-public class NTMSpecies implements Comparable<NTMSpecies> {
+public class NTMSpecies implements Comparable<NTMSpecies>, Cloneable {
 	private String accession = "";
 	private String speciesName = "";
 	private ReferenceSeq refSeq = null;
@@ -20,14 +20,18 @@ public class NTMSpecies implements Comparable<NTMSpecies> {
 	protected SimpleStringProperty alenProperty;
 	protected SimpleStringProperty rgmProperty;
 
-	
+
+	protected Object clone() throws CloneNotSupportedException { 
+		return super.clone(); 
+	} 
+
 	//removeAll, retainAll 구현용
 	@Override
 	public boolean equals(Object o) {
 		NTMSpecies ntm = (NTMSpecies)o;
 		return this.speciesName.equals(ntm.getSpeciesName());
 	}
-	
+
 	@Override
 	public int compareTo(NTMSpecies ntm) {
 		if (this.score < ntm.getScore()) 
@@ -36,7 +40,7 @@ public class NTMSpecies implements Comparable<NTMSpecies> {
 			return -1;
 		else return ntm.getAlen()-this.getAlen();		
 	}
-	
+
 
 	public NTMSpecies(String inputString) {
 		boolean firstLine = true;
@@ -83,7 +87,7 @@ public class NTMSpecies implements Comparable<NTMSpecies> {
 			rgmProperty = new SimpleStringProperty("");
 
 	}
-	
+
 	public NTMSpecies(String speciesName, String score) {
 		speciesNameProperty= new SimpleStringProperty(speciesName);
 		scoreProperty = new SimpleStringProperty(score);
@@ -127,12 +131,12 @@ public class NTMSpecies implements Comparable<NTMSpecies> {
 	public int getAlen() {
 		return alen;
 	}
-	
+
 	public void setQlen(int qlen) {
 		this.qlen = qlen;
 		qlenProperty =  new SimpleStringProperty(String.format("%d",  qlen));
 	}
-	
+
 	public void setAlen(int alen) {
 		this.alen = alen;
 		alenProperty =  new SimpleStringProperty(String.format("%d",  alen));
@@ -143,7 +147,7 @@ public class NTMSpecies implements Comparable<NTMSpecies> {
 		this.score = score;
 		scoreProperty = new SimpleStringProperty(String.format("%.2f",  score));
 	}
-	
+
 	public String getSpeciesNameProperty() {
 		return speciesNameProperty.get();
 	}
@@ -155,16 +159,16 @@ public class NTMSpecies implements Comparable<NTMSpecies> {
 	public String getScoreProperty() {
 		return scoreProperty.get();
 	}
-	
+
 
 	public String getQlenProperty() {
 		return qlenProperty.get();
 	}
-	
+
 	public String getAlenProperty() {
 		return alenProperty.get();
 	}
-	
+
 	public String getRgmProperty() {
 		return rgmProperty.get();
 	}

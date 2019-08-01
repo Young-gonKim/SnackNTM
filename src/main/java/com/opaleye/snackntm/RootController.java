@@ -76,6 +76,11 @@ public class RootController implements Initializable {
 	selectedSample : sampleListView 선택 바뀔때 (+ 처음 읽을때 : iteration 한 후 0으로 원상복귀)
 	context : 밑에 targetTable 선택 바뀔때.  (+처음 읽을때 : localContext따로 씀. 이것도 iteration 시키고 원상복귀?)
 	이거 두개로 panel 내용 정해지는것.
+
+	<개요>
+	- actualRun에서 speciesList, selectedSpeciesList를 만들고
+	- fillResults에서 화면에 뿌림.
+
 	 */
 
 	private int selectedSample = 0;
@@ -96,34 +101,33 @@ public class RootController implements Initializable {
 	public static final int defaultGOP = 30;
 	public static final String version = "1.1";
 	private static final double tableRowHeight = 25.0;
-	private static final String settingsFileName = "settings/settings.properties";
-	private static String icSeq = "ATCGACGAAGGTCCGGGTTTTCTCGGATT";
-	private static String chSeq = "ATCGACGAAGGTTCGGGTTTTCTCGGATT";
+	private static String icSeq = null;
+	private static String chSeq = null;
 	public static TreeSet<String> rgmSet = new TreeSet<String>(); 
 	public static TreeSet<String> sgmSet = new TreeSet<String>();
-	private static int fontSize = 13;
 
-
+	private static final String settingsFileName = "settings/settings.properties";
+	private int fontSize = 0;
+	private int sampleIdLength = 0; 
 	private String keyword_16sF, keyword_16sR, keyword_rpoF, keyword_rpoR, keyword_tufF, keyword_tufR;
 	//private TreeSet<String> keywordSet_F[0], keywordSet_R[0], keywordSet_F[1], keywordSet_R[1], keywordSet_F[2], keywordSet_R[2];
 	private TreeSet<String> keywordSet_F[] = new TreeSet[3];
 	private TreeSet<String> keywordSet_R[] = new TreeSet[3];
 
 	@FXML private ScrollPane  fwdPane, revPane, alignmentPane, newAlignmentPane;
+	@FXML private GridPane headerPane;
 	@FXML private Label fwdTraceFileLabel, revTraceFileLabel, icSeqLabel, chimaeraSeqLabel;
 	@FXML private Button removeRef, removeFwd, removeRev, removeVariant;
 	@FXML private Button btnEditBase;
 	@FXML private Button btn_settings;
 	@FXML private Button fwdZoomInButton, fwdZoomOutButton, revZoomInButton, revZoomOutButton; 
 
-
 	@FXML private TableView<NTMSpecies> speciesTable, s16Table, rpoTable, tufTable, finalTable;
 	@FXML private ListView<String> sampleListView;
 
 	ToggleGroup toggleGroup = new ToggleGroup();
+
 	@FXML private RadioButton s16Radio, rpoRadio, tufRadio;
-
-
 	private String lastVisitedDir="f:\\GoogleDrive\\SnackNTM";
 	private Stage primaryStage;
 	public void setPrimaryStage(Stage primaryStage) {
@@ -132,6 +136,9 @@ public class RootController implements Initializable {
 
 	private GridPane gridPane = null;
 	private Label[][] labels = null;
+	private Label[] headerLabel = new Label[4];
+
+	private int headerHeight = 0;
 
 	/**
 	 * Settings parameters
@@ -228,17 +235,19 @@ public class RootController implements Initializable {
 				keywordSet_R[2].add(keyword);
 			}
 
+			sampleIdLength = Integer.parseInt(props.getProperty("sample_id_length"));
+			headerHeight = Integer.parseInt(props.getProperty("header_height"));
 
 		}
 		catch(Exception e) {
 			e.printStackTrace();
-			textPopUp("Cannot access to the configuration file. (settings/settings.properties) Please reinstall the program.");
+			textPopUp("Error in reading configuration file. (settings/settings.properties) Recover configuration file or reinstall the program.");
 			System.exit(0);
 		}
 
 	}
 
-	
+
 	private void fillResults() {
 		Sample sample = sampleList.get(selectedSample);
 		if(sample.alignmentPerformed[context] == false) {
@@ -246,25 +255,45 @@ public class RootController implements Initializable {
 		}
 		else {
 			printAlignedResult();
-			
-			for(NTMSpecies ntm:sample.speciesList[context]) {
-				System.out.println(String.format("%s, %s, %s, %s, %.2f", ntm.getSpeciesName(), ntm.getAccession(), ntm.getQlen(), ntm.getAlen(), ntm.getScore()));
-				System.out.println(String.format("%s, %s, %s, %s, %s", ntm.getSpeciesNameProperty(), ntm.getAccessionProperty(), ntm.getQlenProperty(), ntm.getAlenProperty(), ntm.getScoreProperty()));
-			}
-			
-			
+
 			speciesTable.setItems(FXCollections.observableArrayList(sample.speciesList[context]));
-			//finalTable.setItems(FXCollections.observableArrayList(sample.finalList));
-			
-			if(sample.alignmentPerformed[0]) 
+			finalTable.setItems(FXCollections.observableArrayList(sample.finalList));
+
+			if(sample.alignmentPerformed[0])  
 				s16Table.setItems(FXCollections.observableArrayList(sample.selectedSpeciesList[0]));
-			if(sample.alignmentPerformed[1])
+			else 
+				s16Table.setItems(FXCollections.observableArrayList(new Vector<NTMSpecies>()));
+
+			if(sample.alignmentPerformed[1]) 
 				rpoTable.setItems(FXCollections.observableArrayList(sample.selectedSpeciesList[1]));
-			if(sample.alignmentPerformed[2])
+			else 
+				rpoTable.setItems(FXCollections.observableArrayList(new Vector<NTMSpecies>()));
+
+			if(sample.alignmentPerformed[2]) 
 				tufTable.setItems(FXCollections.observableArrayList(sample.selectedSpeciesList[2]));
+			else 
+				tufTable.setItems(FXCollections.observableArrayList(new Vector<NTMSpecies>()));
 		}
+
+		//radio Button 색깔
+		if(sample.fwdLoaded[0] || sample.revLoaded[0])  
+			s16Radio.setTextFill(Color.BLUE);
+		else 
+			s16Radio.setTextFill(Color.BLACK);
+
+		if(sample.fwdLoaded[1] || sample.revLoaded[1]) 
+			rpoRadio.setTextFill(Color.BLUE);
+		else 
+			rpoRadio.setTextFill(Color.BLACK);
+
+		if(sample.fwdLoaded[2] || sample.revLoaded[2]) 
+			tufRadio.setTextFill(Color.BLUE);
+		else 
+			tufRadio.setTextFill(Color.BLACK);
+
+
 	}
-	
+
 	/**
 	 * Initializes required settings
 	 */
@@ -333,6 +362,7 @@ public class RootController implements Initializable {
 			}
 		}
 		initTableViews();
+		makeEmptyHeader();
 
 		Tooltip zoomInTooltip = new Tooltip("Zoom In");
 		Tooltip zoomOutTooltip = new Tooltip("Zoom Out");
@@ -401,6 +431,7 @@ public class RootController implements Initializable {
 		speciesTable.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
 			@Override
 			public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+				if(newValue.intValue()<0) return;
 				System.out.println("selected Index : " + newValue.intValue());
 				try {
 					doAlignment(newValue.intValue());
@@ -504,7 +535,8 @@ public class RootController implements Initializable {
 		String selectedSpeciesName = selectedSpecies.getSpeciesName();
 		//System.out.println("selected species : " + selectedSpeciesName);
 
-		handleRun();
+		actualRun();
+		fillResults();
 
 		for(int i=0;i<sample.speciesList[context].size();i++) {
 			NTMSpecies ntm = sample.speciesList[context].get(i);
@@ -657,7 +689,7 @@ public class RootController implements Initializable {
 			String fileName = file.getName();
 			if(fileName.length()<9) continue;
 
-			Sample sample = new Sample(fileName.substring(0,  4));
+			Sample sample = new Sample(fileName.substring(0,  sampleIdLength));
 			tempList.add(sample);
 		}
 		sampleList = new Vector<Sample>(tempList);
@@ -748,6 +780,7 @@ public class RootController implements Initializable {
 		selectedSample = 0;
 		context = 0;
 
+		fillResults();
 	}
 
 	public void handleFwdEditTrimming() {
@@ -1125,17 +1158,19 @@ public class RootController implements Initializable {
 		sample.formatter[context] = formatter;
 	}
 
-	private Vector<NTMSpecies> getFinalList() {
-		Vector<NTMSpecies> s16List = new Vector<NTMSpecies>(s16Table.getItems());
-		Vector<NTMSpecies> rpoList = new Vector<NTMSpecies>(rpoTable.getItems());
-		Vector<NTMSpecies> tufList = new Vector<NTMSpecies>(tufTable.getItems());
+	private Vector<NTMSpecies> updateFinalList() {
+		Vector<NTMSpecies> s16List = new Vector<NTMSpecies>();
+		Vector<NTMSpecies> rpoList = new Vector<NTMSpecies>();
+		Vector<NTMSpecies> tufList = new Vector<NTMSpecies>();
 
 		Vector<NTMSpecies> s16_100List = new Vector<NTMSpecies>();
 		Vector<NTMSpecies> retList = new Vector<NTMSpecies>();
 
+
 		Sample sample = sampleList.get(selectedSample);
 
 		if(sample.alignmentPerformed[0]) {
+			s16List = sample.selectedSpeciesList[0];
 			for(NTMSpecies ntm : s16List) {
 				if(ntm.getScore() == 100) 
 					s16_100List.add(ntm);
@@ -1155,25 +1190,35 @@ public class RootController implements Initializable {
 			}
 
 			if(retList.size() > 1 && sample.alignmentPerformed[1]) {
+				rpoList = sample.speciesList[1];
 				retList.retainAll(rpoList);
-				if(retList.size() > 1 && sample.alignmentPerformed[2])
+				if(retList.size() > 1 && sample.alignmentPerformed[2]) {
+					tufList = sample.speciesList[2];
 					retList.retainAll(tufList);
+				}
 			}
 
 			Vector<NTMSpecies> tempList = new Vector<NTMSpecies>();
-			boolean specificSeq = false;
+
+			//consensus sequence에 icSeq, chimaeraSeq 있는지 여부 , 이것도 있고 list에도 있으면 그냥 그걸로 final list 만들어보리고 끝.
+
+			boolean icInTheList = false, chimaeraPresent = false; 
+
 			for(NTMSpecies ntm : retList) {
-				if(ntm.getSpeciesName().equals("Mycobacterium_intracellulare") || ntm.getSpeciesName().equals("Mycobacterium_chimaera"))
-					specificSeq = true;
+				if(ntm.getSpeciesName().equals("Mycobacterium_intracellulare"))
+					icInTheList = true;
+				if(ntm.getSpeciesName().equals("Mycobacterium_chimaera"))
+					chimaeraPresent = true;
 				NTMSpecies temp = new NTMSpecies(ntm.getSpeciesName(), strScore);
 				tempList.add(temp);
 			}
 			retList = tempList;
 
+
 			icSeqLabel.setText("");
 			chimaeraSeqLabel.setText("");
 
-			if(specificSeq && context == 0) {
+			if((icInTheList || chimaeraPresent) && context == 0) {
 				boolean containsIcSeq = false;
 				boolean containsChSeq = false;
 				if(sample.fwdLoaded[context]) {
@@ -1216,7 +1261,7 @@ public class RootController implements Initializable {
 			}
 		}
 		System.out.println("Finished");
-		
+
 		//다 돌리고 나면 첫번째 sample 16s로 채우기.
 		selectedSample = 0;
 		context = 0;
@@ -1227,7 +1272,19 @@ public class RootController implements Initializable {
 
 	public void actualRun() {
 		Sample sample = sampleList.get(selectedSample);
-		sample.speciesList[context] = new Vector(globalSpeciesList[context]);
+
+		//sample.speciesList[context] = new Vector(globalSpeciesList[context]);
+
+		//speciesList 초기화. NTMSpecies 객체부터 새로 만들어야 함. globalSpeciesList 건드리면 안됨.
+		sample.speciesList[context] = new Vector<NTMSpecies>();
+		for(NTMSpecies ntm : globalSpeciesList[context]) {
+			try {
+				sample.speciesList[context].add((NTMSpecies)ntm.clone());
+			}
+			catch(Exception ex) {
+				ex.printStackTrace();
+			}
+		}
 
 		int inputLength = 0;
 		if(sample.fwdLoaded[context] && !sample.revLoaded[context]) 
@@ -1269,7 +1326,8 @@ public class RootController implements Initializable {
 			double d_score = 0;
 			for(int j=0;j<sample.alignedPoints[context].size();j++) {
 				AlignedPoint ap = sample.alignedPoints[context].get(j);
-				if(ap.getDiscrepency()!='*') 
+				//if(ap.getDiscrepency()!='*')
+				if(ap.getConsensusChar() == ap.getRefChar())
 					i_score++;
 			}
 
@@ -1290,8 +1348,8 @@ public class RootController implements Initializable {
 
 		sample.speciesList[context].removeAll(removeList);	//align 안된 것들, score 낮은것들 remove
 
-		
-		
+
+
 		if(sample.speciesList[context].size()>0) {
 			Collections.sort(sample.speciesList[context]);
 			// 점수 제일 높은걸로 align
@@ -1318,12 +1376,44 @@ public class RootController implements Initializable {
 				else
 					break;
 			}
-
-
-			//sample.finalList = getFinalList();
 			sample.alignmentPerformed[context] = true;
-
+			sample.finalList = updateFinalList();
 		}
+	}
+
+
+
+
+	private void makeEmptyHeader() {
+		Label emptyLabel = new Label(" ");
+		emptyLabel.setFont(new Font("Consolas", 14));
+		emptyLabel.setMinSize(130,headerHeight);
+		emptyLabel.setPrefSize(130, headerHeight);
+		headerPane.add(emptyLabel, 0,  0);
+
+		headerLabel[0] = new Label("Reference : ");
+		headerLabel[0].setFont(new Font("Consolas", 14));
+		headerLabel[0].setMinSize(130,headerHeight);
+		headerLabel[0].setPrefSize(130, headerHeight);
+		headerPane.add(headerLabel[0], 0,  1);
+
+		headerLabel[1] = new Label("Forward   : ");
+		headerLabel[1].setFont(new Font("Consolas", 14));
+		headerLabel[1].setMinSize(130,headerHeight);
+		headerLabel[1].setPrefSize(130, headerHeight);
+		headerPane.add(headerLabel[1], 0,  2);
+
+		headerLabel[2] = new Label("Reverse   : ");
+		headerLabel[2].setFont(new Font("Consolas", 14));
+		headerLabel[2].setMinSize(130,headerHeight);
+		headerLabel[2].setPrefSize(130, headerHeight);
+		headerPane.add(headerLabel[2], 0,  3);
+
+		Label consensusTitle = new Label("Consensus : ");
+		consensusTitle.setFont(new Font("Consolas", 14));
+		consensusTitle.setMinSize(130,headerHeight);
+		consensusTitle.setPrefSize(130, headerHeight);
+		headerPane.add(consensusTitle, 0,  4);
 	}
 
 	/**
@@ -1335,36 +1425,43 @@ public class RootController implements Initializable {
 		//Alignment panel
 
 		if(sample.fwdLoaded[context] || sample.revLoaded[context])
+			labels = new Label[4][sample.alignedPoints[context].size()];
 
-
-			labels = new Label[3][sample.alignedPoints[context].size()];
 		gridPane = new GridPane();
 
-		Label refTitle = new Label("Reference : ");
-		refTitle.setFont(new Font("Consolas", 14));
-		refTitle.setMinSize(130,15);
-		refTitle.setPrefSize(130, 15);
-		gridPane.add(refTitle, 0,  1);
 
+		headerPane.getChildren().remove(headerLabel[1]);
 		if(sample.fwdLoaded[context]) {
-			fwdTraceFileLabel.setText(sample.fwdTraceFileName[context]);
-			Label fwdTitle = new Label("Forward   : ");
-			fwdTitle.setFont(new Font("Consolas", 14));
-			fwdTitle.setMinSize(130,15);
-			fwdTitle.setPrefSize(130, 15);
-			gridPane.add(fwdTitle, 0,  2);
+			headerLabel[1] = new Label("Forward   : ");
+			headerLabel[1].setFont(new Font("Consolas", 14));
+			headerLabel[1].setMinSize(130,headerHeight);
+			headerLabel[1].setPrefSize(130, headerHeight);
 		}
+		else {
+			headerLabel[1] = new Label();
+			headerLabel[1].setMinSize(130,1);
+			headerLabel[1].setPrefSize(130,1);
+		}
+		headerPane.add(headerLabel[1], 0,  2);
 
+
+		headerPane.getChildren().remove(headerLabel[2]);
 		if(sample.revLoaded[context]) {
-			revTraceFileLabel.setText(sample.revTraceFileName[context]);
-			Label revTitle = new Label("Reverse   : ");
-			revTitle.setFont(new Font("Consolas", 14));
-			revTitle.setMinSize(130,15);
-			revTitle.setPrefSize(130, 15);
-			gridPane.add(revTitle, 0,  3);
+			headerLabel[2] = new Label("Reverse   : ");
+			headerLabel[2].setFont(new Font("Consolas", 14));
+			headerLabel[2].setMinSize(130,headerHeight);
+			headerLabel[2].setPrefSize(130, headerHeight);
 		}
+		else {
+			headerLabel[2] = new Label();
+			headerLabel[2].setMinSize(130,1);
+			headerLabel[2].setPrefSize(130,1);
+		}
+		headerPane.add(headerLabel[2], 0,  3);
+		
 
-
+		
+		
 		for (int i=0;i<sample.alignedPoints[context].size();i++) {
 			AlignedPoint point = sample.alignedPoints[context].get(i);
 
@@ -1380,12 +1477,14 @@ public class RootController implements Initializable {
 			Label refLabel = new Label();
 			Label fwdLabel = new Label();
 			Label revLabel = new Label();
+			Label consensusLabel = new Label();
 			Label discrepencyLabel = new Label();
 			Label indexLabel = new Label();
 
 			refLabel.setFont(new Font("Consolas", fontSize));
 			fwdLabel.setFont(new Font("Consolas", fontSize));
 			revLabel.setFont(new Font("Consolas", fontSize));
+			consensusLabel.setFont(new Font("Consolas", fontSize));
 			discrepencyLabel.setFont(new Font("Consolas", fontSize));
 			indexLabel.setFont(new Font("Consolas", fontSize));
 
@@ -1461,11 +1560,16 @@ public class RootController implements Initializable {
 				labels[2][i] = revLabel;
 			}
 
-			//Discrepency
-			discrepencyLabel.setText(Character.toString(point.getDiscrepency()));
-			discrepencyLabel.setPrefSize(10, 10);
-			discrepencyLabel.setOnMouseClicked(new ClickEventHandler(i));
-			gridPane.add(discrepencyLabel,  i+1, 4);
+			//Consensus
+			consensusLabel.setText(Character.toString(point.getConsensusChar()));
+			consensusLabel.setPrefSize(10, 10);
+			if(point.getConsensusChar() != point.getRefChar())
+				consensusLabel.setBackground(new Background(new BackgroundFill(Color.web("#FF3300"), CornerRadii.EMPTY, Insets.EMPTY)));
+
+			consensusLabel.setOnMouseClicked(new ClickEventHandler(i));
+			gridPane.add(consensusLabel,  i+1, 4);
+			labels[3][i] = consensusLabel;
+
 		}
 
 		alignmentPane.setContent(gridPane);

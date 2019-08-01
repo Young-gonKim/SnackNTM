@@ -4,7 +4,6 @@
 
 edit base 테스트. 이거는 consensus를 바로 바꾸긴 어려움.. alignment 맞추기가..
 
-
 getFinalList 수정 : consensus sequence에 icSeq, chimaeraSeq 있는지 여부 , 이것도 있고 list에도 있으면 그냥 그걸로 final list 만들어보리고 끝.
 
 

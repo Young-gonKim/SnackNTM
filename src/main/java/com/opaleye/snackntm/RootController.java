@@ -487,8 +487,12 @@ public class RootController implements Initializable {
 
 	public void handleEditBase() {
 		Sample sample = sampleList.get(selectedSample);
-		if(!sample.alignmentPerformed[context]) return;
-		if(sample.selectedAlignmentPos[context] == -1) return;
+		if(!sample.alignmentPerformed[context]) {
+			return;
+		}
+		if(sample.selectedAlignmentPos[context] == -1) {
+			return;
+		}
 		AlignedPoint ap = sample.alignedPoints[context].get(sample.selectedAlignmentPos[context]);
 
 		try {
@@ -1123,7 +1127,9 @@ public class RootController implements Initializable {
 
 	private void doAlignment(int selectedSpecies) throws Exception{
 		Sample sample = sampleList.get(selectedSample);
-		resetParameters();
+		
+		sample.selectedAlignmentPos[context] = -1;
+		
 		Formatter formatter = new Formatter();
 		formatter.init();
 		ReferenceSeq refFile = sample.speciesList[context].get(selectedSpecies).getRefSeq();

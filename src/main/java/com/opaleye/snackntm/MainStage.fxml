@@ -41,7 +41,7 @@
                               <Insets />
                            </HBox.margin>
                         </Button>
-                        <Button fx:id="btn_settings" mnemonicParsing="false" onAction="#handleSettings" prefHeight="23.0" prefWidth="99.0" text="Settings" />
+                        <!--<Button fx:id="btn_settings" mnemonicParsing="false" onAction="#handleSettings" prefHeight="23.0" prefWidth="99.0" text="Settings" />-->
                         <Button fx:id="runButton" mnemonicParsing="false" onAction="#handleRunAllSamples" prefHeight="23.0" prefWidth="137.0" text="Run (All samples)" />
                         <Button mnemonicParsing="false" onAction="#handleRunCurrentTarget" prefHeight="23.0" prefWidth="154.0" text="Run (Current target)" />
                      </children>
@@ -121,9 +121,8 @@
                 <TableColumn prefWidth="83.0" text="Score" />
                </columns>
             </TableView>
-            <Button fx:id="btnReset" layoutX="171.0" layoutY="11.0" mnemonicParsing="false" onAction="#handleReset" prefHeight="43.0" prefWidth="116.0" text="Reset (New case)" />
-            <Label fx:id="icSeqLabel" layoutX="14.0" layoutY="750.0" prefHeight="15.0" prefWidth="280.0" />
-            <Label fx:id="chimaeraSeqLabel" layoutX="14.0" layoutY="770.0" prefHeight="15.0" prefWidth="280.0" />
+            <Label fx:id="icSeqLabel" layoutX="14.0" layoutY="750.0" prefHeight="15.0" prefWidth="280.0" text="aaaa" />
+            <Label fx:id="chimaeraSeqLabel" layoutX="14.0" layoutY="770.0" prefHeight="15.0" prefWidth="280.0" text="aaaa"/>
          </children>
       </AnchorPane>
       <Label layoutX="170.0" layoutY="619.0" prefHeight="18.0" prefWidth="150.0" text="Result">

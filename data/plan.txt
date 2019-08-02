@@ -1,44 +1,10 @@
 
 
-1. Batch 완성 - 디버깅
-하나만 가지고 edit base할때는 문제 없음.
+1. Batch 완성 
 
-- edit trimming 하거나
-- fwd, rev 둘다 쓸때 문제 생김
-
-뭔가 객체가 두개 생기는게 아닌가..
-trace가 두개 생긴다기 보다는.. (makeCSV 할때까지는 같으니까)
-speciesList, selectedSpeciesList
-
-fill result할때 어디서 자꾸 옛날꺼를 가져온다.
-옛날꺼를 확실히 지워야..
-
-sample->context->speciesList, selectedSpeciesList
-
-기본 로직은 맞는데. 왜 edit trimming
+전체 돌리기
 
 
-8155기본 alignment
-59 G-A
-
-
-8155에서 trimming 수정 -> fwd, rev  더길게
-
-edit base해도 점수 수정 안됨. 
-파일이름 no file exist로 표시됨. 
-
-
-
-
-
-getFinalList 수정 : consensus sequence에 icSeq, chimaeraSeq 있는지 여부 , 이것도 있고 list에도 있으면 그냥 그걸로 final list 만들어보리고 끝.
-
-removefwd, removerev, rest : 필요함.
-
-progress 표시
-
-
-settings : 바꾸고 나면 파일 새로 읽어야 함, makeHeader, fillResult 다시한 번 호출.
 
 
 
@@ -48,9 +14,15 @@ settings : 바꾸고 나면 파일 새로 읽어야 함, makeHeader, fillResult 
 
 2. discrepency 분석
 차이나는 원인
-- trimming 차이 (sequencher 모방 더 해보기? 과연 그게 맞다고 할 수 있나?) --> 이게 제일 클듯.
-- base calling 차이? 이거는 둘다 저장되어 있는거 쓰는거 아님? 큰 차이 안날듯. double peak 없으니 더더욱
-- Alignment algorithm 차이
+- trimming 차이도 있을 수 있다. 정확한 policy를 알 수 없기 때문에  최대한 흉내내었으나 필요하면 더 해볼수 있다. 
+
+- base calling. 
+기존보고 : sequencher에서 약간이라도 겹친곳은 sensitive하게 double peak => 전공의 선생님 눈으로 fix
+SnackNTM도 눈으로 fix하면 될듯. 
+결국 교수님 생각대로 해보시면 될듯. 
+
+ 
+
 
 
 
@@ -59,11 +31,20 @@ settings : 바꾸고 나면 파일 새로 읽어야 함, makeHeader, fillResult 
 - consensus seq 
 : Q score 높은쪽으로.
 : by definition alignment결과에 dependent, ref까지 align 시킨다음 얻는다. 필요하신게 fwd, rev 두개만 align시켜서 나오는 거면 수정해드리겠다.
+
+
+
+Chimaera seq, IC seq 포함하는지 여부 : consensus seq으로, consensus seq 중에서 누구랑 align 된거 사용할 것이냐?
+일단은 fwd, rev 중에 하나라도 포함하면 포함하는 것으로. 
+fwd, rev 만으로 align시킨 consensus seq 사용?
  
 
 - discrepency 원인 : double peak 없으면 어느정도 basecalling 정확할듯.. 대부분은 trimming 차이에서 오는듯.
 
 * 나중에
+fwd,rev 만으로 consensus seq?
+ProgressBar
+settings : 바꾸고 나면 파일 새로 읽어야 함, makeHeader, fillResult 다시한 번 호출.
  
 
 

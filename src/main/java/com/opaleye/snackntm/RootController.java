@@ -244,51 +244,32 @@ public class RootController implements Initializable {
 			textPopUp("Error in reading configuration file. (settings/settings.properties) Recover configuration file or reinstall the program.");
 			System.exit(0);
 		}
-
 	}
 
+	/*
 	private void printNTM(NTMSpecies ntm) {
 		System.out.println(String.format("%s, %.2f", ntm.getSpeciesName(), ntm.getScore()));
 	}
-	
+	 */
+
 
 	private void fillResults() {
 		Sample sample = sampleList.get(selectedSample);
-		
-		
-		
 		if(sample.alignmentPerformed[context] == false) {
+			initTableViews(false);
 			printUnAlignedData();
 		}
 		else {
-			initTableViews();
+			initTableViews(false);
 			printAlignedResult();
-			
-			System.out.println("after printAlignedResult");
-			printNTM(sample.speciesList[context].get(0));
-			printNTM(sample.selectedSpeciesList[0].get(0));
-
-
 			speciesTable.setItems(FXCollections.observableArrayList(sample.speciesList[context]));
 			if(sample.speciesList[context].size()>0)
 				speciesTable.getSelectionModel().select(0);
-			
-			System.out.println("just before 1");
-			printNTM(sample.speciesList[context].get(0));
-			printNTM(sample.selectedSpeciesList[0].get(0));
-			
-			//finalTable.setItems(FXCollections.observableArrayList(sample.finalList));
 
-			if(sample.alignmentPerformed[0]) {  
-				System.out.println("just before 2");
-				printNTM(sample.speciesList[context].get(0));
-				printNTM(sample.selectedSpeciesList[0].get(0));
+			finalTable.setItems(FXCollections.observableArrayList(sample.finalList));
 
-				s16Table.setItems(null);
-				s16Table.setItems(FXCollections.observableArrayList(new Vector<NTMSpecies>()));
+			if(sample.alignmentPerformed[0])   
 				s16Table.setItems(FXCollections.observableArrayList(sample.selectedSpeciesList[0]));
-
-			}
 			else 
 				s16Table.setItems(FXCollections.observableArrayList(new Vector<NTMSpecies>()));
 
@@ -301,6 +282,8 @@ public class RootController implements Initializable {
 				tufTable.setItems(FXCollections.observableArrayList(sample.selectedSpeciesList[2]));
 			else 
 				tufTable.setItems(FXCollections.observableArrayList(new Vector<NTMSpecies>()));
+			
+			updateChimaeraICLabel();
 		}
 
 		//radio Button 색깔
@@ -375,9 +358,6 @@ public class RootController implements Initializable {
 				context = 0;
 				s16Radio.setSelected(true);
 				fillResults();
-				
-				
-				
 			}
 		});
 
@@ -391,7 +371,7 @@ public class RootController implements Initializable {
 				ex.printStackTrace();
 			}
 		}
-		initTableViews();
+		initTableViews(true);
 		makeEmptyHeader();
 
 		Tooltip zoomInTooltip = new Tooltip("Zoom In");
@@ -408,6 +388,7 @@ public class RootController implements Initializable {
 	private void printUnAlignedData() {
 		alignmentPane.setContent(new Label(""));
 		Sample sample = sampleList.get(selectedSample);
+		speciesTable.setItems(FXCollections.observableArrayList(new Vector<NTMSpecies>()));
 		if(sample.fwdLoaded[context]) {
 			BufferedImage awtImage = sample.trimmedFwdTrace[context].getDefaultImage();
 			Image fxImage = SwingFXUtils.toFXImage(awtImage, null);
@@ -441,7 +422,7 @@ public class RootController implements Initializable {
 		}
 	}
 
-	private void initTableViews() {
+	private void initTableViews(boolean first) {
 		speciesTable.setEditable(true);
 		TableColumn tcSpecies = speciesTable.getColumns().get(0);
 		TableColumn tcAccession = speciesTable.getColumns().get(1);
@@ -459,21 +440,24 @@ public class RootController implements Initializable {
 
 		tcSpecies.setCellFactory(TextFieldTableCell.<NTMSpecies>forTableColumn());
 
-		speciesTable.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
-			@Override
-			public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-				if(newValue.intValue()<0) return;
-				System.out.println("selected Index : " + newValue.intValue());
-				try {
-					doAlignment(newValue.intValue());
+		if(first) {
+			speciesTable.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
+				@Override
+				public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+					if(newValue.intValue()<0) return;
+					System.out.println("selected Index : " + newValue.intValue() + " (old value : " + oldValue.intValue() + ")");
+
+					try {
+						doAlignment(newValue.intValue());
+					}
+					catch(Exception ex) {
+						popUp(ex.getMessage());
+						ex.printStackTrace();
+					}
+					printAlignedResult();
 				}
-				catch(Exception ex) {
-					popUp(ex.getMessage());
-					ex.printStackTrace();
-				}
-				printAlignedResult();
-			}
-		});
+			});
+		}
 
 		s16Table.setEditable(true);
 		TableColumn s16_tcSpecies = s16Table.getColumns().get(0);
@@ -569,28 +553,30 @@ public class RootController implements Initializable {
 		int oldAlignmentPos = sample.selectedAlignmentPos[context];
 		String selectedSpeciesName = selectedSpecies.getSpeciesName();
 		//System.out.println("selected species : " + selectedSpeciesName);
-		
+
+		/*
 		System.out.println("before actual run");
 		printNTM(sample.speciesList[context].get(0));
 		printNTM(sample.selectedSpeciesList[0].get(0));
+		 */
 
 		actualRun();
+
+		/*
 		System.out.println("after actual run");
 		printNTM(sample.speciesList[context].get(0));
 		printNTM(sample.selectedSpeciesList[0].get(0));
+		 */
 
 		fillResults();
+		/*
 		System.out.println("after fillResult run");
 		printNTM(sample.speciesList[context].get(0));
 		printNTM(sample.selectedSpeciesList[0].get(0));
+		 */
 
-		
-		/*
-		sample = null;
 		sample = sampleList.get(selectedSample);
 
-		
-		
 		for(int i=0;i<sample.speciesList[context].size();i++) {
 			NTMSpecies ntm = sample.speciesList[context].get(i);
 			if(ntm.getSpeciesName().equals(selectedSpeciesName)) {
@@ -599,8 +585,7 @@ public class RootController implements Initializable {
 				break;
 			}
 		}
-		*/
-		
+
 	}
 
 	public void handleSettings() {
@@ -961,10 +946,8 @@ public class RootController implements Initializable {
 		alignmentPane.setContent(new Label(""));
 	}
 
-
+	/*
 	public void handleReset() {
-
-		/*
 		speciesList = new Vector[3];
 		alignmentPerformed = false;
 		alignedPoints = new Vector[3];
@@ -992,22 +975,21 @@ public class RootController implements Initializable {
 		s16Loaded = false;
 		rpoLoaded = false;
 		tufLoaded = false;
-		 */
 	}
-
+	 */
 
 	/**
 	 * Remove forward trace file
 	 */
 	public void handleRemoveFwd() {
-		/*
+		Sample sample = sampleList.get(selectedSample);
 		resetParameters();
 		fwdTraceFileLabel.setText("");
 		fwdPane.setContent(new Label(""));
-		fwdTraceFile[context] = null;
-		trimmedFwdTrace[context] = null;
-		fwdLoaded[context] = false;
-		 */
+		sample.fwdTraceFile[context] = null;
+		sample.fwdTraceFileName[context] = null;
+		sample.trimmedFwdTrace[context] = null;
+		sample.fwdLoaded[context] = false;
 	}
 
 
@@ -1064,15 +1046,14 @@ public class RootController implements Initializable {
 	 * Remove reverse trace file
 	 */
 	public void handleRemoveRev() {
-		/*
+		Sample sample = sampleList.get(selectedSample);
 		resetParameters();
 		revTraceFileLabel.setText("");
 		revPane.setContent(new Label(""));
-
-		revTraceFile[context] = null;
-		trimmedRevTrace[context] = null;
-		revLoaded[context] = false;
-		 */
+		sample.revTraceFile[context] = null;
+		sample.revTraceFileName[context] = null;
+		sample.trimmedRevTrace[context] = null;
+		sample.revLoaded[context] = false;
 	}
 
 
@@ -1178,9 +1159,9 @@ public class RootController implements Initializable {
 
 	private void doAlignment(int selectedSpecies) throws Exception{
 		Sample sample = sampleList.get(selectedSample);
-		
+
 		sample.selectedAlignmentPos[context] = -1;
-		
+
 		Formatter formatter = new Formatter();
 		formatter.init();
 		ReferenceSeq refFile = sample.speciesList[context].get(selectedSpecies).getRefSeq();
@@ -1246,10 +1227,10 @@ public class RootController implements Initializable {
 				strScore = "most closely";
 			}
 
-			if(retList.size() > 1 && sample.alignmentPerformed[1]) {
+			if(retList.size() >= 1 && sample.alignmentPerformed[1]) {
 				rpoList = sample.selectedSpeciesList[1];
 				retList.retainAll(rpoList);
-				if(retList.size() > 1 && sample.alignmentPerformed[2]) {
+				if(retList.size() >= 1 && sample.alignmentPerformed[2]) {
 					tufList = sample.selectedSpeciesList[2];
 					retList.retainAll(tufList);
 				}
@@ -1257,25 +1238,35 @@ public class RootController implements Initializable {
 
 			Vector<NTMSpecies> tempList = new Vector<NTMSpecies>();
 
-			//consensus sequence에 icSeq, chimaeraSeq 있는지 여부 , 이것도 있고 list에도 있으면 그냥 그걸로 final list 만들어보리고 끝.
-
-			boolean icInTheList = false, chimaeraPresent = false; 
 
 			for(NTMSpecies ntm : retList) {
-				if(ntm.getSpeciesName().equals("Mycobacterium_intracellulare"))
-					icInTheList = true;
-				if(ntm.getSpeciesName().equals("Mycobacterium_chimaera"))
-					chimaeraPresent = true;
 				NTMSpecies temp = new NTMSpecies(ntm.getSpeciesName(), strScore);
 				tempList.add(temp);
 			}
 			retList = tempList;
+		}
+		return retList;
+	}
 
+	/**
+	 * Performs alignment, Detects variants, Shows results
+	 */
 
-			icSeqLabel.setText("");
-			chimaeraSeqLabel.setText("");
+	private void updateChimaeraICLabel() {
+		Sample sample = sampleList.get(selectedSample);
+		if(context== 0) {
 
-			if((icInTheList || chimaeraPresent) && context == 0) {
+			//consensus sequence에 icSeq, chimaeraSeq 있는지 여부 , 이것도 있고 list에도 있으면 그냥 그걸로 final list 만들어보리고 끝.
+			boolean icInTheList = false, chimaeraPresent = false; 
+
+			for(NTMSpecies ntm : sample.selectedSpeciesList[0]) {
+				if(ntm.getSpeciesName().equals("Mycobacterium_intracellulare"))
+					icInTheList = true;
+				if(ntm.getSpeciesName().equals("Mycobacterium_chimaera"))
+					chimaeraPresent = true;
+			}
+
+			if(icInTheList || chimaeraPresent) {
 				boolean containsIcSeq = false;
 				boolean containsChSeq = false;
 				if(sample.fwdLoaded[context]) {
@@ -1290,24 +1281,34 @@ public class RootController implements Initializable {
 					if(sample.trimmedRevTrace[context].getSequence().contains(chSeq)) 
 						containsChSeq = true;
 				}
-				if(containsIcSeq)
+				if(containsIcSeq) {
 					icSeqLabel.setText("M. intracellularae specific sequence : O");
-				else
-					icSeqLabel.setText("M. intracellularae specific sequence : X");
-				if(containsChSeq)
-					chimaeraSeqLabel.setText("M. chimaera specific sequence : O");
-				else
-					chimaeraSeqLabel.setText("M. chimaera specific sequence : X");
-			}
+				}
 
+				else {
+					icSeqLabel.setText("M. intracellularae specific sequence : X");
+				}
+				if(containsChSeq) {
+					chimaeraSeqLabel.setText("M. chimaera specific sequence : O");
+				}
+				else {
+					chimaeraSeqLabel.setText("M. chimaera specific sequence : X");
+				}
+			}
+			else {
+				icSeqLabel.setText("");
+				chimaeraSeqLabel.setText("");
+			}
 		}
-		return retList;
+		else {
+			icSeqLabel.setText("");
+			chimaeraSeqLabel.setText("");
+		}
 	}
 
-	/**
-	 * Performs alignment, Detects variants, Shows results
-	 */
+
 	public void handleRunAllSamples() {
+
 		for(selectedSample=0;selectedSample<sampleList.size();selectedSample++) {
 			System.out.println(selectedSample+1 + "th sample processing..");
 			Sample sample = sampleList.get(selectedSample);
@@ -1444,8 +1445,10 @@ public class RootController implements Initializable {
 					break;
 			}
 			sample.alignmentPerformed[context] = true;
-			//sample.finalList = updateFinalList();
+
+			sample.finalList = updateFinalList();
 		}
+		else sample.alignmentPerformed[context] = false;
 	}
 
 
@@ -1525,10 +1528,10 @@ public class RootController implements Initializable {
 			headerLabel[2].setPrefSize(95,1);
 		}
 		headerPane.add(headerLabel[2], 0,  3);
-		
 
-		
-		
+
+
+
 		for (int i=0;i<sample.alignedPoints[context].size();i++) {
 			AlignedPoint point = sample.alignedPoints[context].get(i);
 
@@ -1654,6 +1657,7 @@ public class RootController implements Initializable {
 			fwdPane.setContent(imageView);
 			// 시작점에 화면 align
 			adjustFwdPane(formatter.fwdTraceAlignStartPoint);
+			fwdTraceFileLabel.setText(sample.fwdTraceFileName[context]);
 		}
 		else if(sample.fwdTraceFileName[context] != null) {
 			fwdTraceFileLabel.setText(sample.fwdTraceFileName[context]);
@@ -1670,6 +1674,7 @@ public class RootController implements Initializable {
 			ImageView imageView2 = new ImageView(fxImage2);
 			revPane.setContent(imageView2);
 			adjustRevPane(formatter.revTraceAlignStartPoint);
+			revTraceFileLabel.setText(sample.revTraceFileName[context]);
 		}
 		else if(sample.revTraceFileName[context] != null) {
 			revTraceFileLabel.setText(sample.revTraceFileName[context]);
@@ -1765,9 +1770,9 @@ public class RootController implements Initializable {
 		//boolean fwdGap = (fwdChar == Formatter.gapChar); 
 		//boolean revGap = (revChar == Formatter.gapChar);
 
-		
+
 		double borderWidth = 2;
-		
+
 		for(int i=0; i<sample.alignedPoints[context].size();i++) {
 			Label boxedLabel = labels[0][i];
 			if(boxedLabel == null) continue;

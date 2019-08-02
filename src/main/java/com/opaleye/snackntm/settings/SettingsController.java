@@ -59,7 +59,7 @@ public class SettingsController implements Initializable  {
 				throw new NumberFormatException("Gap open penalty should be positive integer");
 
 			rootController.setProperties(gapOpenPenalty);
-			rootController.handleReset();
+			//rootController.handleReset();
 			primaryStage.close();
 
 		}

@@ -40,7 +40,7 @@ public class Sample implements Comparable {
 
 	public Formatter[] formatter = new Formatter[3];
 	
-	
+	public String consensusSeq[] = new String[3];
 
 	
 	public Sample(String sampleId) {

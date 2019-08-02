@@ -23,7 +23,7 @@
             <HBox prefHeight="33.0" prefWidth="1060.0" spacing="10.0">
                <children>
                   <Button fx:id="OpenTraceButton" mnemonicParsing="false" onAction="#handleOpenTrace" prefHeight="23.0" prefWidth="169.0" text="Open Trace Files" />
-                  <HBox prefHeight="23.0" prefWidth="556.0" spacing="10.0">
+                  <HBox prefHeight="23.0" prefWidth="472.0" spacing="10.0">
                      <children>
                         <Label prefHeight="15.0" prefWidth="98.0" text="Target Region : " />
                         <RadioButton fx:id="s16Radio" mnemonicParsing="false" prefHeight="16.0" prefWidth="97.0" text="16S rRNA" />
@@ -34,17 +34,16 @@
                         <Insets />
                      </HBox.margin>
                   </HBox>
-                  <HBox alignment="CENTER_RIGHT" prefHeight="23.0" prefWidth="311.0">
+                  <HBox alignment="CENTER_RIGHT" prefHeight="23.0" prefWidth="492.0" spacing="5.0">
                      <children>
-                        <Button fx:id="btnEditBase" mnemonicParsing="false" onAction="#handleEditBase" text="Edit base">
+                        <Button fx:id="btnEditBase" mnemonicParsing="false" onAction="#handleEditBase" prefHeight="23.0" prefWidth="99.0" text="Edit base">
                            <HBox.margin>
-                              <Insets right="10.0" />
+                              <Insets />
                            </HBox.margin>
                         </Button>
-                        <Button fx:id="btn_settings" mnemonicParsing="false" onAction="#handleSettings" text="Settings" />
-                        <Label prefHeight="15.0" prefWidth="10.0" />
-                        <Button fx:id="runButton" mnemonicParsing="false" onAction="#handleRun" prefHeight="23.0" prefWidth="84.0" text="Run" />
-                        <Label prefHeight="15.0" prefWidth="5.0" />
+                        <Button fx:id="btn_settings" mnemonicParsing="false" onAction="#handleSettings" prefHeight="23.0" prefWidth="99.0" text="Settings" />
+                        <Button fx:id="runButton" mnemonicParsing="false" onAction="#handleRunAllSamples" prefHeight="23.0" prefWidth="137.0" text="Run (All samples)" />
+                        <Button mnemonicParsing="false" onAction="#handleRunCurrentTarget" prefHeight="23.0" prefWidth="154.0" text="Run (Current target)" />
                      </children>
                   </HBox>
                </children>
@@ -64,7 +63,7 @@
       <Label fx:id="fwdTraceFileLabel" layoutX="289.0" layoutY="208.0" prefHeight="15.0" prefWidth="660.0" />
       <Label layoutX="172.0" layoutY="411.0" text="Reverse Trace File : " />
       <Label fx:id="revTraceFileLabel" layoutX="289.0" layoutY="411.0" prefHeight="15.0" prefWidth="660.0" />
-      <ScrollPane fx:id="alignmentPane" layoutX="261.0" layoutY="86.0" prefHeight="119.0" prefWidth="816.0" />
+      <ScrollPane fx:id="alignmentPane" layoutX="261.0" layoutY="86.0" prefHeight="119.0" prefWidth="815.0" />
       
       
       <Button fx:id="removeFwd" layoutX="951.0" layoutY="204.0" mnemonicParsing="false" onAction="#handleRemoveFwd" prefHeight="23.0" prefWidth="126.0" text="Remove Fwd Trace" />
@@ -151,6 +150,6 @@
             <Font name="System Bold" size="14.0" />
          </font>
       </Label>
-      <GridPane fx:id="headerPane" layoutX="167.0" layoutY="88.0" prefHeight="115.0" prefWidth="92.0" />
+      <GridPane fx:id="headerPane" layoutX="167.0" layoutY="88.0" prefHeight="115.0" prefWidth="97.0" />
    </children>
 </AnchorPane>

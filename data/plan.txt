@@ -1,10 +1,49 @@
 
 
 1. Batch 완성 - 디버깅
+하나만 가지고 edit base할때는 문제 없음.
 
-edit base 테스트. 이거는 consensus를 바로 바꾸긴 어려움.. alignment 맞추기가..
+- edit trimming 하거나
+- fwd, rev 둘다 쓸때 문제 생김
+
+뭔가 객체가 두개 생기는게 아닌가..
+trace가 두개 생긴다기 보다는.. (makeCSV 할때까지는 같으니까)
+speciesList, selectedSpeciesList
+
+fill result할때 어디서 자꾸 옛날꺼를 가져온다.
+옛날꺼를 확실히 지워야..
+
+sample->context->speciesList, selectedSpeciesList
+
+기본 로직은 맞는데. 왜 edit trimming
+
+
+8155기본 alignment
+59 G-A
+
+
+8155에서 trimming 수정 -> fwd, rev  더길게
+
+edit base해도 점수 수정 안됨. 
+파일이름 no file exist로 표시됨. 
+
+
+
+
 
 getFinalList 수정 : consensus sequence에 icSeq, chimaeraSeq 있는지 여부 , 이것도 있고 list에도 있으면 그냥 그걸로 final list 만들어보리고 끝.
+
+removefwd, removerev, rest : 필요함.
+
+progress 표시
+
+
+settings : 바꾸고 나면 파일 새로 읽어야 함, makeHeader, fillResult 다시한 번 호출.
+
+
+
+
+
 
 
 2. discrepency 분석
@@ -14,20 +53,18 @@ getFinalList 수정 : consensus sequence에 icSeq, chimaeraSeq 있는지 여부 
 - Alignment algorithm 차이
 
 
-progress 표시
-
-removefwd, removerev, rest : 필요함.
-
-selected sample만 새로 run 
-
 
 *이메일
 - batch
-- consensus seq : by definition alignment결과에 dependent, ref까지 align 시킨다음 얻는다. 필요하신게 fwd, rev 두개만 align시켜서 나오는 거면 수정해드리겠다.
+- consensus seq 
+: Q score 높은쪽으로.
+: by definition alignment결과에 dependent, ref까지 align 시킨다음 얻는다. 필요하신게 fwd, rev 두개만 align시켜서 나오는 거면 수정해드리겠다.
  
 
 - discrepency 원인 : double peak 없으면 어느정도 basecalling 정확할듯.. 대부분은 trimming 차이에서 오는듯.
 
+* 나중에
+ 
 
 
 

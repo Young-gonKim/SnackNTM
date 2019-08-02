@@ -247,20 +247,48 @@ public class RootController implements Initializable {
 
 	}
 
+	private void printNTM(NTMSpecies ntm) {
+		System.out.println(String.format("%s, %.2f", ntm.getSpeciesName(), ntm.getScore()));
+	}
+	
 
 	private void fillResults() {
 		Sample sample = sampleList.get(selectedSample);
+		
+		
+		
 		if(sample.alignmentPerformed[context] == false) {
 			printUnAlignedData();
 		}
 		else {
+			initTableViews();
 			printAlignedResult();
+			
+			System.out.println("after printAlignedResult");
+			printNTM(sample.speciesList[context].get(0));
+			printNTM(sample.selectedSpeciesList[0].get(0));
+
 
 			speciesTable.setItems(FXCollections.observableArrayList(sample.speciesList[context]));
-			finalTable.setItems(FXCollections.observableArrayList(sample.finalList));
+			if(sample.speciesList[context].size()>0)
+				speciesTable.getSelectionModel().select(0);
+			
+			System.out.println("just before 1");
+			printNTM(sample.speciesList[context].get(0));
+			printNTM(sample.selectedSpeciesList[0].get(0));
+			
+			//finalTable.setItems(FXCollections.observableArrayList(sample.finalList));
 
-			if(sample.alignmentPerformed[0])  
+			if(sample.alignmentPerformed[0]) {  
+				System.out.println("just before 2");
+				printNTM(sample.speciesList[context].get(0));
+				printNTM(sample.selectedSpeciesList[0].get(0));
+
+				s16Table.setItems(null);
+				s16Table.setItems(FXCollections.observableArrayList(new Vector<NTMSpecies>()));
 				s16Table.setItems(FXCollections.observableArrayList(sample.selectedSpeciesList[0]));
+
+			}
 			else 
 				s16Table.setItems(FXCollections.observableArrayList(new Vector<NTMSpecies>()));
 
@@ -346,8 +374,10 @@ public class RootController implements Initializable {
 				selectedSample = newValue.intValue();
 				context = 0;
 				s16Radio.setSelected(true);
-
 				fillResults();
+				
+				
+				
 			}
 		});
 
@@ -376,6 +406,7 @@ public class RootController implements Initializable {
 	}
 
 	private void printUnAlignedData() {
+		alignmentPane.setContent(new Label(""));
 		Sample sample = sampleList.get(selectedSample);
 		if(sample.fwdLoaded[context]) {
 			BufferedImage awtImage = sample.trimmedFwdTrace[context].getDefaultImage();
@@ -528,7 +559,7 @@ public class RootController implements Initializable {
 			sample.trimmedRevTrace[context].editBase(ap.getRevTraceIndex(), ap.getRevChar(), newRevChar);
 		}
 
-		//새로 alignment 실행 && 원래 보여주고 있던 곳 보여주기
+		//새로 alignment 실행 && 원래 보여주고 있던 곳 보여주기위해 저장.
 		NTMSpecies selectedSpecies = speciesTable.getSelectionModel().getSelectedItem();
 
 		//speciesTable에서 클릭하기 전에는 맨 위에꺼에 맞추어서 printAlignedResult 되어있으므로.
@@ -538,10 +569,28 @@ public class RootController implements Initializable {
 		int oldAlignmentPos = sample.selectedAlignmentPos[context];
 		String selectedSpeciesName = selectedSpecies.getSpeciesName();
 		//System.out.println("selected species : " + selectedSpeciesName);
+		
+		System.out.println("before actual run");
+		printNTM(sample.speciesList[context].get(0));
+		printNTM(sample.selectedSpeciesList[0].get(0));
 
 		actualRun();
-		fillResults();
+		System.out.println("after actual run");
+		printNTM(sample.speciesList[context].get(0));
+		printNTM(sample.selectedSpeciesList[0].get(0));
 
+		fillResults();
+		System.out.println("after fillResult run");
+		printNTM(sample.speciesList[context].get(0));
+		printNTM(sample.selectedSpeciesList[0].get(0));
+
+		
+		/*
+		sample = null;
+		sample = sampleList.get(selectedSample);
+
+		
+		
 		for(int i=0;i<sample.speciesList[context].size();i++) {
 			NTMSpecies ntm = sample.speciesList[context].get(i);
 			if(ntm.getSpeciesName().equals(selectedSpeciesName)) {
@@ -550,6 +599,8 @@ public class RootController implements Initializable {
 				break;
 			}
 		}
+		*/
+		
 	}
 
 	public void handleSettings() {
@@ -1196,10 +1247,10 @@ public class RootController implements Initializable {
 			}
 
 			if(retList.size() > 1 && sample.alignmentPerformed[1]) {
-				rpoList = sample.speciesList[1];
+				rpoList = sample.selectedSpeciesList[1];
 				retList.retainAll(rpoList);
 				if(retList.size() > 1 && sample.alignmentPerformed[2]) {
-					tufList = sample.speciesList[2];
+					tufList = sample.selectedSpeciesList[2];
 					retList.retainAll(tufList);
 				}
 			}
@@ -1256,7 +1307,7 @@ public class RootController implements Initializable {
 	/**
 	 * Performs alignment, Detects variants, Shows results
 	 */
-	public void handleRun() {
+	public void handleRunAllSamples() {
 		for(selectedSample=0;selectedSample<sampleList.size();selectedSample++) {
 			System.out.println(selectedSample+1 + "th sample processing..");
 			Sample sample = sampleList.get(selectedSample);
@@ -1275,8 +1326,18 @@ public class RootController implements Initializable {
 		fillResults();
 	}
 
+	public void handleRunCurrentTarget() {
+		Sample sample = sampleList.get(selectedSample);
+		if(sample.fwdLoaded[context] || sample.revLoaded[context]) { 
+			actualRun();
+			fillResults();
+		}
+	}
 
-	public void actualRun() {
+	/**
+	 * 현재 설정된 target (selectedSample, context)에 대해 speciesList, selectedSpeciesList를 새로 만듬.  
+	 */
+	private void actualRun() {
 		Sample sample = sampleList.get(selectedSample);
 
 		//sample.speciesList[context] = new Vector(globalSpeciesList[context]);
@@ -1383,7 +1444,7 @@ public class RootController implements Initializable {
 					break;
 			}
 			sample.alignmentPerformed[context] = true;
-			sample.finalList = updateFinalList();
+			//sample.finalList = updateFinalList();
 		}
 	}
 
@@ -1392,33 +1453,33 @@ public class RootController implements Initializable {
 
 	private void makeEmptyHeader() {
 		Label emptyLabel = new Label(" ");
-		emptyLabel.setFont(new Font("Consolas", 14));
-		emptyLabel.setMinSize(130,headerHeight);
-		emptyLabel.setPrefSize(130, headerHeight);
+		emptyLabel.setFont(new Font("Consolas", fontSize));
+		emptyLabel.setMinSize(95,headerHeight);
+		emptyLabel.setPrefSize(95, headerHeight);
 		headerPane.add(emptyLabel, 0,  0);
 
 		headerLabel[0] = new Label("Reference : ");
-		headerLabel[0].setFont(new Font("Consolas", 14));
-		headerLabel[0].setMinSize(130,headerHeight);
-		headerLabel[0].setPrefSize(130, headerHeight);
+		headerLabel[0].setFont(new Font("Consolas", fontSize));
+		headerLabel[0].setMinSize(95,headerHeight);
+		headerLabel[0].setPrefSize(95, headerHeight);
 		headerPane.add(headerLabel[0], 0,  1);
 
 		headerLabel[1] = new Label("Forward   : ");
-		headerLabel[1].setFont(new Font("Consolas", 14));
-		headerLabel[1].setMinSize(130,headerHeight);
-		headerLabel[1].setPrefSize(130, headerHeight);
+		headerLabel[1].setFont(new Font("Consolas", fontSize));
+		headerLabel[1].setMinSize(95,headerHeight);
+		headerLabel[1].setPrefSize(95, headerHeight);
 		headerPane.add(headerLabel[1], 0,  2);
 
 		headerLabel[2] = new Label("Reverse   : ");
-		headerLabel[2].setFont(new Font("Consolas", 14));
-		headerLabel[2].setMinSize(130,headerHeight);
-		headerLabel[2].setPrefSize(130, headerHeight);
+		headerLabel[2].setFont(new Font("Consolas", fontSize));
+		headerLabel[2].setMinSize(95,headerHeight);
+		headerLabel[2].setPrefSize(95, headerHeight);
 		headerPane.add(headerLabel[2], 0,  3);
 
 		Label consensusTitle = new Label("Consensus : ");
-		consensusTitle.setFont(new Font("Consolas", 14));
-		consensusTitle.setMinSize(130,headerHeight);
-		consensusTitle.setPrefSize(130, headerHeight);
+		consensusTitle.setFont(new Font("Consolas", fontSize));
+		consensusTitle.setMinSize(95,headerHeight);
+		consensusTitle.setPrefSize(95, headerHeight);
 		headerPane.add(consensusTitle, 0,  4);
 	}
 
@@ -1439,14 +1500,14 @@ public class RootController implements Initializable {
 		headerPane.getChildren().remove(headerLabel[1]);
 		if(sample.fwdLoaded[context]) {
 			headerLabel[1] = new Label("Forward   : ");
-			headerLabel[1].setFont(new Font("Consolas", 14));
-			headerLabel[1].setMinSize(130,headerHeight);
-			headerLabel[1].setPrefSize(130, headerHeight);
+			headerLabel[1].setFont(new Font("Consolas", fontSize));
+			headerLabel[1].setMinSize(95,headerHeight);
+			headerLabel[1].setPrefSize(95, headerHeight);
 		}
 		else {
 			headerLabel[1] = new Label();
-			headerLabel[1].setMinSize(130,1);
-			headerLabel[1].setPrefSize(130,1);
+			headerLabel[1].setMinSize(95,1);
+			headerLabel[1].setPrefSize(95,1);
 		}
 		headerPane.add(headerLabel[1], 0,  2);
 
@@ -1454,14 +1515,14 @@ public class RootController implements Initializable {
 		headerPane.getChildren().remove(headerLabel[2]);
 		if(sample.revLoaded[context]) {
 			headerLabel[2] = new Label("Reverse   : ");
-			headerLabel[2].setFont(new Font("Consolas", 14));
-			headerLabel[2].setMinSize(130,headerHeight);
-			headerLabel[2].setPrefSize(130, headerHeight);
+			headerLabel[2].setFont(new Font("Consolas", fontSize));
+			headerLabel[2].setMinSize(95,headerHeight);
+			headerLabel[2].setPrefSize(95, headerHeight);
 		}
 		else {
 			headerLabel[2] = new Label();
-			headerLabel[2].setMinSize(130,1);
-			headerLabel[2].setPrefSize(130,1);
+			headerLabel[2].setMinSize(95,1);
+			headerLabel[2].setPrefSize(95,1);
 		}
 		headerPane.add(headerLabel[2], 0,  3);
 		
@@ -1704,11 +1765,14 @@ public class RootController implements Initializable {
 		//boolean fwdGap = (fwdChar == Formatter.gapChar); 
 		//boolean revGap = (revChar == Formatter.gapChar);
 
+		
+		double borderWidth = 2;
+		
 		for(int i=0; i<sample.alignedPoints[context].size();i++) {
 			Label boxedLabel = labels[0][i];
 			if(boxedLabel == null) continue;
 			if(i==selectedAlignmentPos) {
-				boxedLabel.setBorder(new Border(new BorderStroke(Color.BLUE, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(2))));
+				boxedLabel.setBorder(new Border(new BorderStroke(Color.BLUE, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(borderWidth))));
 				adjustAlignmentPane(i);
 			}
 			else {
@@ -1721,7 +1785,7 @@ public class RootController implements Initializable {
 				if(boxedLabel == null) continue;
 				if(i==selectedAlignmentPos) {
 					boxedLabel.setBorder(new Border(new BorderStroke(Color.BLUE, 
-							BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(2))));
+							BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(borderWidth))));
 				}
 				else {
 					boxedLabel.setBorder(Border.EMPTY);
@@ -1749,7 +1813,7 @@ public class RootController implements Initializable {
 				if(boxedLabel == null) continue;
 				if(i==selectedAlignmentPos) {
 					boxedLabel.setBorder(new Border(new BorderStroke(Color.BLUE, 
-							BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(2))));
+							BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(borderWidth))));
 				}
 				else {
 					boxedLabel.setBorder(Border.EMPTY);

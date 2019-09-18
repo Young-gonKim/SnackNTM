@@ -12,7 +12,7 @@ public class AlignedPoint {
 	private char refChar, fwdChar, revChar, consensusChar;
 	private boolean coding;
 	//private boolean exon;
-	private String stringCIndex;
+	//private String stringCIndex;
 	private int gIndex;
 	private int fwdQuality, revQuality;
 	private int fwdTraceIndex, revTraceIndex;
@@ -100,12 +100,6 @@ public class AlignedPoint {
 	}
 	public void setCoding(boolean coding) {
 		this.coding = coding;
-	}
-	public String getStringCIndex() {
-		return stringCIndex;
-	}
-	public void setStringCIndex(String stringCIndex) {
-		this.stringCIndex = stringCIndex;
 	}
 	public int getFwdTraceIndex() {
 		return fwdTraceIndex;

@@ -57,7 +57,7 @@ public class Formatter {
 	 * Returns a list (Vector) of AlignedPoints
 	 * Used for the alignment of 2 sequences (reference vs fwd or rev)
 	 * @param alignment : the result of the alignment of jAligner (ref vs fwd or rev)
-	 * @param refFile : reference file
+	 * @param s_refSeq : reference file
 	 * @param trace : fwd or rev trace
 	 * @param direction : 1:forward, -1:reverse
 	 * 	@throws ArrayIndexOutOfBoundsExeption when the alignment fails
@@ -66,7 +66,7 @@ public class Formatter {
 	 * 2018.5
 	 */
 
-	public Vector<AlignedPoint> format2(AlignedPair ap, ReferenceSeq refFile, GanseqTrace trace, int direction) throws ArrayIndexOutOfBoundsException {
+	public Vector<AlignedPoint> format2(AlignedPair ap, GanseqTrace trace, int direction) throws ArrayIndexOutOfBoundsException {
 
 
 		//(1) Reference 상에서의 좌표. 1부터 시작. +1 해줌. genomic DNA의 의미. 실제 array access에 사용되지 않음. 
@@ -145,7 +145,7 @@ public class Formatter {
 		startGIndex = ap.getStart1()+1;
 		endGIndex = refPos;
 
-		alignedPoints = addCDnaNumber(alignedPoints, startGIndex, endGIndex, refFile);
+		//alignedPoints = addCDnaNumber(alignedPoints, startGIndex, endGIndex, refFile);
 
 		return alignedPoints;
 	}
@@ -164,7 +164,7 @@ public class Formatter {
 	 * This functions is derived from jaligner.formats.Pair.format()
 	 * 2018.5
 	 */
-	public Vector<AlignedPoint> format3(AlignedPair fwdAp, AlignedPair revAp, ReferenceSeq refFile, GanseqTrace fwdTrace, GanseqTrace revTrace) throws ArrayIndexOutOfBoundsException, NoContigException {
+	public Vector<AlignedPoint> format3(AlignedPair fwdAp, AlignedPair revAp, GanseqTrace fwdTrace, GanseqTrace revTrace) throws ArrayIndexOutOfBoundsException, NoContigException {
 
 		int fwdAlignmentLength = fwdAp.getAlignedString1().length();
 		int revAlignmentLength = revAp.getAlignedString1().length();
@@ -434,7 +434,7 @@ public class Formatter {
 		if(fwdRefPos >= revRefPos) endGIndex = fwdRefPos;
 		else endGIndex = revRefPos;
 
-		alignedPoints = addCDnaNumber(alignedPoints, startGIndex, endGIndex, refFile);
+		//alignedPoints = addCDnaNumber(alignedPoints, startGIndex, endGIndex, refFile);
 
 		return alignedPoints;
 	}
@@ -460,108 +460,4 @@ public class Formatter {
 	}
 	 */
 
-	/**
-	 * makes a cDNA indexr for each points in alignedPoints
-	 * @param alignedPoints : target array of AlignedPoints
-	 * @param startGIndex : start position on genomic DNA 
-	 * @param endGIndex : end position on genomic DNA
-	 * @param refFile : reference file
-	 */
-	private Vector<AlignedPoint> addCDnaNumber (Vector<AlignedPoint> alignedPoints, int startGIndex, int endGIndex, ReferenceSeq refFile) {
-		TreeMap<Integer, String> cdnaMap = new TreeMap<Integer, String>();
-
-		int intCDnaStart = 0, intCDnaEnd = 0;
-		int cdsIndex = 0; // 몇번째 cds region
-
-		Vector<Integer> cDnaStart = refFile.getcDnaStart();
-		Vector<Integer> cDnaEnd = refFile.getcDnaEnd();
-
-		if(cDnaStart != null && cDnaEnd != null) {
-			cdsIndex = 0;
-			//int cDNA = RootController.firstNumber-1;
-			int cDNA = 0;
-			for(int i=0;i<cDnaStart.size();i++) {
-				intCDnaStart = (cDnaStart.get(i)).intValue();
-				intCDnaEnd = (cDnaEnd.get(i)).intValue();
-
-				if(startGIndex > intCDnaEnd) {
-					cDNA += (intCDnaEnd - intCDnaStart +1);
-				}
-				else if (startGIndex <= intCDnaEnd && startGIndex >= intCDnaStart) {
-					cDNA += (startGIndex-intCDnaStart);
-					cdsIndex = i;
-					break;
-				}
-				else {
-					cdsIndex = i;
-					break;
-				}
-			}
-
-
-			for(int i=startGIndex;i<=endGIndex;i++) {
-				String tempCIndex = "c.";
-
-				//coding 일때
-				if(i >= intCDnaStart && i <= intCDnaEnd) {
-					cDNA++;
-					tempCIndex += cDNA;
-					cdnaMap.put(new Integer(i), tempCIndex);
-
-					if(i==intCDnaEnd) {
-						if(cdsIndex < (cDnaStart.size()-1)) {
-							cdsIndex++;
-							intCDnaStart = (cDnaStart.get(cdsIndex)).intValue();
-							intCDnaEnd = (cDnaEnd.get(cdsIndex)).intValue();
-						}
-					}
-				}
-				//non-Coding 일때
-				else {
-					if(cdsIndex==0 && i < intCDnaStart) { //5' of first CDS
-						int offSet = intCDnaStart - i;
-						tempCIndex += "-" + offSet;
-					}
-					else if (cdsIndex == cDnaStart.size()-1 && i > intCDnaEnd) { //3' of last CDS
-						int offSet = i-intCDnaEnd;
-						tempCIndex += cDNA + "+" + offSet;
-					}
-
-					else {	//intron 
-						int leftOffset = i-(cDnaEnd.get(cdsIndex-1)).intValue();
-						int rightOffset = (cDnaStart.get(cdsIndex)).intValue() - i;
-
-						if(leftOffset <= rightOffset) 
-							tempCIndex += cDNA + "+" + leftOffset;
-
-						else 
-							tempCIndex += (cDNA+1) + "-" + rightOffset;
-					}
-					cdnaMap.put(new Integer(i), tempCIndex);
-				}
-			}
-
-		}
-
-
-		Vector<AlignedPoint> tempAlignedPoints = new Vector<AlignedPoint>();
-		for(int i=0;i<alignedPoints.size();i++) {
-			AlignedPoint tempPoint = alignedPoints.get(i);
-			int tempGIndex = tempPoint.getGIndex();
-			String stringTempCIndex = cdnaMap.get(new Integer(tempGIndex));
-			boolean coding;
-			if(stringTempCIndex.contains("+") || stringTempCIndex.contains("-"))
-				coding = false;
-			else 
-				coding = true;
-			tempPoint.setStringCIndex(stringTempCIndex);
-			tempPoint.setCoding(coding);
-
-			//tempPoint.setExon(isExon(refFile.getExonStart(), refFile.getExonEnd(), tempGIndex));
-
-			tempAlignedPoints.add(tempPoint);
-
-		}
-		return tempAlignedPoints;
-	}
 }

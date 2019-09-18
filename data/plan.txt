@@ -1,12 +1,36 @@
 1. conclusion을 내는 알고리즘 상 16s에서 100%가 단독으로 나오면 rpo 값과 상관없이 해당 species로 결론을 내고 있는데, 
-
    snackNTM 상에서는 16s에서 100% 단독으로 나오더라도 rpo 기준에 맞지 않으면 conclusion이 없음으로 나오고 있습니다.
 
+->
+말씀하신것 처럼 16s에서 cutoff를 넘긴 종들이 있더라도 그 종들이 rpo, tuf의 cutoff를 못넘기면 제외되는 현상이 있었습니다. 
+이에 16s cutoff를 넘긴 종들과 rpo cutoff를 넘긴 종들을 교집합해서 교집합이 있으면 그 결과를 사용하고 없으면 rpo 결과는 무시하고 16s 결과를 그대로 살리는 방식으로 했습니다.
+tuf에 대해서도 같은 방식으로 적용했습니다.
+
 2. 전체 샘플 분석을 시행한 후, rpo 시퀀스를 활성화한 상태에서 다른 샘플로 넘어가면 프로그램이 다운되는 현상이 있습니다.
+- 재현 실패.  
+n batch 돌리는 동안 문제가 없었다. 혹시 몇 case 돌리셨는지요?
+일단 memory 문제는 아닐까 하여 기존에 90%이상 match 되는 종들을 화면 하단에 보여주던 것을 95% 이상 match 되는 종들만 포함되도록 줄였다.
+해당 현상이 나타날 때 도스창을 최대한 길게 캡쳐해서 보내주시면 도움이 될것 같다.
+
 3. 아예 시퀀스를 읽을 수 없는 invalid sample의 경우 다른 샘플을 보다가 해당 샘플로 넘어가면 화면상에서 이전 보던 샘플의 결과표가 남아 있습니다.
+- 말씀하신 증상을 확인했고 수정했습니다.
+ 
 4. 분석이 끝난 샘플의 consensus sequence를 txt로 출력하는 기능이 필요합니다.
+- consensus sequence는 alignment에 dependent. 현재는 reference + fwd + rev 세개를 align한  상태에서 fwd와 rev중에서 quality가 높은 것을 선택하여 consensus 시퀀스. 
+  화면상에서 칸에 맞게 보여주기 위해서는 이 방법이 좋다. reference(species)가 바뀌면 consensus seq.도 바뀌게 된다.
+  
+  txt로 출력할때는 동정된 species 기준으로 align해서 consensus seq.를 출력하면 될지, 아니면 별도로 reference sequence는 제외하고 fwd, rev만 따로 alignment 시킨다음 새로운 consensus sequence를 만들면 될지 ?
+  
+  
+  
+fwd, rev만 따로 align하여  
 
 
+
+
+*추가
+- Progress bar
+- 속도개선..
 
 
 * 나중에

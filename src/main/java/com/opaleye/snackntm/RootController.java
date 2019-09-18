@@ -166,6 +166,85 @@ public class RootController implements Initializable {
 	private int[] selectedAlignmentPos = {-1, -1, -1};
 	 */
 
+	/**
+	 * Initializes required settings
+	 */
+	@Override
+	public void initialize(URL location, ResourceBundle resources) {
+		checkVersion();
+
+		File tempFile = new File(lastVisitedDir);
+		if(!tempFile.exists())
+			lastVisitedDir=".";
+
+		gapOpenPenalty = defaultGOP;
+
+		s16Radio.setToggleGroup(toggleGroup);
+		s16Radio.setSelected(true);
+		rpoRadio.setToggleGroup(toggleGroup);
+		tufRadio.setToggleGroup(toggleGroup);
+
+		s16Radio.setUserData(s16);
+		rpoRadio.setUserData(rpo);
+		tufRadio.setUserData(tuf);
+
+		toggleGroup.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
+			public void changed(ObservableValue<? extends Toggle> ov,
+					Toggle old_toggle, Toggle new_toggle) {
+				if (toggleGroup.getSelectedToggle() != null) {
+					String t1 = (String)toggleGroup.getSelectedToggle().getUserData();
+					if(t1.equals(s16)) {
+						context = 0;
+					}
+					else if (t1.equals(rpo)) { 
+						context = 1;
+					}
+					else if (t1.equals(tuf)) { 
+						context = 2;
+					}
+
+					System.out.println("context switched to " + context);
+
+					if(sampleList.size()>0) {	//alignment 누르기전에 radiobutton 클릭하는 경우 방지위해
+						fillResults();
+					}
+				}                
+			}
+		});
+
+		sampleListView.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
+			@Override
+			public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+				selectedSample = newValue.intValue();
+				context = 0;
+				s16Radio.setSelected(true);
+				fillResults();
+			}
+		});
+
+
+		for(int i=0;i<3;i++) {
+			try {
+				makeGlobalSpeciesList(i);
+			}
+			catch(Exception ex) {
+				popUp(ex.getMessage());
+				ex.printStackTrace();
+			}
+		}
+		initTableViews(true);
+		makeEmptyHeader();
+
+		Tooltip zoomInTooltip = new Tooltip("Zoom In");
+		Tooltip zoomOutTooltip = new Tooltip("Zoom Out");
+		TooltipDelay.activateTooltipInstantly(zoomInTooltip);
+		TooltipDelay.activateTooltipInstantly(zoomOutTooltip);
+
+		fwdZoomInButton.setTooltip(zoomInTooltip);
+		fwdZoomOutButton.setTooltip(zoomOutTooltip);
+		revZoomInButton.setTooltip(zoomInTooltip);
+		revZoomOutButton.setTooltip(zoomOutTooltip);
+	}
 
 	private void checkVersion() {
 		String homepage = "", email = "", copyright = "";
@@ -175,8 +254,6 @@ public class RootController implements Initializable {
 		comment += "\n\n" + copyright;
 
 		textPopUp(comment);
-
-
 		/* settings Property 읽기. 
 		 * 
 		 */
@@ -255,36 +332,41 @@ public class RootController implements Initializable {
 
 	private void fillResults() {
 		Sample sample = sampleList.get(selectedSample);
-		if(sample.alignmentPerformed[context] == false) {
-			initTableViews(false);
-			printUnAlignedData();
-		}
-		else {
-			initTableViews(false);
-			printAlignedResult();
+		initTableViews(false);
+		printUnAlignedData();
+
+		//speciesTable 채우기 && chimaera IC label : 해당 context에 alignment performed 일때만
+		if(sample.alignmentPerformed[context]) {
 			speciesTable.setItems(FXCollections.observableArrayList(sample.speciesList[context]));
 			if(sample.speciesList[context].size()>0)
 				speciesTable.getSelectionModel().select(0);
-
-			finalTable.setItems(FXCollections.observableArrayList(sample.finalList));
-
-			if(sample.alignmentPerformed[0])   
-				s16Table.setItems(FXCollections.observableArrayList(sample.selectedSpeciesList[0]));
-			else 
-				s16Table.setItems(FXCollections.observableArrayList(new Vector<NTMSpecies>()));
-
-			if(sample.alignmentPerformed[1]) 
-				rpoTable.setItems(FXCollections.observableArrayList(sample.selectedSpeciesList[1]));
-			else 
-				rpoTable.setItems(FXCollections.observableArrayList(new Vector<NTMSpecies>()));
-
-			if(sample.alignmentPerformed[2]) 
-				tufTable.setItems(FXCollections.observableArrayList(sample.selectedSpeciesList[2]));
-			else 
-				tufTable.setItems(FXCollections.observableArrayList(new Vector<NTMSpecies>()));
-			
 			updateChimaeraICLabel();
 		}
+		else {
+			speciesTable.setItems(FXCollections.observableArrayList(new Vector<NTMSpecies>()));
+		}
+		
+		//finalTable
+		
+		if(sample.finalList != null)
+			finalTable.setItems(FXCollections.observableArrayList(sample.finalList));
+		else
+			finalTable.setItems(FXCollections.observableArrayList(new Vector<NTMSpecies>()));
+
+		if(sample.alignmentPerformed[0])   
+			s16Table.setItems(FXCollections.observableArrayList(sample.selectedSpeciesList[0]));
+		else 
+			s16Table.setItems(FXCollections.observableArrayList(new Vector<NTMSpecies>()));
+
+		if(sample.alignmentPerformed[1]) 
+			rpoTable.setItems(FXCollections.observableArrayList(sample.selectedSpeciesList[1]));
+		else 
+			rpoTable.setItems(FXCollections.observableArrayList(new Vector<NTMSpecies>()));
+
+		if(sample.alignmentPerformed[2]) 
+			tufTable.setItems(FXCollections.observableArrayList(sample.selectedSpeciesList[2]));
+		else 
+			tufTable.setItems(FXCollections.observableArrayList(new Vector<NTMSpecies>()));
 
 		//radio Button 색깔
 		if(sample.fwdLoaded[0] || sample.revLoaded[0])  
@@ -305,85 +387,7 @@ public class RootController implements Initializable {
 
 	}
 
-	/**
-	 * Initializes required settings
-	 */
-	@Override
-	public void initialize(URL location, ResourceBundle resources) {
-		checkVersion();
 
-		File tempFile = new File(lastVisitedDir);
-		if(!tempFile.exists())
-			lastVisitedDir=".";
-
-		gapOpenPenalty = defaultGOP;
-
-		s16Radio.setToggleGroup(toggleGroup);
-		s16Radio.setSelected(true);
-		rpoRadio.setToggleGroup(toggleGroup);
-		tufRadio.setToggleGroup(toggleGroup);
-
-		s16Radio.setUserData(s16);
-		rpoRadio.setUserData(rpo);
-		tufRadio.setUserData(tuf);
-
-		toggleGroup.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
-			public void changed(ObservableValue<? extends Toggle> ov,
-					Toggle old_toggle, Toggle new_toggle) {
-				if (toggleGroup.getSelectedToggle() != null) {
-					String t1 = (String)toggleGroup.getSelectedToggle().getUserData();
-					if(t1.equals(s16)) {
-						context = 0;
-					}
-					else if (t1.equals(rpo)) { 
-						context = 1;
-					}
-					else if (t1.equals(tuf)) { 
-						context = 2;
-					}
-
-					System.out.println("context switched to " + context);
-
-					if(sampleList.size()>0) {	//alignment 누르기전에 radiobutton 클릭하는 경우 방지위해 if문.
-						fillResults();
-					}
-				}                
-			}
-		});
-
-		sampleListView.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
-			@Override
-			public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-				selectedSample = newValue.intValue();
-				context = 0;
-				s16Radio.setSelected(true);
-				fillResults();
-			}
-		});
-
-
-		for(int i=0;i<3;i++) {
-			try {
-				makeGlobalSpeciesList(i);
-			}
-			catch(Exception ex) {
-				popUp(ex.getMessage());
-				ex.printStackTrace();
-			}
-		}
-		initTableViews(true);
-		makeEmptyHeader();
-
-		Tooltip zoomInTooltip = new Tooltip("Zoom In");
-		Tooltip zoomOutTooltip = new Tooltip("Zoom Out");
-		TooltipDelay.activateTooltipInstantly(zoomInTooltip);
-		TooltipDelay.activateTooltipInstantly(zoomOutTooltip);
-
-		fwdZoomInButton.setTooltip(zoomInTooltip);
-		fwdZoomOutButton.setTooltip(zoomOutTooltip);
-		revZoomInButton.setTooltip(zoomInTooltip);
-		revZoomOutButton.setTooltip(zoomOutTooltip);
-	}
 
 	private void printUnAlignedData() {
 		alignmentPane.setContent(new Label(""));
@@ -703,6 +707,10 @@ public class RootController implements Initializable {
 	 */
 	public void handleOpenTrace() {
 
+		// 새로운 sample들을 읽기전 data structure 초기화. 나머지 data structure는 모두 sampleList에 달려있는데 아래에서 초기화 시킴.
+		gridPane = null;
+		labels = null;
+
 		File tempFile2 = new File(lastVisitedDir);
 		if(!tempFile2.exists())
 			lastVisitedDir=".";
@@ -817,10 +825,13 @@ public class RootController implements Initializable {
 		}
 
 		//원상복귀. 읽은 다음 맨 위 가리키게.
+		//다 돌리고 나면 첫번째 sample 16s로 채우기.
 		selectedSample = 0;
+		sampleListView.getSelectionModel().select(0);
 		context = 0;
-
+		s16Radio.setSelected(true);
 		fillResults();
+
 	}
 
 	public void handleFwdEditTrimming() {
@@ -1164,7 +1175,7 @@ public class RootController implements Initializable {
 
 		Formatter formatter = new Formatter();
 		formatter.init();
-		ReferenceSeq refFile = sample.speciesList[context].get(selectedSpecies).getRefSeq();
+		String refSeq = sample.speciesList[context].get(selectedSpecies).getRefSeq();
 		//When only fwd trace is given as input
 
 		MMAlignment mma = new MMAlignment();
@@ -1172,26 +1183,21 @@ public class RootController implements Initializable {
 		AlignedPair revAp = null;
 
 		if(sample.fwdLoaded[context] == true) {
-			fwdAp = mma.localAlignment(refFile.getRefString(), sample.trimmedFwdTrace[context].getSequence());
+			fwdAp = mma.localAlignment(refSeq, sample.trimmedFwdTrace[context].getSequence());
 		}
-
 		if(sample.revLoaded[context] == true) {
-			revAp = mma.localAlignment(refFile.getRefString(), sample.trimmedRevTrace[context].getSequence());
+			revAp = mma.localAlignment(refSeq, sample.trimmedRevTrace[context].getSequence());
 		}
-
-
 		if(sample.fwdLoaded[context] == true && sample.revLoaded[context] == false) {
-			sample.alignedPoints[context] = formatter.format2(fwdAp, refFile, sample.trimmedFwdTrace[context], 1);
+			sample.alignedPoints[context] = formatter.format2(fwdAp, sample.trimmedFwdTrace[context], 1);
 		}
-
 		//When only rev trace is given as input
 		else if(sample.fwdLoaded[context] == false && sample.revLoaded[context] == true) {
-			sample.alignedPoints[context] = formatter.format2(revAp, refFile, sample.trimmedRevTrace[context], -1);
+			sample.alignedPoints[context] = formatter.format2(revAp, sample.trimmedRevTrace[context], -1);
 		}
-
 		//When both of fwd trace and rev trace are given
 		else  if(sample.fwdLoaded[context] == true && sample.revLoaded[context] == true) {
-			sample.alignedPoints[context] = formatter.format3(fwdAp, revAp, refFile, sample.trimmedFwdTrace[context], sample.trimmedRevTrace[context]);
+			sample.alignedPoints[context] = formatter.format3(fwdAp, revAp, sample.trimmedFwdTrace[context], sample.trimmedRevTrace[context]);
 		}
 		sample.formatter[context] = formatter;
 	}
@@ -1227,12 +1233,22 @@ public class RootController implements Initializable {
 				strScore = "most closely";
 			}
 
+			Vector<NTMSpecies> tempRetList = new Vector<NTMSpecies>();
+
 			if(retList.size() >= 1 && sample.alignmentPerformed[1]) {
 				rpoList = sample.selectedSpeciesList[1];
-				retList.retainAll(rpoList);
-				if(retList.size() >= 1 && sample.alignmentPerformed[2]) {
+
+				tempRetList = (Vector<NTMSpecies>)retList.clone();
+				tempRetList.retainAll(rpoList);
+				if(tempRetList.size() > 0) 
+					retList = tempRetList;
+
+				if(sample.alignmentPerformed[2]) {
 					tufList = sample.selectedSpeciesList[2];
-					retList.retainAll(tufList);
+					tempRetList = (Vector<NTMSpecies>)retList.clone();
+					tempRetList.retainAll(tufList);
+					if(tempRetList.size() > 0) 
+						retList = tempRetList;
 				}
 			}
 
@@ -1308,6 +1324,7 @@ public class RootController implements Initializable {
 
 
 	public void handleRunAllSamples() {
+		if(sampleList.size()<1) return;
 
 		for(selectedSample=0;selectedSample<sampleList.size();selectedSample++) {
 			System.out.println(selectedSample+1 + "th sample processing..");
@@ -1322,6 +1339,7 @@ public class RootController implements Initializable {
 
 		//다 돌리고 나면 첫번째 sample 16s로 채우기.
 		selectedSample = 0;
+		sampleListView.getSelectionModel().select(0);
 		context = 0;
 		s16Radio.setSelected(true);
 		fillResults();
@@ -1340,8 +1358,6 @@ public class RootController implements Initializable {
 	 */
 	private void actualRun() {
 		Sample sample = sampleList.get(selectedSample);
-
-		//sample.speciesList[context] = new Vector(globalSpeciesList[context]);
 
 		//speciesList 초기화. NTMSpecies 객체부터 새로 만들어야 함. globalSpeciesList 건드리면 안됨.
 		sample.speciesList[context] = new Vector<NTMSpecies>();
@@ -1394,7 +1410,6 @@ public class RootController implements Initializable {
 			double d_score = 0;
 			for(int j=0;j<sample.alignedPoints[context].size();j++) {
 				AlignedPoint ap = sample.alignedPoints[context].get(j);
-				//if(ap.getDiscrepency()!='*')
 				if(ap.getConsensusChar() == ap.getRefChar())
 					i_score++;
 			}
@@ -1403,7 +1418,7 @@ public class RootController implements Initializable {
 			d_score*=100;
 
 			//score 너무 낮은것들 버림
-			if(d_score < 90) {
+			if(d_score < 95) {
 				removeList.add(thisSpecies);
 				continue;
 			}
@@ -1413,10 +1428,7 @@ public class RootController implements Initializable {
 			thisSpecies.setQlen(inputLength);
 			thisSpecies.setAlen(sample.alignedPoints[context].size());
 		}
-
 		sample.speciesList[context].removeAll(removeList);	//align 안된 것들, score 낮은것들 remove
-
-
 
 		if(sample.speciesList[context].size()>0) {
 			Collections.sort(sample.speciesList[context]);
@@ -1445,14 +1457,10 @@ public class RootController implements Initializable {
 					break;
 			}
 			sample.alignmentPerformed[context] = true;
-
 			sample.finalList = updateFinalList();
 		}
 		else sample.alignmentPerformed[context] = false;
 	}
-
-
-
 
 	private void makeEmptyHeader() {
 		Label emptyLabel = new Label(" ");
@@ -1536,7 +1544,7 @@ public class RootController implements Initializable {
 			AlignedPoint point = sample.alignedPoints[context].get(i);
 
 			//Tooltip 설정
-			String tooltipText = (i+1) + "\nCoding DNA : " + point.getStringCIndex() + "\nBase # in reference : " + point.getGIndex() + "\n";
+			String tooltipText = (i+1) + "\nBase # in reference : " + point.getGIndex() + "\n";
 
 			Tooltip tooltip = new Tooltip(tooltipText);
 			//tooltip.setOpacity(0.7);
@@ -1557,9 +1565,6 @@ public class RootController implements Initializable {
 			consensusLabel.setFont(new Font("Consolas", fontSize));
 			discrepencyLabel.setFont(new Font("Consolas", fontSize));
 			indexLabel.setFont(new Font("Consolas", fontSize));
-
-			int fwdTraceIndex = point.getFwdTraceIndex();
-			int revTraceIndex = point.getRevTraceIndex();
 
 			refLabel.setTooltip(tooltip);
 			discrepencyLabel.setTooltip(tooltip);

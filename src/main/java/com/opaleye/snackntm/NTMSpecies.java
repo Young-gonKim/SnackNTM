@@ -7,7 +7,7 @@ import javafx.beans.property.SimpleStringProperty;
 public class NTMSpecies implements Comparable<NTMSpecies>, Cloneable {
 	private String accession = "";
 	private String speciesName = "";
-	private ReferenceSeq refSeq = null;
+	private String refSeq = null;
 	private double score = 0;
 	private int qlen = 0;
 	private int alen = 0;
@@ -75,8 +75,7 @@ public class NTMSpecies implements Comparable<NTMSpecies>, Cloneable {
 				}
 			}
 		}
-		refSeqString = refSeqBuffer.toString();
-		refSeq = new ReferenceSeq(refSeqString);
+		refSeq = refSeqBuffer.toString();
 
 		//System.out.println(String.format("%s, %s\n%s\n\n\n\n", accession, speciesName, refSeq.getRefString()));
 		accessionProperty= new SimpleStringProperty(accession);
@@ -91,15 +90,6 @@ public class NTMSpecies implements Comparable<NTMSpecies>, Cloneable {
 	public NTMSpecies(String speciesName, String score) {
 		speciesNameProperty= new SimpleStringProperty(speciesName);
 		scoreProperty = new SimpleStringProperty(score);
-	}
-
-
-	public ReferenceSeq getRefSeq() {
-		return refSeq;
-	}
-
-	public void setRefSeq(ReferenceSeq refSeq) {
-		this.refSeq = refSeq;
 	}
 
 	public String getAccession() {
@@ -119,6 +109,14 @@ public class NTMSpecies implements Comparable<NTMSpecies>, Cloneable {
 	}
 
 
+
+	public String getRefSeq() {
+		return refSeq;
+	}
+
+	public void setRefSeq(String refSeq) {
+		this.refSeq = refSeq;
+	}
 
 	public double getScore() {
 		return score;

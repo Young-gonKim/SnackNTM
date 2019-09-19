@@ -14,7 +14,6 @@ import java.util.Vector;
 
 import com.opaleye.snackntm.mmalignment.AlignedPair;
 import com.opaleye.snackntm.mmalignment.MMAlignment;
-import com.opaleye.snackntm.reference.ReferenceSeq;
 import com.opaleye.snackntm.settings.SettingsController;
 import com.opaleye.snackntm.tools.TooltipDelay;
 
@@ -32,6 +31,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TableColumn;
@@ -124,6 +124,7 @@ public class RootController implements Initializable {
 
 	@FXML private TableView<NTMSpecies> speciesTable, s16Table, rpoTable, tufTable, finalTable;
 	@FXML private ListView<String> sampleListView;
+	@FXML private ProgressBar progressBar;
 
 	ToggleGroup toggleGroup = new ToggleGroup();
 
@@ -172,6 +173,7 @@ public class RootController implements Initializable {
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
 		checkVersion();
+		progressBar.setVisible(false);
 
 		File tempFile = new File(lastVisitedDir);
 		if(!tempFile.exists())
@@ -1325,6 +1327,9 @@ public class RootController implements Initializable {
 
 	public void handleRunAllSamples() {
 		if(sampleList.size()<1) return;
+		progressBar.setVisible(true);
+		progressBar.setProgress(-1);
+		
 
 		for(selectedSample=0;selectedSample<sampleList.size();selectedSample++) {
 			System.out.println(selectedSample+1 + "th sample processing..");
@@ -1334,6 +1339,8 @@ public class RootController implements Initializable {
 					actualRun();
 				}
 			}
+			progressBar.setProgress((double)selectedSample/sampleList.size());
+			
 		}
 		System.out.println("Finished");
 

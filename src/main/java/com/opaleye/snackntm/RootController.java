@@ -124,7 +124,6 @@ public class RootController implements Initializable {
 
 	@FXML private TableView<NTMSpecies> speciesTable, s16Table, rpoTable, tufTable, finalTable;
 	@FXML private ListView<String> sampleListView;
-	@FXML private ProgressBar progressBar;
 
 	ToggleGroup toggleGroup = new ToggleGroup();
 
@@ -173,8 +172,6 @@ public class RootController implements Initializable {
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
 		checkVersion();
-		progressBar.setVisible(false);
-
 		File tempFile = new File(lastVisitedDir);
 		if(!tempFile.exists())
 			lastVisitedDir=".";
@@ -255,7 +252,7 @@ public class RootController implements Initializable {
 		comment += "\n" + email;
 		comment += "\n\n" + copyright;
 
-		textPopUp(comment);
+		textPopUp(comment, "Notice");
 		/* settings Property 읽기. 
 		 * 
 		 */
@@ -320,17 +317,12 @@ public class RootController implements Initializable {
 		}
 		catch(Exception e) {
 			e.printStackTrace();
-			textPopUp("Error in reading configuration file. (settings/settings.properties) Recover configuration file or reinstall the program.");
+			textPopUp("Error in reading configuration file. (settings/settings.properties) Recover configuration file or reinstall the program.", "Error");
 			System.exit(0);
 		}
 	}
 
-	/*
-	private void printNTM(NTMSpecies ntm) {
-		System.out.println(String.format("%s, %.2f", ntm.getSpeciesName(), ntm.getScore()));
-	}
-	 */
-
+	
 
 	private void fillResults() {
 		Sample sample = sampleList.get(selectedSample);
@@ -1102,6 +1094,7 @@ public class RootController implements Initializable {
 
 
 	public void handleCSV() {
+		if(sampleList == null || sampleList.size() ==0) return;
 		Sample sample = sampleList.get(selectedSample);
 		Stage dialog = new Stage(StageStyle.DECORATED);
 		dialog.initOwner(primaryStage);
@@ -1132,10 +1125,10 @@ public class RootController implements Initializable {
 	 * Shows the message with a popup
 	 * @param message : message to be showen
 	 */
-	public void textPopUp (String message) {
+	public void textPopUp (String message, String title) {
 		Stage dialog = new Stage(StageStyle.DECORATED);
 		dialog.initOwner(primaryStage);
-		dialog.setTitle("Notice");
+		dialog.setTitle(title);
 		Parent parent;
 		try {
 			parent = FXMLLoader.load(getClass().getResource("login.fxml"));
@@ -1157,6 +1150,39 @@ public class RootController implements Initializable {
 	}
 
 
+	public void handleConsensusSeq() {
+		if(sampleList == null || sampleList.size() ==0) return;
+		String consensusSeq = "";
+		StringBuffer sb = new StringBuffer();
+		Sample sample = sampleList.get(selectedSample);
+		if(sample == null) return;
+		for(AlignedPoint ap : sample.alignedPoints[context]) {
+			char ch = ap.getConsensusChar();
+			if(ch!=Formatter.gapChar)
+				sb.append(ch);
+		}
+		consensusSeq = sb.toString();
+		
+		Stage dialog = new Stage(StageStyle.DECORATED);
+		dialog.initOwner(primaryStage);
+		dialog.setTitle("Consensus Sequence");
+		Parent parent;
+		try {
+			parent = FXMLLoader.load(getClass().getResource("consensus.fxml"));
+			TextArea ta_csv = (TextArea)parent.lookup("#ta_consensus");
+
+
+			ta_csv.setText(consensusSeq);
+			Scene scene = new Scene(parent);
+			dialog.setScene(scene);
+			dialog.setResizable(false);
+			dialog.showAndWait();
+		}
+		catch(Exception ex) {
+			ex.printStackTrace();
+		}
+
+	}
 
 	private void makeCsvContents() {
 		Sample sample = sampleList.get(selectedSample);
@@ -1168,7 +1194,7 @@ public class RootController implements Initializable {
 			}
 		}
 	}
-
+	
 
 	private void doAlignment(int selectedSpecies) throws Exception{
 		Sample sample = sampleList.get(selectedSample);
@@ -1327,19 +1353,16 @@ public class RootController implements Initializable {
 
 	public void handleRunAllSamples() {
 		if(sampleList.size()<1) return;
-		progressBar.setVisible(true);
-		progressBar.setProgress(-1);
 		
 
 		for(selectedSample=0;selectedSample<sampleList.size();selectedSample++) {
-			System.out.println(selectedSample+1 + "th sample processing..");
+			System.out.println(String.format("(%d/%d) sample processing", selectedSample+1, sampleList.size()));
 			Sample sample = sampleList.get(selectedSample);
 			for(context=0;context<3;context++) {
 				if(sample.fwdLoaded[context] || sample.revLoaded[context]) {
 					actualRun();
 				}
 			}
-			progressBar.setProgress((double)selectedSample/sampleList.size());
 			
 		}
 		System.out.println("Finished");
@@ -1449,7 +1472,7 @@ public class RootController implements Initializable {
 			}
 
 			makeCsvContents();
-
+			
 			sample.selectedSpeciesList[context] = new Vector<NTMSpecies>();
 			for(NTMSpecies ntm:sample.speciesList[context]) {
 				double cutoff = 99;

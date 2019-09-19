@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane prefHeight="300.0" prefWidth="1128.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+      <TextArea fx:id="ta_consensus" layoutX="14.0" layoutY="14.0" prefHeight="250.0" prefWidth="1106.0">
+         <font>
+            <Font name="Courier New" size="12.0" />
+         </font></TextArea>
+   </children>
+</AnchorPane>

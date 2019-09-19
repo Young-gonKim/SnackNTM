@@ -5,7 +5,6 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
-<?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.control.RadioButton?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
@@ -124,7 +123,6 @@
             </TableView>
             <Label fx:id="icSeqLabel" layoutX="14.0" layoutY="750.0" prefHeight="15.0" prefWidth="280.0" />
             <Label fx:id="chimaeraSeqLabel" layoutX="14.0" layoutY="770.0" prefHeight="15.0" prefWidth="280.0" />
-            <ProgressBar fx:id="progressBar" layoutX="11.0" layoutY="785.0" prefHeight="18.0" prefWidth="280.0" progress="0.0" />
          </children>
       </AnchorPane>
       <Label layoutX="170.0" layoutY="619.0" prefHeight="18.0" prefWidth="150.0" text="Result">
@@ -152,5 +150,6 @@
          </font>
       </Label>
       <GridPane fx:id="headerPane" layoutX="167.0" layoutY="88.0" prefHeight="115.0" prefWidth="97.0" />
+      <Button layoutX="835.0" layoutY="612.0" mnemonicParsing="false" onAction="#handleConsensusSeq" prefHeight="23.0" prefWidth="108.0" text="Consensus Seq" />
    </children>
 </AnchorPane>

@@ -22,6 +22,8 @@ n batch 돌리는 동안 문제가 없었다. 혹시 몇 case 돌리셨는지요
   txt로 출력할때는 동정된 species 기준으로 align해서 consensus seq.를 출력하면 될지, 아니면 별도로 reference sequence는 제외하고 fwd, rev만 따로 alignment 시킨다음 새로운 consensus sequence를 만들면 될지 ?
   
   
+Window 10에서 cmd 창을 클릭하면 클릭한 부분이 block설정되면서 실행이 멈추는 현상. 우클릭 하면 다시 진행.  
+  
   
 fwd, rev만 따로 align하여  
 

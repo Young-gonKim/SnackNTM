@@ -99,7 +99,7 @@ public class RootController implements Initializable {
 	private static final String rpo = "rpo";
 	private static final String tuf = "tuf";
 	public static final int defaultGOP = 30;
-	public static final String version = "1.2";
+	public static final String version = "1.2.1";
 	private static final double tableRowHeight = 25.0;
 	private static String icSeq = null;
 	private static String chSeq = null;

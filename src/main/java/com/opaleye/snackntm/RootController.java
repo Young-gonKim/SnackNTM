@@ -1836,10 +1836,12 @@ public class RootController implements Initializable {
 
 			BufferedImage awtImage = null;
 			if(fwdChar == Formatter.gapChar) {
-				awtImage = sample.trimmedFwdTrace[context].getShadedImage(3,tempFwdPos-1,tempFwdPos-1, sample.formatter[context]);
-
+				if(tempFwdPos != 1 && tempFwdPos != sample.trimmedFwdTrace[context].getSequenceLength())	
+					awtImage = sample.trimmedFwdTrace[context].getShadedImage(3,tempFwdPos-1,tempFwdPos-1, sample.formatter[context]);
+				else	//범위 벗어난 경우 shading 하지 않음
+					awtImage = sample.trimmedFwdTrace[context].getShadedImage(0,tempFwdPos-1,tempFwdPos-1, sample.formatter[context]);
 			}
-			else awtImage = sample.trimmedFwdTrace[context].getShadedImage(1, tempFwdPos-1, tempFwdPos-1, sample.formatter[context]);
+				else awtImage = sample.trimmedFwdTrace[context].getShadedImage(1, tempFwdPos-1, tempFwdPos-1, sample.formatter[context]);
 
 			javafx.scene.image.Image fxImage = SwingFXUtils.toFXImage(awtImage, null);
 			ImageView imageView = new ImageView(fxImage);
@@ -1865,9 +1867,11 @@ public class RootController implements Initializable {
 
 
 			if(revChar == Formatter.gapChar) {
-				awtImage2 = sample.trimmedRevTrace[context].getShadedImage(3,tempRevPos-1,tempRevPos-1, sample.formatter[context]);
+				if(tempRevPos != 1 && tempRevPos != sample.trimmedRevTrace[context].getSequenceLength())
+					awtImage2 = sample.trimmedRevTrace[context].getShadedImage(3,tempRevPos-1,tempRevPos-1, sample.formatter[context]);
+				else //범위 벗어난 경우 shading 하지 않음
+					awtImage2 = sample.trimmedRevTrace[context].getShadedImage(0,tempRevPos-1,tempRevPos-1, sample.formatter[context]);
 			}
-
 			else 
 				awtImage2 = sample.trimmedRevTrace[context].getShadedImage(1, tempRevPos-1, tempRevPos-1, sample.formatter[context]);
 			javafx.scene.image.Image fxImage2 = SwingFXUtils.toFXImage(awtImage2, null);

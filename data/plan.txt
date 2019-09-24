@@ -44,8 +44,20 @@ trimming 정책
 
 
 
-<Ganseq for variant에도 반영할것>
+<SnackVar에도 반영할것>
+//범위 벗어난 경우 shading 하지 않음
+if(fwdChar == Formatter.gapChar) {
+				if(tempFwdPos != 1 && tempFwdPos != sample.trimmedFwdTrace[context].getSequenceLength())	
+					awtImage = sample.trimmedFwdTrace[context].getShadedImage(3,tempFwdPos-1,tempFwdPos-1, sample.formatter[context]);
+				else	//범위 벗어난 경우 shading 하지 않음
+					awtImage = sample.trimmedFwdTrace[context].getShadedImage(0,tempFwdPos-1,tempFwdPos-1, sample.formatter[context]);
+			}
+				else awtImage = sample.trimmedFwdTrace[context].getShadedImage(1, tempFwdPos-1, tempFwdPos-1, sample.formatter[context]);
+
+
 
 trimming 자동으로 일단 한후 (Hetero indel 있을때를위한 trimming 기준 새로 만들어야겠지)
 edit trimming 버튼
+
+
 

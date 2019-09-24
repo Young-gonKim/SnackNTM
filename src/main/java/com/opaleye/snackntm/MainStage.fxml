@@ -27,7 +27,7 @@
                      <children>
                         <Label prefHeight="15.0" prefWidth="98.0" text="Target Region : " />
                         <RadioButton fx:id="s16Radio" mnemonicParsing="false" prefHeight="16.0" prefWidth="97.0" text="16S rRNA" />
-                        <RadioButton fx:id="rpoRadio" mnemonicParsing="false" prefHeight="16.0" prefWidth="69.0" text="rpo" />
+                        <RadioButton fx:id="rpoRadio" mnemonicParsing="false" prefHeight="16.0" prefWidth="69.0" text="rpoB" />
                         <RadioButton fx:id="tufRadio" mnemonicParsing="false" prefHeight="16.0" prefWidth="97.0" text="tuf" />
                      </children>
                      <HBox.margin>
@@ -89,7 +89,7 @@
                </font>
             </Label>
             <Label layoutX="7.0" layoutY="45.0" prefHeight="15.0" prefWidth="150.0" text="By 16s rRNA (over 99%)" />
-            <Label layoutX="7.0" layoutY="220.0" text="by rpo (over 99.3% for SGM, over 98.3% for RGM)" />
+            <Label layoutX="7.0" layoutY="220.0" text="by rpoB (over 99.3% for SGM, over 98.3% for RGM)" />
             <Label layoutX="7.0" layoutY="395.0" text="by tuf (over 99%)" />
             <Label layoutX="7.0" layoutY="570.0" prefHeight="15.0" prefWidth="119.0" text="Conclusion">
                <font>

@@ -264,7 +264,7 @@ public class GanseqTrace {
 	 * 
 	 * @param startPosition
 	 * @param endPosition
-	 * @param option  : 0:no shading, 1:point (based on traceBaseNumbering) 2:area (based on newBaseNumbering) 
+	 * @param option  : 0: no shading, 1:point (based on traceBaseNumbering), 2:area (based on newBaseNumbering), 3: for gap (narrow shade)
 	 * @return
 	 */
 	public BufferedImage getShadedImage(int option, int startPosition, int endPosition, Formatter formatter) {
@@ -346,7 +346,7 @@ public class GanseqTrace {
 			}
 		}
 
-
+//option  : 0: no shading, 1:point (based on traceBaseNumbering), 2:area (based on newBaseNumbering), 3: for gap (narrow shade)
 		if(option == 1) {
 			g.setColor(Color.BLUE);
 			g.setComposite(AlphaComposite.SrcOver.derive(0.2f));
@@ -516,11 +516,209 @@ public class GanseqTrace {
 		transformTrace();
 	}
 
-
+	
 	/**
-	 * @return return값 까지 trimming. -1일 경우 trimming 하지 않음.
+	 * Sequencher rule
+	 * @return
 	 */
 	public int getFrontTrimPosition() {
+		int scoreTrimPosition = traceLength * traceWidth-1;
+		int ambiguousTrimPosition = traceLength * traceWidth-1;
+
+		int scoreTrimBaseCount = sequenceLength;
+		int ambiguousTrimBaseCount =  sequenceLength;
+		
+		int ret = -1;
+		final int qualityWindowSize = 25;
+		final int ambiguousWindowSize = 25;
+		
+		int qualitySearchLength = sequenceLength/4;	 //trim no more than 25%
+		int ambiguousSearchLength = sequenceLength/4;
+		final int scoreCutOff = 25;
+		final int qualityLimitNoBases = 3;
+		final int ambiguousLimitNoBases = 3;
+
+		qualitySearchLength = Integer.min(qualitySearchLength,  sequenceLength-qualityWindowSize);
+		ambiguousSearchLength = Integer.min(ambiguousSearchLength,  sequenceLength-ambiguousWindowSize);
+
+		//error 생기면 그냥 trimming 안함.
+		try {
+			//1. Q-score sliding window
+			//i : 0부터 시작하는 좌표.
+			for(int i=0;i<qualitySearchLength;i++) {
+				int cntUnderCutoff = 0;
+				for(int j=0;j<qualityWindowSize;j++) {
+					if(qCalls[i+j] < scoreCutOff) cntUnderCutoff ++;
+				}
+
+				if(cntUnderCutoff < qualityLimitNoBases) {
+					if(i == 0) 
+						scoreTrimPosition = -1;
+					else {
+						scoreTrimPosition = (baseCalls[i-1] + baseCalls[i])/2;
+						scoreTrimPosition *= traceWidth;
+					}
+					scoreTrimBaseCount = i;
+					break;
+				}
+			}
+			
+			for(int i=0;i<ambiguousSearchLength;i++) {
+				int ambiguousCnt = 0;
+				for(int j=0;j<ambiguousWindowSize;j++) {
+					if(sequence.charAt(i+j) == 'N') 
+						ambiguousCnt ++;
+				}
+
+				if(ambiguousCnt < ambiguousLimitNoBases) {
+					if(i == 0) 
+						ambiguousTrimPosition = -1;
+					else {
+						ambiguousTrimPosition = (baseCalls[i-1] + baseCalls[i])/2;
+						ambiguousTrimPosition *= traceWidth;
+					}
+					ambiguousTrimBaseCount = i;
+					break;
+				}
+			}
+			
+			
+			ret = Integer.max(scoreTrimPosition, ambiguousTrimPosition);
+
+			/*
+			if(!qualityPointFound && !ambiguousPointFound) {
+				ret = baseCalls[sequenceLength-1] * traceWidth; 
+			}
+			*/
+
+			System.out.println(String.format("5' trim, by score : %d, by ambiguous : %d", scoreTrimBaseCount, ambiguousTrimBaseCount));
+
+			
+			//5' terminal에 basecall 안된 trace 늘어져 있으면 자르기.
+			if((ret == -1) && (baseCalls[0]>20)) {
+				ret = (baseCalls[0]-3) * traceWidth;
+			}
+
+			
+			return ret;
+		}
+		catch(Exception ex) {
+			ex.printStackTrace();
+		}
+		return ret;
+	}
+	
+	
+	
+
+
+	
+	/**
+	 * Sequencher method
+	 * @return trimming 안할거면 traceLength*traceWidth
+	 */
+	public int getTailTrimPosition() {
+		int scoreTrimPosition = 1;
+		int ambiguousTrimPosition = 1;
+
+		int scoreTrimPositionBase = sequenceLength;
+		int ambiguousTrimPositionBase =  sequenceLength;
+		
+		int ret = traceLength*traceWidth;
+		final int qualityWindowSize = 25;
+		final int ambiguousWindowSize = 25;
+		
+		int qualitySearchLength = 2000;
+		int ambiguousSearchLength = 2000;
+		final int scoreCutOff = 25;	// 이거 차이는 아닌듯 (26 : 25랑 차이없음, 27 : 8207 fwd 날라감)
+		final int qualityLimitNoBases = 3;	//이거 가능성 젤 높음. 24--> 407 맞아떨어지는거 보면. 그쪽 coding 실수 가능성도 젤 많고.. x < n-1
+		final int ambiguousLimitNoBases = 3;
+
+		qualitySearchLength = Integer.min(qualitySearchLength,  sequenceLength-qualityWindowSize);
+		ambiguousSearchLength = Integer.min(ambiguousSearchLength,  sequenceLength-ambiguousWindowSize);
+
+
+		/*
+		for(int i=sequenceLength-1;i>=0;i--) {
+			System.out.print(String.format("%d : %d, ",  i+1, qCalls[i]));
+			if(i%10 == 0) System.out.println();
+		}
+		*/
+		
+		//error 생기면 그냥 trimming 안함.
+		try {
+			//1. Q-score sliding window
+			//i : 0부터 시작하는 좌표.
+			for(int i=sequenceLength-1;i>=sequenceLength-qualitySearchLength;i--) {
+				int cntUnderCutoff = 0;
+				for(int j=0;j<qualityWindowSize;j++) {
+					if(qCalls[i-j] < scoreCutOff) cntUnderCutoff ++;
+				}
+
+				if(cntUnderCutoff < qualityLimitNoBases) {
+
+					int cutPoint = i+1;
+					
+						
+					if(cutPoint >= sequenceLength-1) 
+						scoreTrimPosition = traceLength*traceWidth;
+					else {
+						scoreTrimPosition = (baseCalls[cutPoint] + baseCalls[cutPoint+1])/2;
+						scoreTrimPosition *= traceWidth;
+					}
+					scoreTrimPositionBase = sequenceLength-1-cutPoint;	//몇개 trimming 했나?
+					break;
+				}
+			}
+			
+			for(int i=sequenceLength-1;i>=sequenceLength-ambiguousSearchLength;i--) {
+				int ambiguousCnt = 0;
+				for(int j=0;j<ambiguousWindowSize;j++) {
+					if(sequence.charAt(i-j) == 'N')
+						ambiguousCnt ++;
+				}
+
+				if(ambiguousCnt < ambiguousLimitNoBases) {
+					int cutPoint = i+1;
+					if(cutPoint >= sequenceLength-1) 
+						ambiguousTrimPosition = traceLength*traceWidth;
+					else {
+						ambiguousTrimPosition = (baseCalls[cutPoint] + baseCalls[cutPoint+1])/2;
+						ambiguousTrimPosition *= traceWidth;
+					}
+					ambiguousTrimPositionBase = sequenceLength-1-cutPoint;	//몇개 trimming 했나?
+					break;
+				}
+			}
+			
+			
+			ret = Integer.min(scoreTrimPosition, ambiguousTrimPosition);
+
+			System.out.println(String.format("3' trim, by score : %d, by ambiguous : %d", scoreTrimPositionBase, ambiguousTrimPositionBase));
+
+			
+			//3' terminal에 basecall 안된 trace 늘어져 있으면 자르기.
+			if((ret == traceLength*traceWidth) && (baseCalls[sequenceLength-1]+20<traceLength)) {
+				ret = (baseCalls[sequenceLength-1]+3) * traceWidth;
+			}
+/*
+			if(!qualityPointFound && !ambiguousPointFound) {
+				ret = 0; 
+			}
+			*/
+			
+			return ret;
+		}
+		catch(Exception ex) {
+			ex.printStackTrace();
+		}
+		return ret;
+	}
+	
+	
+	
+/*
+	public int getFrontTrimPosition_hold() {
 		int scoreTrimPosition = -1;
 		int ret = -1;
 		final int windowSize = 10;
@@ -588,12 +786,8 @@ public class GanseqTrace {
 		}
 		return ret;
 	}
-
-	/**
-	 * 
-	 * @return trimming 안할거면 traceLength*traceWidth
-	 */
-	public int getTailTrimPosition() {
+	
+	public int getTailTrimPosition_hold() {
 		int scoreTrimPosition = traceLength*traceWidth;
 		int ret = traceLength*traceWidth;
 		final int windowSize = 10;
@@ -661,6 +855,10 @@ public class GanseqTrace {
 		}
 		return ret;
 	}
+	
+	*/
+	
+	
 	public int getDirection() {
 		return direction;
 	}

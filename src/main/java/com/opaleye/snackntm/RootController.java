@@ -99,7 +99,7 @@ public class RootController implements Initializable {
 	private static final String rpo = "rpo";
 	private static final String tuf = "tuf";
 	public static final int defaultGOP = 30;
-	public static final String version = "1.2.1";
+	public static final String version = "1.2.2";
 	private static final double tableRowHeight = 25.0;
 	private static String icSeq = null;
 	private static String chSeq = null;
@@ -322,7 +322,7 @@ public class RootController implements Initializable {
 		}
 	}
 
-	
+
 
 	private void fillResults() {
 		Sample sample = sampleList.get(selectedSample);
@@ -339,9 +339,9 @@ public class RootController implements Initializable {
 		else {
 			speciesTable.setItems(FXCollections.observableArrayList(new Vector<NTMSpecies>()));
 		}
-		
+
 		//finalTable
-		
+
 		if(sample.finalList != null)
 			finalTable.setItems(FXCollections.observableArrayList(sample.finalList));
 		else
@@ -971,7 +971,6 @@ public class RootController implements Initializable {
 		handleRemoveFwd();
 		handleRemoveRev();
 
-		csvContents = "";
 		speciesTable.setItems(FXCollections.observableArrayList(empty));
 		s16Table.setItems(FXCollections.observableArrayList(empty));
 		rpoTable.setItems(FXCollections.observableArrayList(empty));
@@ -1095,7 +1094,6 @@ public class RootController implements Initializable {
 
 	public void handleCSV() {
 		if(sampleList == null || sampleList.size() ==0) return;
-		Sample sample = sampleList.get(selectedSample);
 		Stage dialog = new Stage(StageStyle.DECORATED);
 		dialog.initOwner(primaryStage);
 		dialog.setTitle("CSV");
@@ -1104,8 +1102,40 @@ public class RootController implements Initializable {
 			parent = FXMLLoader.load(getClass().getResource("csv.fxml"));
 			TextArea ta_csv = (TextArea)parent.lookup("#ta_csv");
 
+			Sample sample;
+			String textToSet = "";
+			for(int i=0;i<sampleList.size();i++) {
 
-			ta_csv.setText(sample.csvContents[context]);
+				sample = sampleList.get(i);
+				for(int j=0;j<3;j++) {
+					if(sample.alignmentPerformed[j]) {
+
+						String region = "", direction = "";
+						switch(j) {
+						case 0: region = "16s";break;
+						case 1: region = "rpo";break;
+						case 2: region = "tuf";break;
+						}
+						
+						if(sample.fwdLoaded[j] == true && sample.revLoaded[j] == false)
+							direction = "_F";
+						else if(sample.fwdLoaded[j] == false && sample.revLoaded[j] == true)
+							direction = "_R";
+
+						for(NTMSpecies ntm : sample.speciesList[j]) {
+							if(ntm.getScore()>=98) {
+								//textToSet += ntm.getQlen() + "\t\t" + ntm.getScoreProperty() + "\t" + ntm.getAccession() + "\t" + ntm.getSpeciesName() + "\n";
+								textToSet += sample.sampleId + "-" + region+ direction + "\t" + ntm.getQlen() + "\t" + ntm.getScoreProperty() + "\t" + ntm.getAccession() + "\t" + ntm.getSpeciesName() + "\n";
+								
+							}
+						}
+					}
+				}
+			}
+
+
+			ta_csv.setText(textToSet);
+
 			Button okButton = (Button) parent.lookup("#okButton");
 			okButton.setOnAction(event->dialog.close());
 			Scene scene = new Scene(parent);
@@ -1162,7 +1192,7 @@ public class RootController implements Initializable {
 				sb.append(ch);
 		}
 		consensusSeq = sb.toString();
-		
+
 		Stage dialog = new Stage(StageStyle.DECORATED);
 		dialog.initOwner(primaryStage);
 		dialog.setTitle("Consensus Sequence");
@@ -1184,17 +1214,7 @@ public class RootController implements Initializable {
 
 	}
 
-	private void makeCsvContents() {
-		Sample sample = sampleList.get(selectedSample);
-		sample.csvContents[context] = "";
-		for(NTMSpecies ntm : sample.speciesList[context]) {
-			if(ntm.getScore()>=98) {
-				//csvContents += ntm.getQlen() + "\t\t" + ntm.getScoreProperty() + "\t" + ntm.getAccession() + "\t" + ntm.getSpeciesName() + "\n";
-				sample.csvContents[context] += ntm.getQlen() + "\t" + ntm.getScoreProperty() + "\t" + ntm.getAccession() + "\t" + ntm.getSpeciesName() + "\n";
-			}
-		}
-	}
-	
+
 
 	private void doAlignment(int selectedSpecies) throws Exception{
 		Sample sample = sampleList.get(selectedSample);
@@ -1353,7 +1373,7 @@ public class RootController implements Initializable {
 
 	public void handleRunAllSamples() {
 		if(sampleList.size()<1) return;
-		
+
 
 		for(selectedSample=0;selectedSample<sampleList.size();selectedSample++) {
 			System.out.println(String.format("(%d/%d) sample processing", selectedSample+1, sampleList.size()));
@@ -1363,7 +1383,7 @@ public class RootController implements Initializable {
 					actualRun();
 				}
 			}
-			
+
 		}
 		System.out.println("Finished");
 
@@ -1471,7 +1491,6 @@ public class RootController implements Initializable {
 				ex.printStackTrace();
 			}
 
-			makeCsvContents();
 			
 			sample.selectedSpeciesList[context] = new Vector<NTMSpecies>();
 			for(NTMSpecies ntm:sample.speciesList[context]) {
@@ -1841,7 +1860,7 @@ public class RootController implements Initializable {
 				else	//범위 벗어난 경우 shading 하지 않음
 					awtImage = sample.trimmedFwdTrace[context].getShadedImage(0,tempFwdPos-1,tempFwdPos-1, sample.formatter[context]);
 			}
-				else awtImage = sample.trimmedFwdTrace[context].getShadedImage(1, tempFwdPos-1, tempFwdPos-1, sample.formatter[context]);
+			else awtImage = sample.trimmedFwdTrace[context].getShadedImage(1, tempFwdPos-1, tempFwdPos-1, sample.formatter[context]);
 
 			javafx.scene.image.Image fxImage = SwingFXUtils.toFXImage(awtImage, null);
 			ImageView imageView = new ImageView(fxImage);

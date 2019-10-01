@@ -545,13 +545,14 @@ public class GanseqTrace {
 		try {
 			//1. Q-score sliding window
 			//i : 0부터 시작하는 좌표.
-			for(int i=0;i<qualitySearchLength;i++) {
+			
+			for(int i=0;i<=qualitySearchLength;i++) {
 				int cntUnderCutoff = 0;
 				for(int j=0;j<qualityWindowSize;j++) {
 					if(qCalls[i+j] < scoreCutOff) cntUnderCutoff ++;
 				}
-
-				if(cntUnderCutoff < qualityLimitNoBases) {
+														 //끝까지 (25%까지) 못찾았으면 거기까지 끊기
+				if(cntUnderCutoff < qualityLimitNoBases || i==qualitySearchLength) {
 					if(i == 0) 
 						scoreTrimPosition = -1;
 					else {
@@ -638,12 +639,6 @@ public class GanseqTrace {
 		ambiguousSearchLength = Integer.min(ambiguousSearchLength,  sequenceLength-ambiguousWindowSize);
 
 
-		/*
-		for(int i=sequenceLength-1;i>=0;i--) {
-			System.out.print(String.format("%d : %d, ",  i+1, qCalls[i]));
-			if(i%10 == 0) System.out.println();
-		}
-		*/
 		
 		//error 생기면 그냥 trimming 안함.
 		try {
@@ -657,7 +652,7 @@ public class GanseqTrace {
 
 				if(cntUnderCutoff < qualityLimitNoBases) {
 
-					int cutPoint = i+1;
+					int cutPoint = i;
 					
 						
 					if(cutPoint >= sequenceLength-1) 
@@ -679,7 +674,7 @@ public class GanseqTrace {
 				}
 
 				if(ambiguousCnt < ambiguousLimitNoBases) {
-					int cutPoint = i+1;
+					int cutPoint = i;
 					if(cutPoint >= sequenceLength-1) 
 						ambiguousTrimPosition = traceLength*traceWidth;
 					else {
@@ -697,15 +692,20 @@ public class GanseqTrace {
 			System.out.println(String.format("3' trim, by score : %d, by ambiguous : %d", scoreTrimPositionBase, ambiguousTrimPositionBase));
 
 			
+			/*
+			for(int i=0;i<sequenceLength;i++) {
+				System.out.println(String.format("%d",  qCalls[i]));
+			}
+			*/
+			
+			
+			
+			
 			//3' terminal에 basecall 안된 trace 늘어져 있으면 자르기.
 			if((ret == traceLength*traceWidth) && (baseCalls[sequenceLength-1]+20<traceLength)) {
 				ret = (baseCalls[sequenceLength-1]+3) * traceWidth;
 			}
-/*
-			if(!qualityPointFound && !ambiguousPointFound) {
-				ret = 0; 
-			}
-			*/
+
 			
 			return ret;
 		}

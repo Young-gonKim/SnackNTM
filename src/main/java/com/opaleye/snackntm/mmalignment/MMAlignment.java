@@ -412,6 +412,7 @@ public class MMAlignment {
 		
 	}
 	
+	/*
 	public AlignedPair localAlignmentPadding (String s1, String s2) {
 		AlignedPair ap =  localAlignment(s1, s2);
 		int start1 = ap.getStart1(), start2 = ap.getStart2();
@@ -431,25 +432,6 @@ public class MMAlignment {
 		newEnd1 = end1 + (s2.length()-end2);
 		newEnd2 = s2.length();
 
-		
-		/*
-		//start1 < start2 일때도 고려해야함...ㅠㅠ 붙여줄수 있는만큼 붙여줘야.. 머리 맑을때 합시다.
-		
-		if(start1-start2>=0 && start2 > 0) {
-			newS1 = s1.substring(start1-start2, start1) + newS1;
-			newS2 = s2.substring(0, start2) + newS2;
-			newStart1 = start1-start2;
-			newStart2 = 0;
-		}
-		
-		if(end1+s2.length()-end2 <= s1.length() && end2<s2.length()) {
-			newS1 += s1.substring(end1, end1+s2.length()-end2);
-			newS2 += s2.substring(end2, s2.length());
-			newEnd1 = end1 + (s2.length()-end2);
-			newEnd2 = s2.length();
-		}
-		
-		*/
 
 		
 		AlignedPair ret = new AlignedPair(newS1, newS2);
@@ -461,27 +443,10 @@ public class MMAlignment {
 
 		
 
-
-		/*
-		AlignedPair leftPad = new AlignedPair(s1.substring(start1-start2, start1), s2.substring(0, start2));
-		AlignedPair rightPad = new AlignedPair(s1.substring(end1, end1+s2.length()-end2), s2.substring(end2, s2.length()));
-		ret = ret.addLeft(leftPad);
-		ret = ret.addRight(rightPad);
-		ret.setStart1(start1-start2);
-		ret.setStart2(0);
-		ret.setEnd1(end1 + (s2.length()-end2));
-		ret.setEnd2(s2.length());
-
-		System.out.println("start1 : " + ret.getStart1());
-		System.out.println("start2 : " + ret.getStart2());
-		System.out.println("end1 : " + ret.getEnd1());
-		System.out.println("end2 : " + ret.getEnd2());
-		*/
-		
 		return ret;
 
 	}
-			
+			*/
 
 				
 			/*
@@ -520,7 +485,7 @@ public class MMAlignment {
 		MMAlignment mma = new MMAlignment();
 		String s1 = "GGAAATTTTTTTAAATT";
 		String s2 = "CCCTTTTTTCCC";
-		AlignedPair ret =  mma.localAlignmentPadding(s1, s2);
+		AlignedPair ret =  mma.localAlignment(s1, s2);
 
 		ret.printStrings();
 		System.out.println("start1 : " + ret.getStart1() + ", start2 : " + ret.getStart2());

@@ -98,7 +98,7 @@ public class RootController implements Initializable {
 	private static final String s16 = "16sRNA";
 	private static final String rpo = "rpo";
 	private static final String tuf = "tuf";
-	public static final int defaultGOP = 30;
+	public static final int defaultGOP = 15;
 	public static final String version = "1.3.0";
 	private static final double tableRowHeight = 25.0;
 	private static String icSeq = null;
@@ -1239,22 +1239,22 @@ public class RootController implements Initializable {
 		AlignedPair revAp = null;
 
 		if(sample.fwdLoaded[context] == true) {
-			fwdAp = mma.localAlignmentPadding(refSeq, sample.trimmedFwdTrace[context].getSequence());
+			fwdAp = mma.localAlignment(refSeq, sample.trimmedFwdTrace[context].getSequence());
 		}
 		if(sample.revLoaded[context] == true) {
-			revAp = mma.localAlignmentPadding(refSeq, sample.trimmedRevTrace[context].getSequence());
+			revAp = mma.localAlignment(refSeq, sample.trimmedRevTrace[context].getSequence());
 		}
 		
 		if(sample.fwdLoaded[context] == true && sample.revLoaded[context] == true) {
-			sample.alignedPoints[context] = formatter.format3(fwdAp, revAp, sample.trimmedFwdTrace[context], sample.trimmedRevTrace[context]);
+			sample.alignedPoints[context] = formatter.format3(fwdAp, revAp, refSeq, sample.trimmedFwdTrace[context], sample.trimmedRevTrace[context]);
 		}
 
 		else if(sample.fwdLoaded[context] == true && sample.revLoaded[context] == false) {
-			sample.alignedPoints[context] = formatter.format2(fwdAp, sample.trimmedFwdTrace[context], 1);
+			sample.alignedPoints[context] = formatter.format2(fwdAp, refSeq, sample.trimmedFwdTrace[context], 1);
 		}
 		//When only rev trace is given as input
 		else if(sample.fwdLoaded[context] == false && sample.revLoaded[context] == true) {
-			sample.alignedPoints[context] = formatter.format2(revAp, sample.trimmedRevTrace[context], -1);
+			sample.alignedPoints[context] = formatter.format2(revAp, refSeq, sample.trimmedRevTrace[context], -1);
 		}
 		//When both of fwd trace and rev trace are given
 		sample.formatter[context] = formatter;

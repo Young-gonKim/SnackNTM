@@ -47,7 +47,6 @@ public class NTMSpecies implements Comparable<NTMSpecies>, Cloneable {
 		String s_firstLine = "";
 		String ATGC = "ATGCatgc";
 		StringBuffer refSeqBuffer = new StringBuffer();
-		String refSeqString = null;
 		for(int i=0;i<inputString.length();i++) {
 			char thisChar = inputString.charAt(i);
 
@@ -75,7 +74,7 @@ public class NTMSpecies implements Comparable<NTMSpecies>, Cloneable {
 				}
 			}
 		}
-		refSeq = refSeqBuffer.toString();
+		refSeq = refSeqBuffer.toString().toUpperCase();
 
 		//System.out.println(String.format("%s, %s\n%s\n\n\n\n", accession, speciesName, refSeq.getRefString()));
 		accessionProperty= new SimpleStringProperty(accession);

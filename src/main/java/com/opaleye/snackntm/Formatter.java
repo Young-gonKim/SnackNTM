@@ -66,9 +66,28 @@ public class Formatter {
 	 * 2018.5
 	 */
 
-	public Vector<AlignedPoint> format2(AlignedPair ap, GanseqTrace trace, int direction) throws ArrayIndexOutOfBoundsException {
+	public Vector<AlignedPoint> format2(AlignedPair ap, String s_refSeq, GanseqTrace trace, int direction) throws ArrayIndexOutOfBoundsException {
 
+		//front padding
+		int frontPaddingCnt = Integer.min(ap.getStart1(), ap.getStart2());
+		String paddedString1 = s_refSeq.substring(ap.getStart1()-frontPaddingCnt, ap.getStart1()) + ap.getAlignedString1();
+		String paddedString2 = trace.sequence.substring(ap.getStart2()-frontPaddingCnt, ap.getStart2()) + ap.getAlignedString2();
+		
+		//tail padding
+		int tailPaddingCnt = Integer.min(s_refSeq.length() - ap.getEnd1(), trace.sequenceLength - ap.getEnd2());
+		paddedString1 += s_refSeq.substring(ap.getEnd1(), ap.getEnd1()+tailPaddingCnt);
+		paddedString2 += trace.sequence.substring(ap.getEnd2(), ap.getEnd2()+tailPaddingCnt);
 
+		
+		int refPos = ap.getStart1()+1 - frontPaddingCnt;
+		//(2) Trace 상에서의 좌표. Qcall, BaseCall 읽기위함. Qcall, BaseCall은 0부터 저장되어 있으므로 0부터시작. 
+		int tracePos = ap.getStart2() - frontPaddingCnt;
+		char[] refSeq = paddedString1.toCharArray();
+		char[] traceSeq = paddedString2.toCharArray();
+		int alignmentLength = paddedString1.length();
+
+		
+		/*
 		//(1) Reference 상에서의 좌표. 1부터 시작. +1 해줌. genomic DNA의 의미. 실제 array access에 사용되지 않음. 
 		int refPos = ap.getStart1()+1;
 		//(2) Trace 상에서의 좌표. Qcall, BaseCall 읽기위함. Qcall, BaseCall은 0부터 저장되어 있으므로 0부터시작. 
@@ -76,6 +95,7 @@ public class Formatter {
 		char[] refSeq = ap.getAlignedString1().toCharArray();
 		char[] traceSeq = ap.getAlignedString2().toCharArray();
 		int alignmentLength = ap.getAlignedString1().length();
+		*/
 
 		//(3)Alignment 상에서의 좌표. (즉 char[] refSeq, traceSeq 의 index) 0부터 시작. 
 		int alignmentPos = 0;
@@ -164,24 +184,51 @@ public class Formatter {
 	 * This functions is derived from jaligner.formats.Pair.format()
 	 * 2018.5
 	 */
-	public Vector<AlignedPoint> format3(AlignedPair fwdAp, AlignedPair revAp, GanseqTrace fwdTrace, GanseqTrace revTrace) throws ArrayIndexOutOfBoundsException, NoContigException {
+	public Vector<AlignedPoint> format3(AlignedPair fwdAp, AlignedPair revAp, String s_refSeq, GanseqTrace fwdTrace, GanseqTrace revTrace) throws ArrayIndexOutOfBoundsException, NoContigException {
 
-		int fwdAlignmentLength = fwdAp.getAlignedString1().length();
-		int revAlignmentLength = revAp.getAlignedString1().length();
+		//fwd Trace
+		//front padding
+		int fwdFrontPaddingCnt = Integer.min(fwdAp.getStart1(), fwdAp.getStart2());
+		String fwdPaddedString1 = s_refSeq.substring(fwdAp.getStart1()-fwdFrontPaddingCnt, fwdAp.getStart1()) + fwdAp.getAlignedString1();
+		String fwdPaddedString2 = fwdTrace.sequence.substring(fwdAp.getStart2()-fwdFrontPaddingCnt, fwdAp.getStart2()) + fwdAp.getAlignedString2();
+		
+		//tail padding
+		int fwdTailPaddingCnt = Integer.min(s_refSeq.length() - fwdAp.getEnd1(), fwdTrace.sequenceLength - fwdAp.getEnd2());
+		fwdPaddedString1 += s_refSeq.substring(fwdAp.getEnd1(), fwdAp.getEnd1()+fwdTailPaddingCnt);
+		fwdPaddedString2 += fwdTrace.sequence.substring(fwdAp.getEnd2(), fwdAp.getEnd2()+fwdTailPaddingCnt);
+
+		//rev Trace
+		//front padding
+		int revFrontPaddingCnt = Integer.min(revAp.getStart1(), revAp.getStart2());
+		String revPaddedString1 = s_refSeq.substring(revAp.getStart1()-revFrontPaddingCnt, revAp.getStart1()) + revAp.getAlignedString1();
+		String revPaddedString2 = revTrace.sequence.substring(revAp.getStart2()-revFrontPaddingCnt, revAp.getStart2()) + revAp.getAlignedString2();
+		
+		//tail padding
+		int revTailPaddingCnt = Integer.min(s_refSeq.length() - revAp.getEnd1(), revTrace.sequenceLength - revAp.getEnd2());
+		revPaddedString1 += s_refSeq.substring(revAp.getEnd1(), revAp.getEnd1()+revTailPaddingCnt);
+		revPaddedString2 += revTrace.sequence.substring(revAp.getEnd2(), revAp.getEnd2()+revTailPaddingCnt);
+
+		
+		//System.out.println(String.format("fwdFrontPaddintCnt, fwdTailPaddingCnt, revFrontPaddingCnt, revTailPaddingCnt : %d, %d, %d, %d", fwdFrontPaddingCnt, fwdTailPaddingCnt, revFrontPaddingCnt, revTailPaddingCnt));
+		//System.out.println(String.format("fwdPaddedString1, fwdPaddedString2:\n%s\n%s", fwdPaddedString1, fwdPaddedString2));
+		//System.out.println(String.format("revPaddedString1, revPaddedString2:\n%s\n%s", revPaddedString1, revPaddedString2));
+		
+		int fwdAlignmentLength = fwdPaddedString1.length();
+		int revAlignmentLength = revPaddedString1.length();
 
 		//(1) Reference 상에서의 좌표. 1부터 시작. +1 해줌. genomic DNA의 의미. 실제 array access에 사용되지 않음. 
-		int fwdRefPos = fwdAp.getStart1()+1;
-		int revRefPos = revAp.getStart1()+1;
+		int fwdRefPos = fwdAp.getStart1()+1 - fwdFrontPaddingCnt;
+		int revRefPos = revAp.getStart1()+1 - revFrontPaddingCnt; 
 
 		//(2) Trace 상에서의 좌표. Qcall, BaseCall 읽기위함. Qcall, BaseCall은 0부터 저장되어 있으므로 0부터시작. 
-		int fwdTracePos = fwdAp.getStart2();
-		int revTracePos = revAp.getStart2(); 
+		int fwdTracePos = fwdAp.getStart2() - fwdFrontPaddingCnt;;
+		int revTracePos = revAp.getStart2() - revFrontPaddingCnt; 
 
 
-		char[] fwdRefSeq = fwdAp.getAlignedString1().toCharArray();
-		char[] fwdTraceSeq = fwdAp.getAlignedString2().toCharArray();
-		char[] revRefSeq = revAp.getAlignedString1().toCharArray();
-		char[] revTraceSeq = revAp.getAlignedString2().toCharArray();
+		char[] fwdRefSeq = fwdPaddedString1.toCharArray();
+		char[] fwdTraceSeq = fwdPaddedString2.toCharArray();
+		char[] revRefSeq = revPaddedString1.toCharArray();
+		char[] revTraceSeq = revPaddedString2.toCharArray();
 
 		//(3)Alignment 상에서의 좌표. (즉 char[] fwdRefSeq, fwdTraceSeq, revRefSeq, revTraceSeq 의 index) 0부터 시작. 
 		int fwdAlignmentPos = 0;
@@ -274,6 +321,12 @@ public class Formatter {
 			char revRefChar = revRefSeq[revAlignmentPos];
 			char fwdTraceChar = fwdTraceSeq[fwdAlignmentPos];
 			char revTraceChar = revTraceSeq[revAlignmentPos];
+			
+			
+			//System.out.println(String.format("fwdPos, fwdLength, revPos, revLength : %d, %d, %d, %d", fwdAlignmentPos, fwdAlignmentLength, revAlignmentPos, revAlignmentLength));
+			//System.out.println(String.format("fwdPos, fwdLength, revPos, revLength : %d, %d, %d, %d", fwdAlignmentPos, fwdAlignmentLength, revAlignmentPos, revAlignmentLength));
+			
+			
 			AlignedPoint tempPoint = null;
 
 			//System.out.println("fwdAli, revAli, fwdRef, revRef, fwdTra, revTra, fwdRC, revRc, fwdTc, revTc");
@@ -354,6 +407,7 @@ public class Formatter {
 				revAlignmentPos++;
 				revTracePos++;
 			}
+			//System.out.println(String.format("fwdPos, fwdLength, revPos, revLength : %d, %d, %d, %d", fwdAlignmentPos, fwdAlignmentLength, revAlignmentPos, revAlignmentLength));
 			//System.out.println(alignedPoints.size());
 			alignedPoints.add(tempPoint);
 		}

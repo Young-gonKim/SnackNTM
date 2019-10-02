@@ -99,7 +99,7 @@ public class RootController implements Initializable {
 	private static final String rpo = "rpo";
 	private static final String tuf = "tuf";
 	public static final int defaultGOP = 30;
-	public static final String version = "1.2.2";
+	public static final String version = "1.3.0";
 	private static final double tableRowHeight = 25.0;
 	private static String icSeq = null;
 	private static String chSeq = null;
@@ -769,6 +769,10 @@ public class RootController implements Initializable {
 									}
 									else {
 										tempTrace.makeTrimmedTrace(startTrimPosition, endTrimPosition);
+										if(tempTrace.sequenceLength <= 0) {
+											popUp("Invalid trace file: too short sequence length(<30bp) or too poor quality of sequence");
+											return;
+										}
 										confirmFwdTrace(tempTrace, false);
 									}
 
@@ -800,6 +804,10 @@ public class RootController implements Initializable {
 									}
 									else {
 										tempTrace.makeTrimmedTrace(startTrimPosition, endTrimPosition);
+										if(tempTrace.sequenceLength <= 0) {
+											popUp("Invalid trace file: too short sequence length(<30bp) or too poor quality of sequence");
+											return;
+										}
 										//make complement
 										tempTrace.makeComplement();
 										confirmRevTrace(tempTrace, false);
@@ -1092,15 +1100,15 @@ public class RootController implements Initializable {
 	}
 
 
-	public void handleCSV() {
+	public void handleTSV() {
 		if(sampleList == null || sampleList.size() ==0) return;
 		Stage dialog = new Stage(StageStyle.DECORATED);
 		dialog.initOwner(primaryStage);
-		dialog.setTitle("CSV");
+		dialog.setTitle("TSV");
 		Parent parent;
 		try {
-			parent = FXMLLoader.load(getClass().getResource("csv.fxml"));
-			TextArea ta_csv = (TextArea)parent.lookup("#ta_csv");
+			parent = FXMLLoader.load(getClass().getResource("tsv.fxml"));
+			TextArea ta_tsv = (TextArea)parent.lookup("#ta_tsv");
 
 			Sample sample;
 			String textToSet = "";
@@ -1116,7 +1124,7 @@ public class RootController implements Initializable {
 						case 1: region = "rpo";break;
 						case 2: region = "tuf";break;
 						}
-						
+
 						if(sample.fwdLoaded[j] == true && sample.revLoaded[j] == false)
 							direction = "_F";
 						else if(sample.fwdLoaded[j] == false && sample.revLoaded[j] == true)
@@ -1126,7 +1134,7 @@ public class RootController implements Initializable {
 							if(ntm.getScore()>=98) {
 								//textToSet += ntm.getQlen() + "\t\t" + ntm.getScoreProperty() + "\t" + ntm.getAccession() + "\t" + ntm.getSpeciesName() + "\n";
 								textToSet += sample.sampleId + "-" + region+ direction + "\t" + ntm.getQlen() + "\t" + ntm.getScoreProperty() + "\t" + ntm.getAccession() + "\t" + ntm.getSpeciesName() + "\n";
-								
+
 							}
 						}
 					}
@@ -1134,7 +1142,7 @@ public class RootController implements Initializable {
 			}
 
 
-			ta_csv.setText(textToSet);
+			ta_tsv.setText(textToSet);
 
 			Button okButton = (Button) parent.lookup("#okButton");
 			okButton.setOnAction(event->dialog.close());
@@ -1199,10 +1207,10 @@ public class RootController implements Initializable {
 		Parent parent;
 		try {
 			parent = FXMLLoader.load(getClass().getResource("consensus.fxml"));
-			TextArea ta_csv = (TextArea)parent.lookup("#ta_consensus");
+			TextArea ta_tsv = (TextArea)parent.lookup("#ta_consensus");
 
 
-			ta_csv.setText(consensusSeq);
+			ta_tsv.setText(consensusSeq);
 			Scene scene = new Scene(parent);
 			dialog.setScene(scene);
 			dialog.setResizable(false);
@@ -1236,6 +1244,11 @@ public class RootController implements Initializable {
 		if(sample.revLoaded[context] == true) {
 			revAp = mma.localAlignment(refSeq, sample.trimmedRevTrace[context].getSequence());
 		}
+		
+		if(sample.fwdLoaded[context] == true && sample.revLoaded[context] == true) {
+			sample.alignedPoints[context] = formatter.format3(fwdAp, revAp, sample.trimmedFwdTrace[context], sample.trimmedRevTrace[context]);
+		}
+
 		if(sample.fwdLoaded[context] == true && sample.revLoaded[context] == false) {
 			sample.alignedPoints[context] = formatter.format2(fwdAp, sample.trimmedFwdTrace[context], 1);
 		}
@@ -1244,9 +1257,6 @@ public class RootController implements Initializable {
 			sample.alignedPoints[context] = formatter.format2(revAp, sample.trimmedRevTrace[context], -1);
 		}
 		//When both of fwd trace and rev trace are given
-		else  if(sample.fwdLoaded[context] == true && sample.revLoaded[context] == true) {
-			sample.alignedPoints[context] = formatter.format3(fwdAp, revAp, sample.trimmedFwdTrace[context], sample.trimmedRevTrace[context]);
-		}
 		sample.formatter[context] = formatter;
 	}
 
@@ -1420,6 +1430,7 @@ public class RootController implements Initializable {
 			}
 		}
 
+
 		int inputLength = 0;
 		if(sample.fwdLoaded[context] && !sample.revLoaded[context]) 
 			inputLength = sample.trimmedFwdTrace[context].getSequenceLength();
@@ -1434,7 +1445,8 @@ public class RootController implements Initializable {
 			inputLength = Integer.max(ap.getStart1(), ap.getStart2()) 
 					+ Integer.max(sample.trimmedFwdTrace[context].getSequenceLength()-ap.getStart1(),  sample.trimmedRevTrace[context].getSequenceLength()-ap.getStart2());
 		}
-		if(inputLength == 0) return;
+		
+		//if(inputLength == 0) return;
 
 		Vector<NTMSpecies> removeList = new Vector<NTMSpecies>();
 		for(int i=0;i<sample.speciesList[context].size();i++) {
@@ -1449,7 +1461,9 @@ public class RootController implements Initializable {
 			}
 
 			//너무 짧게 align된 것들은 버림.
-			double alignedPortion = sample.alignedPoints[context].size() / (double)inputLength;
+			double alignedPortion = 0;
+			if(inputLength!=0)
+				alignedPortion = sample.alignedPoints[context].size() / (double)inputLength;
 			if(alignedPortion < 0.5) {
 				removeList.add(thisSpecies);
 				continue;
@@ -1491,7 +1505,7 @@ public class RootController implements Initializable {
 				ex.printStackTrace();
 			}
 
-			
+
 			sample.selectedSpeciesList[context] = new Vector<NTMSpecies>();
 			for(NTMSpecies ntm:sample.speciesList[context]) {
 				double cutoff = 99;
@@ -1710,7 +1724,6 @@ public class RootController implements Initializable {
 			ImageView imageView = new ImageView(fxImage);
 			fwdPane.setContent(imageView);
 			// 시작점에 화면 align
-			adjustFwdPane(formatter.fwdTraceAlignStartPoint);
 			fwdTraceFileLabel.setText(sample.fwdTraceFileName[context]);
 		}
 		else if(sample.fwdTraceFileName[context] != null) {
@@ -1727,7 +1740,6 @@ public class RootController implements Initializable {
 			javafx.scene.image.Image fxImage2 = SwingFXUtils.toFXImage(awtImage2, null);
 			ImageView imageView2 = new ImageView(fxImage2);
 			revPane.setContent(imageView2);
-			adjustRevPane(formatter.revTraceAlignStartPoint);
 			revTraceFileLabel.setText(sample.revTraceFileName[context]);
 		}
 		else if(sample.revTraceFileName[context] != null) {
@@ -1740,38 +1752,56 @@ public class RootController implements Initializable {
 		}
 	}
 
-	/**
-	 * Focuses the designated point on the forward trace pane
-	 * @param fwdTraceIndex : the point to be focused
-	 */
-	private void adjustFwdPane(int fwdTraceIndex) {
+	
+	private void adjustFwdRevPane(AlignedPoint ap) {
+		double fwdCoordinate=0, revCoordinate=0;
+		double hValue=0;
+
 		Sample sample = sampleList.get(selectedSample);
 		Formatter formatter = sample.formatter[context];
-		if(formatter.fwdNewLength <= paneWidth) return;
-		if(fwdTraceIndex >sample.trimmedFwdTrace[context].getBaseCalls().length)
-			fwdTraceIndex = sample.trimmedFwdTrace[context].getBaseCalls().length;
-		double coordinate = formatter.fwdStartOffset + sample.trimmedFwdTrace[context].getBaseCalls()[fwdTraceIndex-1]*2;
-		double hValue = (coordinate - paneWidth/2) / (formatter.fwdNewLength - paneWidth);
-		fwdPane.setHvalue(hValue);
+		//System.out.println(String.format("fwdImageLength : %d, revImageLength : %d", formatter.fwdNewLength, formatter.revNewLength));
+		//System.out.println(String.format("fwdTraceIndex : %d, revTraceIndex : %d", ap.getFwdTraceIndex(), ap.getRevTraceIndex()));
+		
+		if(sample.fwdLoaded[context]) {
+			fwdCoordinate = formatter.fwdStartOffset + sample.trimmedFwdTrace[context].getBaseCalls()[ap.getFwdTraceIndex()-1]*2;
+		}
+
+		if(sample.revLoaded[context]) {
+			revCoordinate = formatter.revStartOffset + sample.trimmedRevTrace[context].getBaseCalls()[ap.getRevTraceIndex()-1]*2;
+		}
+		//System.out.println(String.format("fwdCoordinate : %f, revCoordinate : %f", fwdCoordinate, revCoordinate));
+
+		if(sample.fwdLoaded[context] && sample.revLoaded[context]) {
+			
+			// 양쪽끝 튀어나온부분 처리.
+			if(ap.getFwdTraceIndex() == 1 || ap.getRevTraceIndex() == 1) {	
+				fwdCoordinate = Double.min(fwdCoordinate, revCoordinate);
+				revCoordinate = Double.min(fwdCoordinate, revCoordinate);
+			}
+			
+			if(ap.getFwdTraceIndex() >= sample.trimmedFwdTrace[context].getSequenceLength() || ap.getRevTraceIndex() >= sample.trimmedRevTrace[context].getSequenceLength()) {	
+				fwdCoordinate = Double.max(fwdCoordinate, revCoordinate);
+				revCoordinate = Double.max(fwdCoordinate, revCoordinate);
+			}
+		}
+		
+		if(sample.fwdLoaded[context]) {
+			
+			hValue = (fwdCoordinate - paneWidth/2) / (formatter.fwdNewLength - paneWidth);
+			if(formatter.fwdNewLength > paneWidth)
+				fwdPane.setHvalue(hValue);
+		}
+	
+		if(sample.revLoaded[context]) {
+			hValue = (revCoordinate - paneWidth/2) / (formatter.revNewLength - paneWidth);
+			if(formatter.revNewLength > paneWidth)
+				revPane.setHvalue(hValue);
+		}
 	}
 
-	/**
-	 * Focuses the designated point on the reverse trace pane
-	 * @param revTraceIndex : the point to be focused
-	 */
-	private void adjustRevPane(int revTraceIndex) {
-		Sample sample = sampleList.get(selectedSample);
-		Formatter formatter = sample.formatter[context];
-		if(formatter.revNewLength <= paneWidth) return;
-		if(revTraceIndex > sample.trimmedRevTrace[context].getBaseCalls().length)
-			revTraceIndex = sample.trimmedRevTrace[context].getBaseCalls().length;
 
-		double coordinate = formatter.revStartOffset + sample.trimmedRevTrace[context].getBaseCalls()[revTraceIndex-1]*2;
 
-		double hValue = (coordinate - paneWidth/2) / (formatter.revNewLength - paneWidth);
-		revPane.setHvalue(hValue);
 
-	}
 
 	/**
 	 * Focuses the designated point on the alignment pane
@@ -1791,13 +1821,7 @@ public class RootController implements Initializable {
 
 	/**
 	 * Focuses on the designated points (Alignment pane, forward trace pane, reverse trace pane)
-	 * @param selectedAlignmentPos : position to be focused on the alignment pane
-	 * @param selectedFwdPos : position to be focused on the forward trace pane
-	 * @param selectedRevPos : position to be focused on the reverse trace pane
-	 * @param fwdChar : If it is gap, not focused
-	 * @param revChar : If it is gap, not focused
 	 */
-	//public void focus(int selectedAlignmentPos, int selectedFwdPos, int selectedRevPos, char fwdChar, char revChar) {
 
 	public void focus(int selectedAlignmentPos) {
 		Sample sample = sampleList.get(selectedSample);
@@ -1866,7 +1890,6 @@ public class RootController implements Initializable {
 			ImageView imageView = new ImageView(fxImage);
 			fwdPane.setContent(imageView);
 
-			adjustFwdPane(selectedFwdPos);
 		}
 		if(sample.revLoaded[context]) {
 			for(int i=0; i<sample.alignedPoints[context].size();i++) {
@@ -1897,8 +1920,10 @@ public class RootController implements Initializable {
 			ImageView imageView2 = new ImageView(fxImage2);
 			revPane.setContent(imageView2);
 
-			adjustRevPane(selectedRevPos);
+			
 		}
+		adjustFwdRevPane(ap);
+
 	}
 
 	/**

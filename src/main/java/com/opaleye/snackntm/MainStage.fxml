@@ -131,7 +131,7 @@
          </font>
       </Label>
       <Separator layoutX="1082.0" orientation="VERTICAL" prefHeight="847.0" prefWidth="0.0" />
-      <Button layoutX="949.0" layoutY="612.0" mnemonicParsing="false" onAction="#handleCSV" prefHeight="23.0" prefWidth="126.0" text="Generate CSV" />
+      <Button layoutX="949.0" layoutY="612.0" mnemonicParsing="false" onAction="#handleTSV" prefHeight="23.0" prefWidth="126.0" text="Generate TSV" />
       <Button layoutX="816.0" layoutY="204.0" mnemonicParsing="false" onAction="#handleFwdEditTrimming" prefHeight="23.0" prefWidth="126.0" text="Edit Trimming" />
       <Button layoutX="816.0" layoutY="407.0" mnemonicParsing="false" onAction="#handleRevEditTrimming" prefHeight="23.0" prefWidth="126.0" text="Edit Trimming" />
       <Button fx:id="fwdZoomInButton" layoutX="1050.0" layoutY="230.0" mnemonicParsing="false" onAction="#handleFwdZoomIn" prefHeight="83.0" prefWidth="28.0" text="+" />

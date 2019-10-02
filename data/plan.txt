@@ -1,46 +1,40 @@
-1. conclusion을 내는 알고리즘 상 16s에서 100%가 단독으로 나오면 rpo 값과 상관없이 해당 species로 결론을 내고 있는데, 
-   snackNTM 상에서는 16s에서 100% 단독으로 나오더라도 rpo 기준에 맞지 않으면 conclusion이 없음으로 나오고 있습니다.
+* 개선사항
+1. Trimming 
+: sequencher랑 유사하게 하려고했으나 무언가 추가조건이 있는듯. 5'은 대부분 똑같이. 3'은 대부분 비슷하지만 일부에서 sequencher보다 조금 느슨하게.
+처음 제가 쓰던 criteria보다 1.2.1에서는 약간 더 느슨하게 trimming되기 때문에
+5', 3'쪽에서의 basecalling에러가 일부 포함되고 있다.
 
-->
-말씀하신것 처럼 16s에서 cutoff를 넘긴 종들이 있더라도 그 종들이 rpo, tuf의 cutoff를 못넘기면 제외되는 현상이 있었습니다. 
-이에 16s cutoff를 넘긴 종들과 rpo cutoff를 넘긴 종들을 교집합해서 교집합이 있으면 그 결과를 사용하고 없으면 rpo 결과는 무시하고 16s 결과를 그대로 살리는 방식으로 했습니다.
-tuf에 대해서도 같은 방식으로 적용했습니다.
+trimming을 약간 공격적으로 하고 하나의 균으로 동정이 안될때 edit trimming으로 범위를 넓혀보는 방법
+trimming을 지금처럼 느슨하게 하고 5', 3' 말단에서 생길수 있는 basecalling 에러를 직접 수정하는 방법
 
-2. 전체 샘플 분석을 시행한 후, rpo 시퀀스를 활성화한 상태에서 다른 샘플로 넘어가면 프로그램이 다운되는 현상이 있습니다.
-- 재현 실패.  
-n batch 돌리는 동안 문제가 없었다. 혹시 몇 case 돌리셨는지요?
-일단 memory 문제는 아닐까 하여 기존에 90%이상 match 되는 종들을 화면 하단에 보여주던 것을 95% 이상 match 되는 종들만 포함되도록 줄였다.
-해당 현상이 나타날 때 도스창을 최대한 길게 캡쳐해서 보내주시면 도움이 될것 같다.
 
-3. 아예 시퀀스를 읽을 수 없는 invalid sample의 경우 다른 샘플을 보다가 해당 샘플로 넘어가면 화면상에서 이전 보던 샘플의 결과표가 남아 있습니다.
-- 말씀하신 증상을 확인했고 수정했습니다.
- 
-4. 분석이 끝난 샘플의 consensus sequence를 txt로 출력하는 기능이 필요합니다.
-- consensus sequence는 alignment에 dependent. 현재는 reference + fwd + rev 세개를 align한  상태에서 fwd와 rev중에서 quality가 높은 것을 선택하여 consensus 시퀀스. 
-  화면상에서 칸에 맞게 보여주기 위해서는 이 방법이 좋다. reference(species)가 바뀌면 consensus seq.도 바뀌게 된다.
-  
-  txt로 출력할때는 동정된 species 기준으로 align해서 consensus seq.를 출력하면 될지, 아니면 별도로 reference sequence는 제외하고 fwd, rev만 따로 alignment 시킨다음 새로운 consensus sequence를 만들면 될지 ?
-  
-  
-Window 10에서 cmd 창을 클릭하면 클릭한 부분이 block설정되면서 실행이 멈추는 현상. 우클릭 하면 다시 진행.  
-  
-  
-fwd, rev만 따로 align하여  
+보내주신 예시의 경우 167건 중에 
+CGAACGG[]AA는 없지만 CGAACGG[T]AA 를 포함해서 다른 variation들이 있는 것 같아 모두 GG[A]AA로 바꾸기는 어려움
+향후 Machine learning등 계획중이신 Basecalling을 향상시키는 연구를 통해 일반화 할수 있는 개선안이 유용할 것으로 생각됩니다. 
 
+
+
+- 5', 3' 말단에서 fwd, rev중 한 쪽에만 trace가 존재하는곳의 화면 scroll -->처리.  
+- generate TSV (CSV->TSV), 모든 case, 모든 region에 대해  
+
+sequencher basecalling 다르다
+double peak 
+
+
+fwd, rev 서로 align 안될때. (둘 다 poor quality, trimming 너무많이 되어서 짧게 남았을때)
+: 둘중에 긴걸로?
+둘 다 보려면 별도로 프로그램을 하나 더 열어서 반대쪽도 evaluation  
 
 
 
 *추가
-- Progress bar
-- 속도개선..
 
 
 * 나중에
-fwd,rev 만으로 consensus seq?
-ProgressBar
-settings : 바꾸고 나면 파일 새로 읽어야 함, makeHeader, fillResult 다시한 번 호출.
+- Progress bar
+- 속도개선..
 
-trimming 정책 
+settings? : 바꾸고 나면 파일 새로 읽어야 함, Font 크기 바꾸면 makeHeader, fillResult 다시한 번 호출.
 
 
 
@@ -59,5 +53,5 @@ if(fwdChar == Formatter.gapChar) {
 trimming 자동으로 일단 한후 (Hetero indel 있을때를위한 trimming 기준 새로 만들어야겠지)
 edit trimming 버튼
 
-
+adjustFwdRevPane
 

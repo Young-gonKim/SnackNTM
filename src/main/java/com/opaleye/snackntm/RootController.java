@@ -1249,7 +1249,7 @@ public class RootController implements Initializable {
 			sample.alignedPoints[context] = formatter.format3(fwdAp, revAp, sample.trimmedFwdTrace[context], sample.trimmedRevTrace[context]);
 		}
 
-		if(sample.fwdLoaded[context] == true && sample.revLoaded[context] == false) {
+		else if(sample.fwdLoaded[context] == true && sample.revLoaded[context] == false) {
 			sample.alignedPoints[context] = formatter.format2(fwdAp, sample.trimmedFwdTrace[context], 1);
 		}
 		//When only rev trace is given as input
@@ -1390,6 +1390,7 @@ public class RootController implements Initializable {
 			Sample sample = sampleList.get(selectedSample);
 			for(context=0;context<3;context++) {
 				if(sample.fwdLoaded[context] || sample.revLoaded[context]) {
+					
 					actualRun();
 				}
 			}
@@ -1417,6 +1418,7 @@ public class RootController implements Initializable {
 	 * 현재 설정된 target (selectedSample, context)에 대해 speciesList, selectedSpeciesList를 새로 만듬.  
 	 */
 	private void actualRun() {
+		System.out.println("came here2");
 		Sample sample = sampleList.get(selectedSample);
 
 		//speciesList 초기화. NTMSpecies 객체부터 새로 만들어야 함. globalSpeciesList 건드리면 안됨.
@@ -1481,7 +1483,6 @@ public class RootController implements Initializable {
 			d_score = (double)i_score / (double)sample.alignedPoints[context].size();
 			d_score*=100;
 
-			//score 너무 낮은것들 버림
 			if(d_score < 95) {
 				removeList.add(thisSpecies);
 				continue;
@@ -1523,6 +1524,21 @@ public class RootController implements Initializable {
 			sample.finalList = updateFinalList();
 		}
 		else sample.alignmentPerformed[context] = false;
+		
+		// fwd, rev 겹치는 영역 없어서 이럴때는 더 긴거 하나로만 다시.
+		if(sample.fwdLoaded[context] && sample.revLoaded[context] && !sample.alignmentPerformed[context]) {
+			System.out.println("came here");
+			if(sample.trimmedFwdTrace[context].sequenceLength >= sample.trimmedRevTrace[context].sequenceLength) {
+				sample.revLoaded[context] = false;
+				sample.revTraceFileName[context] = "(Not used)";
+			}
+			else {
+				sample.fwdLoaded[context] = false;
+				sample.fwdTraceFileName[context] = "(Not Used)"; 
+			}
+			actualRun();
+		}
+		
 	}
 
 	private void makeEmptyHeader() {

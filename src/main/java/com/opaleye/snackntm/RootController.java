@@ -1239,10 +1239,10 @@ public class RootController implements Initializable {
 		AlignedPair revAp = null;
 
 		if(sample.fwdLoaded[context] == true) {
-			fwdAp = mma.localAlignment(refSeq, sample.trimmedFwdTrace[context].getSequence());
+			fwdAp = mma.localAlignmentPadding(refSeq, sample.trimmedFwdTrace[context].getSequence());
 		}
 		if(sample.revLoaded[context] == true) {
-			revAp = mma.localAlignment(refSeq, sample.trimmedRevTrace[context].getSequence());
+			revAp = mma.localAlignmentPadding(refSeq, sample.trimmedRevTrace[context].getSequence());
 		}
 		
 		if(sample.fwdLoaded[context] == true && sample.revLoaded[context] == true) {
@@ -1418,7 +1418,6 @@ public class RootController implements Initializable {
 	 * 현재 설정된 target (selectedSample, context)에 대해 speciesList, selectedSpeciesList를 새로 만듬.  
 	 */
 	private void actualRun() {
-		System.out.println("came here2");
 		Sample sample = sampleList.get(selectedSample);
 
 		//speciesList 초기화. NTMSpecies 객체부터 새로 만들어야 함. globalSpeciesList 건드리면 안됨.
@@ -1527,7 +1526,6 @@ public class RootController implements Initializable {
 		
 		// fwd, rev 겹치는 영역 없어서 이럴때는 더 긴거 하나로만 다시.
 		if(sample.fwdLoaded[context] && sample.revLoaded[context] && !sample.alignmentPerformed[context]) {
-			System.out.println("came here");
 			if(sample.trimmedFwdTrace[context].sequenceLength >= sample.trimmedRevTrace[context].sequenceLength) {
 				sample.revLoaded[context] = false;
 				sample.revTraceFileName[context] = "(Not used)";

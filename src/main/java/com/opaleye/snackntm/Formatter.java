@@ -354,7 +354,7 @@ public class Formatter {
 				revAlignmentPos++;
 				revTracePos++;
 			}
-
+			//System.out.println(alignedPoints.size());
 			alignedPoints.add(tempPoint);
 		}
 

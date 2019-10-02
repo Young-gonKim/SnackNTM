@@ -49,6 +49,7 @@ if(fwdChar == Formatter.gapChar) {
 				else awtImage = sample.trimmedFwdTrace[context].getShadedImage(1, tempFwdPos-1, tempFwdPos-1, sample.formatter[context]);
 
 
+끝에있는것도 반영
 
 trimming 자동으로 일단 한후 (Hetero indel 있을때를위한 trimming 기준 새로 만들어야겠지)
 edit trimming 버튼

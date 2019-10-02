@@ -3,11 +3,10 @@ package com.opaleye.snackntm.mmalignment;
 public class AlignedPair {
 	private String alignedString1 = null;
 	private String alignedString2 = null;
-	private int start1 = 0;
-	private int start2 = 0;
+	private int start1, start2 = 0;
+	private int end1, end2 = 0;
 	
 	public AlignedPair(String alignedString1, String alignedString2) {
-		super();
 		this.alignedString1 = alignedString1;
 		this.alignedString2 = alignedString2;
 	}
@@ -54,4 +53,21 @@ public class AlignedPair {
 		this.start2 = start2;
 	}
 
+	public int getEnd1() {
+		return end1;
+	}
+
+	public void setEnd1(int end1) {
+		this.end1 = end1;
+	}
+
+	public int getEnd2() {
+		return end2;
+	}
+
+	public void setEnd2(int end2) {
+		this.end2 = end2;
+	}
+
+	
 }

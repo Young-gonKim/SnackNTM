@@ -2,6 +2,7 @@ package com.opaleye.snackntm.mmalignment;
 
 import java.io.File;
 
+import com.opaleye.snackntm.Formatter;
 import com.opaleye.snackntm.GanseqTrace;
 import com.opaleye.snackntm.RootController;
 import com.opaleye.snackntm.reference.ReferenceSeq;
@@ -129,10 +130,10 @@ public class MMAlignment {
 	public void computeCCDD(char[] s1, char[] s2, double tbte ) {
 		int M = s1.length;
 		int N = s2.length;
-		
+
 		short[] intArray1 = getIntArray (s1);
 		short[] intArray2 = getIntArray (s2);
-				
+
 		double e=0, c=0, s=0, t=0;
 
 		CC[0] = 0;
@@ -155,10 +156,10 @@ public class MMAlignment {
 			for(int j=1;j<=N;j++) {
 				if(e<c+gapOpenPenalty) e = e+h;
 				else e = c+gapOpenPenalty+h;
-				
+
 				if(DD[j] < CC[j]+gapOpenPenalty) DD[j] = DD[j]+h;
 				else DD[j] = CC[j]+gapOpenPenalty+h;
-				
+
 				if(DD[j] < e) c = DD[j];
 				else c = e;
 
@@ -178,10 +179,10 @@ public class MMAlignment {
 	public void computeRRSS(char[] s1, char[] s2, double tbte ) {
 		int M = s1.length;
 		int N = s2.length;
-		
+
 		short[] intArray1 = getIntArray (s1);
 		short[] intArray2 = getIntArray (s2);
-				
+
 		double e=0, c=0, s=0, t=0;
 
 		RR[0] = 0;
@@ -204,10 +205,10 @@ public class MMAlignment {
 			for(int j=1;j<=N;j++) {
 				if(e<c+gapOpenPenalty) e = e+h;
 				else e = c+gapOpenPenalty+h;
-				
+
 				if(SS[j] < RR[j]+gapOpenPenalty) SS[j] = SS[j]+h;
 				else SS[j] = RR[j]+gapOpenPenalty+h;
-				
+
 				if(SS[j] < e) c = SS[j];
 				else c = e;
 
@@ -357,8 +358,16 @@ public class MMAlignment {
 		return diff(inputString1, inputString2, gapOpenPenalty, gapOpenPenalty);
 	}
 
+	/**
+	 * 
+	 * @param s1
+	 * @param s2
+	 * @param option : 1이면 앞뒤 padding, 0이면 안함
+	 * @return
+	 */
 	public AlignedPair localAlignment(String s1, String s2) {
 		int start1 = 0, start2 = 0;
+		int end1 = 0, end2 = 0;
 		//long timeStamp = System.currentTimeMillis();
 
 		s1 = s1.toUpperCase();
@@ -366,6 +375,9 @@ public class MMAlignment {
 
 		firstScan(s1.toCharArray(),  s2.toCharArray());
 		//System.out.println("time1 : " + (System.currentTimeMillis() - timeStamp));
+
+		end1 = maxI;
+		end2 = maxJ;
 
 		s1 = s1.substring(0,maxI);
 		s2 = s2.substring(0,maxJ);
@@ -379,12 +391,12 @@ public class MMAlignment {
 		start1 = revS1.length() - maxI;
 		start2 = revS2.length() - maxJ;
 
-		
+
 		revS1 = revS1.substring(0,maxI);
 		revS2 = revS2.substring(0,maxJ);
-		
-		
-	//	System.out.println("start1 : " + start1 + ", start2 : " + start2);
+
+
+		//	System.out.println("start1 : " + start1 + ", start2 : " + start2);
 
 		s1 = getReverse(revS1);
 		s2 = getReverse(revS2);
@@ -392,14 +404,149 @@ public class MMAlignment {
 		AlignedPair ret = globalAlignment(s1, s2);
 		ret.setStart1(start1);
 		ret.setStart2(start2);
-		//System.out.println("time4 : " + (System.currentTimeMillis() - timeStamp));
-		return ret;
-	}
+		ret.setEnd1(end1);
+		ret.setEnd2(end2);
 
+		//System.out.println("time4 : " + (System.currentTimeMillis() - timeStamp));
+	return ret;
+		
+	}
 	
+	public AlignedPair localAlignmentPadding (String s1, String s2) {
+		AlignedPair ap =  localAlignment(s1, s2);
+		int start1 = ap.getStart1(), start2 = ap.getStart2();
+		int newStart1 = 0, newStart2 = 0;	//이거를 newstart1 = start1 이렇게 하면 에러남. deep copy 아님.. 
+		int end1 = ap.getEnd1(), end2 = ap.getEnd2();
+		int newEnd1 =0, newEnd2 = 0;
+		
+		String newS1 = new String(s1);
+		String newS2 = new String(s2);
+
+		newS1 = s1.substring(start1-start2, start1) + newS1;
+		newS2 = s2.substring(0, start2) + newS2;
+		newStart1 = start1-start2;
+		newStart2 = 0;
+		newS1 += s1.substring(end1, end1+s2.length()-end2);
+		newS2 += s2.substring(end2, s2.length());
+		newEnd1 = end1 + (s2.length()-end2);
+		newEnd2 = s2.length();
+
+		
+		/*
+		//start1 < start2 일때도 고려해야함...ㅠㅠ 붙여줄수 있는만큼 붙여줘야.. 머리 맑을때 합시다.
+		
+		if(start1-start2>=0 && start2 > 0) {
+			newS1 = s1.substring(start1-start2, start1) + newS1;
+			newS2 = s2.substring(0, start2) + newS2;
+			newStart1 = start1-start2;
+			newStart2 = 0;
+		}
+		
+		if(end1+s2.length()-end2 <= s1.length() && end2<s2.length()) {
+			newS1 += s1.substring(end1, end1+s2.length()-end2);
+			newS2 += s2.substring(end2, s2.length());
+			newEnd1 = end1 + (s2.length()-end2);
+			newEnd2 = s2.length();
+		}
+		
+		*/
+
+		
+		AlignedPair ret = new AlignedPair(newS1, newS2);
+		ret.setStart1(newStart1);
+		ret.setStart2(newStart2);
+		ret.setEnd1(newEnd1);
+		ret.setEnd2(newEnd2);
+
+
+		
+
+
+		/*
+		AlignedPair leftPad = new AlignedPair(s1.substring(start1-start2, start1), s2.substring(0, start2));
+		AlignedPair rightPad = new AlignedPair(s1.substring(end1, end1+s2.length()-end2), s2.substring(end2, s2.length()));
+		ret = ret.addLeft(leftPad);
+		ret = ret.addRight(rightPad);
+		ret.setStart1(start1-start2);
+		ret.setStart2(0);
+		ret.setEnd1(end1 + (s2.length()-end2));
+		ret.setEnd2(s2.length());
+
+		System.out.println("start1 : " + ret.getStart1());
+		System.out.println("start2 : " + ret.getStart2());
+		System.out.println("end1 : " + ret.getEnd1());
+		System.out.println("end2 : " + ret.getEnd2());
+		*/
+		
+		return ret;
+
+	}
+			
+
+				
+			/*
+			s1 = originalS1; s2 = originalS2;
+			if(start1-start2>=0 && start2 > 0) {
+				AlignedPair leftPad = new AlignedPair(s1.substring(start1-start2, start1), s2.substring(0, start2));
+				ret = ret.addLeft(leftPad);
+				ret.setStart1(start1-start2);
+				ret.setStart2(0);
+			}
+
+			if(end1+s2.length()-end2 <= s1.length() && end2<s2.length()) {
+				AlignedPair rightPad = new AlignedPair(s1.substring(end1, end1+s2.length()-end2), s2.substring(end2, s2.length()));
+				ret = ret.addRight(rightPad);
+				ret.setEnd1(end1 + (s2.length()-end2));
+				ret.setEnd2(s2.length());
+			}
+
+
+			ret.printStrings();
+			System.out.println("start1 : " + ret.getStart1());
+			System.out.println("start2 : " + ret.getStart2());
+			System.out.println("end1 : " + ret.getEnd1());
+			System.out.println("end2 : " + ret.getEnd2());
+			 */
+
+
+
+		
+
 	public void setGapOpenPenalty(double gapOpenPenalty) {
 		this.gapOpenPenalty = gapOpenPenalty;
 	}
-	
-	
+
+	public static void main(String[] args) {
+		MMAlignment mma = new MMAlignment();
+		String s1 = "GGAAATTTTTTTAAATT";
+		String s2 = "CCCTTTTTTCCC";
+		AlignedPair ret =  mma.localAlignmentPadding(s1, s2);
+
+		ret.printStrings();
+		System.out.println("start1 : " + ret.getStart1() + ", start2 : " + ret.getStart2());
+		System.out.println("end1 : " + ret.getEnd1() + ", end2 : " + ret.getEnd2());
+
+		int start1 = ret.getStart1(), start2 = ret.getStart2();
+		int end1 = ret.getEnd1(), end2 = ret.getEnd2();
+		/*
+		AlignedPair leftPad = new AlignedPair(s1.substring(start1-start2, start1), s2.substring(0, start2));
+		AlignedPair rightPad = new AlignedPair(s1.substring(end1, end1+s2.length()-end2),
+				s2.substring(end2, s2.length()));
+
+		ret = ret.addLeft(leftPad);
+		ret = ret.addRight(rightPad);
+		ret.setStart1(start1-start2);
+		ret.setStart2(0);
+		ret.setEnd1(end1 + (s2.length()-end2));
+		ret.setEnd2(s2.length());
+
+		ret.printStrings();
+		System.out.println("start1 : " + ret.getStart1());
+		System.out.println("start2 : " + ret.getStart2());
+		System.out.println("end1 : " + ret.getEnd1());
+		System.out.println("end2 : " + ret.getEnd2());
+		 */
+
+
+	}
 }

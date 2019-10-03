@@ -14,27 +14,35 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="847.0" prefWidth="1400.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.opaleye.snackntm.RootController">
+<AnchorPane prefHeight="847.0" prefWidth="1400.0" xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.opaleye.snackntm.RootController">
    <children>
       <ToolBar layoutX="5.0" layoutY="20.0" prefHeight="43.0" prefWidth="1072.0">
          <items>
             <HBox prefHeight="33.0" prefWidth="1060.0" spacing="10.0">
                <children>
                   <Button fx:id="OpenTraceButton" mnemonicParsing="false" onAction="#handleOpenTrace" prefHeight="23.0" prefWidth="169.0" text="Open Trace Files" />
-                  <HBox prefHeight="23.0" prefWidth="472.0" spacing="10.0">
+                  <HBox prefHeight="23.0" prefWidth="334.0" spacing="10.0">
                      <children>
                         <Label prefHeight="15.0" prefWidth="98.0" text="Target Region : " />
-                        <RadioButton fx:id="s16Radio" mnemonicParsing="false" prefHeight="16.0" prefWidth="97.0" text="16S rRNA" />
-                        <RadioButton fx:id="rpoRadio" mnemonicParsing="false" prefHeight="16.0" prefWidth="69.0" text="rpoB" />
-                        <RadioButton fx:id="tufRadio" mnemonicParsing="false" prefHeight="16.0" prefWidth="97.0" text="tuf" />
+                        <RadioButton fx:id="s16Radio" mnemonicParsing="false" prefHeight="16.0" prefWidth="78.0" text="16S rRNA" />
+                        <RadioButton fx:id="rpoRadio" mnemonicParsing="false" prefHeight="16.0" prefWidth="53.0" text="rpoB" />
+                        <RadioButton fx:id="tufRadio" mnemonicParsing="false" prefHeight="16.0" prefWidth="54.0" text="tuf" />
                      </children>
                      <HBox.margin>
                         <Insets />
                      </HBox.margin>
                   </HBox>
-                  <HBox alignment="CENTER_RIGHT" prefHeight="23.0" prefWidth="492.0" spacing="5.0">
+                  <VBox prefHeight="23.0" prefWidth="116.0">
+                     <children>
+                        <RadioButton fx:id="fwdRadio" mnemonicParsing="false" text="Fwd Only" />
+                        <RadioButton fx:id="revRadio" mnemonicParsing="false" text="Rev Only" />
+                     </children>
+                  </VBox>
+                  <Separator orientation="VERTICAL" prefHeight="200.0" />
+                  <HBox alignment="CENTER_RIGHT" prefHeight="23.0" prefWidth="396.0" spacing="5.0">
                      <children>
                         <Button fx:id="btnEditBase" mnemonicParsing="false" onAction="#handleEditBase" prefHeight="23.0" prefWidth="99.0" text="Edit base">
                            <HBox.margin>
@@ -131,7 +139,7 @@
          </font>
       </Label>
       <Separator layoutX="1082.0" orientation="VERTICAL" prefHeight="847.0" prefWidth="0.0" />
-      <Button layoutX="949.0" layoutY="612.0" mnemonicParsing="false" onAction="#handleTSV" prefHeight="23.0" prefWidth="126.0" text="Generate TSV" />
+      <Button layoutX="949.0" layoutY="612.0" mnemonicParsing="false" onAction="#handleTSVAll" prefHeight="23.0" prefWidth="126.0" text="Generate TSV (All)" />
       <Button layoutX="816.0" layoutY="204.0" mnemonicParsing="false" onAction="#handleFwdEditTrimming" prefHeight="23.0" prefWidth="126.0" text="Edit Trimming" />
       <Button layoutX="816.0" layoutY="407.0" mnemonicParsing="false" onAction="#handleRevEditTrimming" prefHeight="23.0" prefWidth="126.0" text="Edit Trimming" />
       <Button fx:id="fwdZoomInButton" layoutX="1050.0" layoutY="230.0" mnemonicParsing="false" onAction="#handleFwdZoomIn" prefHeight="83.0" prefWidth="28.0" text="+" />
@@ -150,6 +158,7 @@
          </font>
       </Label>
       <GridPane fx:id="headerPane" layoutX="167.0" layoutY="88.0" prefHeight="115.0" prefWidth="97.0" />
-      <Button layoutX="835.0" layoutY="612.0" mnemonicParsing="false" onAction="#handleConsensusSeq" prefHeight="23.0" prefWidth="108.0" text="Consensus Seq" />
+      <Button layoutX="641.0" layoutY="612.0" mnemonicParsing="false" onAction="#handleConsensusSeq" prefHeight="23.0" prefWidth="108.0" text="Consensus Seq" />
+      <Button layoutX="757.0" layoutY="612.0" mnemonicParsing="false" onAction="#handleTSVThisSample" prefHeight="23.0" prefWidth="185.0" text="Generate TSV (this sample)" />
    </children>
 </AnchorPane>

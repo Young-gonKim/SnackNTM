@@ -98,7 +98,7 @@ public class RootController implements Initializable {
 	private static final String s16 = "16sRNA";
 	private static final String rpo = "rpo";
 	private static final String tuf = "tuf";
-	public static final int defaultGOP = 15;
+	public static final int defaultGOP = 10;
 	public static final String version = "1.3.0";
 	private static final double tableRowHeight = 25.0;
 	private static String icSeq = null;
@@ -125,9 +125,11 @@ public class RootController implements Initializable {
 	@FXML private TableView<NTMSpecies> speciesTable, s16Table, rpoTable, tufTable, finalTable;
 	@FXML private ListView<String> sampleListView;
 
-	ToggleGroup toggleGroup = new ToggleGroup();
-
+	ToggleGroup targetRegionToggleGroup = new ToggleGroup();
+	ToggleGroup splitToggleGroup = new ToggleGroup();
 	@FXML private RadioButton s16Radio, rpoRadio, tufRadio;
+	@FXML private RadioButton fwdRadio, revRadio;
+
 	private String lastVisitedDir="f:\\GoogleDrive\\SnackNTM";
 	private Stage primaryStage;
 	public void setPrimaryStage(Stage primaryStage) {
@@ -178,20 +180,21 @@ public class RootController implements Initializable {
 
 		gapOpenPenalty = defaultGOP;
 
-		s16Radio.setToggleGroup(toggleGroup);
+		s16Radio.setToggleGroup(targetRegionToggleGroup);
 		s16Radio.setSelected(true);
-		rpoRadio.setToggleGroup(toggleGroup);
-		tufRadio.setToggleGroup(toggleGroup);
+		rpoRadio.setToggleGroup(targetRegionToggleGroup);
+		tufRadio.setToggleGroup(targetRegionToggleGroup);
 
 		s16Radio.setUserData(s16);
 		rpoRadio.setUserData(rpo);
 		tufRadio.setUserData(tuf);
 
-		toggleGroup.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
+
+		targetRegionToggleGroup.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
 			public void changed(ObservableValue<? extends Toggle> ov,
 					Toggle old_toggle, Toggle new_toggle) {
-				if (toggleGroup.getSelectedToggle() != null) {
-					String t1 = (String)toggleGroup.getSelectedToggle().getUserData();
+				if (targetRegionToggleGroup.getSelectedToggle() != null) {
+					String t1 = (String)targetRegionToggleGroup.getSelectedToggle().getUserData();
 					if(t1.equals(s16)) {
 						context = 0;
 					}
@@ -207,6 +210,39 @@ public class RootController implements Initializable {
 					if(sampleList.size()>0) {	//alignment 누르기전에 radiobutton 클릭하는 경우 방지위해
 						fillResults();
 					}
+				}                
+			}
+		});
+
+
+		fwdRadio.setToggleGroup(splitToggleGroup);
+		revRadio.setToggleGroup(splitToggleGroup);
+		fwdRadio.setUserData("fwd");
+		revRadio.setUserData("rev");
+		fwdRadio.setVisible(false);
+		revRadio.setVisible(false);
+
+		splitToggleGroup.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
+			public void changed(ObservableValue<? extends Toggle> ov, Toggle old_toggle, Toggle new_toggle) {
+				if (splitToggleGroup.getSelectedToggle() != null) {
+
+					Sample sample = sampleList.get(selectedSample);
+
+					String t1 = (String)splitToggleGroup.getSelectedToggle().getUserData();
+					if(t1.equals("fwd")) {
+						sample.fwdLoaded[context] = true;
+						sample.revLoaded[context] = false;
+						sample.fwdNotUsed[context] = false;
+						sample.revNotUsed[context] = true;
+					}
+					else if (t1.equals("rev")) { 
+						sample.fwdLoaded[context] = false;
+						sample.revLoaded[context] = true;
+						sample.fwdNotUsed[context] = true;
+						sample.revNotUsed[context] = false;
+					}
+					actualRun();
+					fillResults();
 				}                
 			}
 		});
@@ -326,6 +362,21 @@ public class RootController implements Initializable {
 
 	private void fillResults() {
 		Sample sample = sampleList.get(selectedSample);
+
+		if(sample.split[context]) {
+			fwdRadio.setVisible(true);
+			revRadio.setVisible(true);
+			if(sample.fwdLoaded[context])  
+				fwdRadio.setSelected(true);
+			else {
+				revRadio.setSelected(true);
+			}
+		}
+		else {
+			fwdRadio.setVisible(false);
+			revRadio.setVisible(false);
+		}
+
 		initTableViews(false);
 		printUnAlignedData();
 
@@ -1100,7 +1151,7 @@ public class RootController implements Initializable {
 	}
 
 
-	public void handleTSV() {
+	public void handleTSVAll() {
 		if(sampleList == null || sampleList.size() ==0) return;
 		Stage dialog = new Stage(StageStyle.DECORATED);
 		dialog.initOwner(primaryStage);
@@ -1140,6 +1191,62 @@ public class RootController implements Initializable {
 					}
 				}
 			}
+
+
+			ta_tsv.setText(textToSet);
+
+			Button okButton = (Button) parent.lookup("#okButton");
+			okButton.setOnAction(event->dialog.close());
+			Scene scene = new Scene(parent);
+
+			dialog.setScene(scene);
+			dialog.setResizable(false);
+			dialog.showAndWait();
+		}
+		catch(Exception ex) {
+			ex.printStackTrace();
+		}
+	}
+
+	public void handleTSVThisSample() {
+		if(sampleList == null || sampleList.size() ==0) return;
+		Stage dialog = new Stage(StageStyle.DECORATED);
+		dialog.initOwner(primaryStage);
+		dialog.setTitle("TSV");
+		Parent parent;
+		try {
+			parent = FXMLLoader.load(getClass().getResource("tsv.fxml"));
+			TextArea ta_tsv = (TextArea)parent.lookup("#ta_tsv");
+
+			Sample sample;
+			String textToSet = "";
+
+			sample = sampleList.get(selectedSample);
+			for(int j=0;j<3;j++) {
+				if(sample.alignmentPerformed[j]) {
+
+					String region = "", direction = "";
+					switch(j) {
+					case 0: region = "16s";break;
+					case 1: region = "rpo";break;
+					case 2: region = "tuf";break;
+					}
+
+					if(sample.fwdLoaded[j] == true && sample.revLoaded[j] == false)
+						direction = "_F";
+					else if(sample.fwdLoaded[j] == false && sample.revLoaded[j] == true)
+						direction = "_R";
+
+					for(NTMSpecies ntm : sample.speciesList[j]) {
+						if(ntm.getScore()>=98) {
+							//textToSet += ntm.getQlen() + "\t\t" + ntm.getScoreProperty() + "\t" + ntm.getAccession() + "\t" + ntm.getSpeciesName() + "\n";
+							textToSet += sample.sampleId + "-" + region+ direction + "\t" + ntm.getQlen() + "\t" + ntm.getScoreProperty() + "\t" + ntm.getAccession() + "\t" + ntm.getSpeciesName() + "\n";
+
+						}
+					}
+				}
+			}
+
 
 
 			ta_tsv.setText(textToSet);
@@ -1244,7 +1351,7 @@ public class RootController implements Initializable {
 		if(sample.revLoaded[context] == true) {
 			revAp = mma.localAlignment(refSeq, sample.trimmedRevTrace[context].getSequence());
 		}
-		
+
 		if(sample.fwdLoaded[context] == true && sample.revLoaded[context] == true) {
 			sample.alignedPoints[context] = formatter.format3(fwdAp, revAp, refSeq, sample.trimmedFwdTrace[context], sample.trimmedRevTrace[context]);
 		}
@@ -1390,7 +1497,7 @@ public class RootController implements Initializable {
 			Sample sample = sampleList.get(selectedSample);
 			for(context=0;context<3;context++) {
 				if(sample.fwdLoaded[context] || sample.revLoaded[context]) {
-					
+
 					actualRun();
 				}
 			}
@@ -1446,7 +1553,7 @@ public class RootController implements Initializable {
 			inputLength = Integer.max(ap.getStart1(), ap.getStart2()) 
 					+ Integer.max(sample.trimmedFwdTrace[context].getSequenceLength()-ap.getStart1(),  sample.trimmedRevTrace[context].getSequenceLength()-ap.getStart2());
 		}
-		
+
 		//if(inputLength == 0) return;
 
 		Vector<NTMSpecies> removeList = new Vector<NTMSpecies>();
@@ -1523,20 +1630,21 @@ public class RootController implements Initializable {
 			sample.finalList = updateFinalList();
 		}
 		else sample.alignmentPerformed[context] = false;
-		
+
 		// fwd, rev 겹치는 영역 없어서 이럴때는 더 긴거 하나로만 다시.
 		if(sample.fwdLoaded[context] && sample.revLoaded[context] && !sample.alignmentPerformed[context]) {
+			sample.split[context] = true;
 			if(sample.trimmedFwdTrace[context].sequenceLength >= sample.trimmedRevTrace[context].sequenceLength) {
+				sample.revNotUsed[context] = true;
 				sample.revLoaded[context] = false;
-				sample.revTraceFileName[context] = "(Not used)";
 			}
 			else {
+				sample.fwdNotUsed[context] = true;
 				sample.fwdLoaded[context] = false;
-				sample.fwdTraceFileName[context] = "(Not Used)"; 
 			}
 			actualRun();
 		}
-		
+
 	}
 
 	private void makeEmptyHeader() {
@@ -1740,6 +1848,13 @@ public class RootController implements Initializable {
 			// 시작점에 화면 align
 			fwdTraceFileLabel.setText(sample.fwdTraceFileName[context]);
 		}
+
+		else if(sample.fwdNotUsed[context]) {
+			fwdTraceFileLabel.setText(sample.fwdTraceFileName[context]);
+			fwdPane.setContent(new Label("Not Used"));
+		}
+
+
 		else if(sample.fwdTraceFileName[context] != null) {
 			fwdTraceFileLabel.setText(sample.fwdTraceFileName[context]);
 			fwdPane.setContent(new Label("Poor Quality Trace File"));
@@ -1756,6 +1871,11 @@ public class RootController implements Initializable {
 			revPane.setContent(imageView2);
 			revTraceFileLabel.setText(sample.revTraceFileName[context]);
 		}
+		else if(sample.revNotUsed[context]) {
+			revTraceFileLabel.setText(sample.revTraceFileName[context]);
+			revPane.setContent(new Label("Not Used"));
+		}
+
 		else if(sample.revTraceFileName[context] != null) {
 			revTraceFileLabel.setText(sample.revTraceFileName[context]);
 			revPane.setContent(new Label("Poor Quality Trace File"));
@@ -1766,7 +1886,7 @@ public class RootController implements Initializable {
 		}
 	}
 
-	
+
 	private void adjustFwdRevPane(AlignedPoint ap) {
 		double fwdCoordinate=0, revCoordinate=0;
 		double hValue=0;
@@ -1775,7 +1895,7 @@ public class RootController implements Initializable {
 		Formatter formatter = sample.formatter[context];
 		//System.out.println(String.format("fwdImageLength : %d, revImageLength : %d", formatter.fwdNewLength, formatter.revNewLength));
 		//System.out.println(String.format("fwdTraceIndex : %d, revTraceIndex : %d", ap.getFwdTraceIndex(), ap.getRevTraceIndex()));
-		
+
 		if(sample.fwdLoaded[context]) {
 			fwdCoordinate = formatter.fwdStartOffset + sample.trimmedFwdTrace[context].getBaseCalls()[ap.getFwdTraceIndex()-1]*2;
 		}
@@ -1786,26 +1906,26 @@ public class RootController implements Initializable {
 		//System.out.println(String.format("fwdCoordinate : %f, revCoordinate : %f", fwdCoordinate, revCoordinate));
 
 		if(sample.fwdLoaded[context] && sample.revLoaded[context]) {
-			
+
 			// 양쪽끝 튀어나온부분 처리.
 			if(ap.getFwdTraceIndex() == 1 || ap.getRevTraceIndex() == 1) {	
 				fwdCoordinate = Double.min(fwdCoordinate, revCoordinate);
 				revCoordinate = Double.min(fwdCoordinate, revCoordinate);
 			}
-			
+
 			if(ap.getFwdTraceIndex() >= sample.trimmedFwdTrace[context].getSequenceLength() || ap.getRevTraceIndex() >= sample.trimmedRevTrace[context].getSequenceLength()) {	
 				fwdCoordinate = Double.max(fwdCoordinate, revCoordinate);
 				revCoordinate = Double.max(fwdCoordinate, revCoordinate);
 			}
 		}
-		
+
 		if(sample.fwdLoaded[context]) {
-			
+
 			hValue = (fwdCoordinate - paneWidth/2) / (formatter.fwdNewLength - paneWidth);
 			if(formatter.fwdNewLength > paneWidth)
 				fwdPane.setHvalue(hValue);
 		}
-	
+
 		if(sample.revLoaded[context]) {
 			hValue = (revCoordinate - paneWidth/2) / (formatter.revNewLength - paneWidth);
 			if(formatter.revNewLength > paneWidth)
@@ -1934,7 +2054,7 @@ public class RootController implements Initializable {
 			ImageView imageView2 = new ImageView(fxImage2);
 			revPane.setContent(imageView2);
 
-			
+
 		}
 		adjustFwdRevPane(ap);
 

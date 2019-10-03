@@ -28,6 +28,10 @@ public class Sample implements Comparable {
 	public File[] fwdTraceFile = new File[3], revTraceFile = new File[3];
 	public GanseqTrace[] trimmedFwdTrace = new GanseqTrace[3], trimmedRevTrace = new GanseqTrace[3];
 	public boolean fwdLoaded[] = {false, false, false}, revLoaded[] = {false, false, false};
+
+	public boolean split[] = {false, false, false};
+	public boolean fwdNotUsed[] = {false, false, false};
+	public boolean revNotUsed[] = {false, false, false};
 	
 	public boolean alignmentPerformed[] = new boolean[3];
 	
@@ -41,6 +45,8 @@ public class Sample implements Comparable {
 	
 	public String consensusSeq[] = new String[3];
 
+
+	
 	
 	public Sample(String sampleId) {
 		this.sampleId = sampleId;

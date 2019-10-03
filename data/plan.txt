@@ -1,33 +1,47 @@
 * 개선사항
-1. Trimming 
-: sequencher랑 유사하게 하려고했으나 무언가 추가조건이 있는듯. 5'은 대부분 똑같이. 3'은 대부분 비슷하지만 일부에서 sequencher보다 조금 느슨하게.
-처음 제가 쓰던 criteria보다 1.2.1에서는 약간 더 느슨하게 trimming되기 때문에
-5', 3'쪽에서의 basecalling에러가 일부 포함되고 있다.
+1. 국소적으로 가장 높은 alignment를 찾는 Local alignment 알고리즘의 특징에 의해 input trace 양쪽 끝에서 discrepency가 있는 경우 이를 결과에 포함시키지 않는 현상
+이를 수정하여 기존에 버려졌던 부분을 포함되게 함. (1page -> 2page, 4page ->5 page)
+이로인해 기존 1.2.1 버전에 비해 점수가 낮아진 case들이 존재하나, 기보고 결과와는 더 비슷해진 양상. 
 
-trimming을 약간 공격적으로 하고 하나의 균으로 동정이 안될때 edit trimming으로 범위를 넓혀보는 방법
-trimming을 지금처럼 느슨하게 하고 5', 3' 말단에서 생길수 있는 basecalling 에러를 직접 수정하는 방법
+2. PPT 7 page에서처럼 한 target에서 fwd와 rev가 서로 align이 안되는 경우 (둘다 짧게 trimming 되어 서로 다른 영역에 붙는 경우)
+기존 결과에서는 각각 따로 reference와 비교한 결과가 제공되었으나 SnackNTM 1.2.1까지는 이런경우 결과가 없음. 
+ver 1.3에서는 이러한 경우 기본적으로 둘중에 길이가 긴것으로 결과를 제공하고, 다른쪽도 클릭하여 확인해 볼수 있도록 함 
+(PPT 8,9 page : 이런 경우에 해당할 때만 Fwd only, Rev only 버튼이 나타남) 
+
+3.  5', 3' 말단에서 fwd, rev중 한 쪽에만 trace가 존재하는곳의 화면 scroll 처리
+
+4. 전체 sample에 대한 TSV 제공
+기 보고 결과엑셀에서 전체복사해서 새로운 엑셀에 복사하고, 전체sample TSV를 전체복사해서 그 옆에 붙인 다음,  
+줄수가 맞지 않는 부분만 부분적으로 삽입 혹은 삭제하면서 줄을 맞추어가며 비교하니 훨씬 쉽게 비교작업 할수 있었습니다. 
+
+
+
+*ver 1.3.0과 기보고 결과와의 discrepency 원인
+1.2.1 버전에 비해 더 높은 일치도,  일치하지 않는 결과들은  작은 차이가있고, 그 원인을 설명할수 있었다.
+
+1. trimming. sequencher와 최대한 유사하게 하려고 하였으나 sequencher에 명시되지 않은 추가적인 규칙이 있는듯하여 완전히 똑같이 하는것은 어려움. 
+결국 sequencher와 대부분 비슷하게 trimming 하지만 약간 더 느슨한 trimming   
+
+2. sequencher의 경우 fwd, rev의 discrepency가 있을 경우 혹은 겹쳐진 peak에 대해 자체적으로  mixed peak으로 변환, 이로 인해 감점이 됨. 
+SnackNTM에서는  sequencing machine에서 제공하는 basecalling을 그대로 사용하는데 여기에 mixed peak이 거의 포함되어 있지 않고, 
+fwd, rev discrepent 한 경우 둘 중 quality 가 높은 쪽을 선택함으로써 mixed peak이 생기지 않음. 이로인해 SnackNTM에서 점수가 더 높게 나타나는 case들이 있음. 
+(PPT 2,3 page)
+
+3. 기 보고된 결과들에서 cutoff를 넘는 종들이 여러개 있음에도 점수가 가장 높은 하나만 노란색으로 표시된 결과들이 있음. 
+
+대부분 1,2,3에 기인한 것, 이에 포함되지 않는 case는 batch당 1건 정도 있는데 이런 결과들에대해 sequencher alignment를 직접 비교해본 결과
+alignment까지 동일함을 확인. (ppt 4,5,6 page의 8204 case가 그런 경우에 해당,  edit base를 하고, 하지않고의 차이로 추정됨) 
+ 
+
+
+
+
 
 
 보내주신 예시의 경우 167건 중에 
-CGAACGG[]AA는 없지만 CGAACGG[T]AA 를 포함해서 다른 variation들이 있는 것 같아 모두 GG[A]AA로 바꾸기는 어려움
-향후 Machine learning등 계획중이신 Basecalling을 향상시키는 연구를 통해 일반화 할수 있는 개선안이 유용할 것으로 생각됩니다. 
+CGAACGG[]AA는 없지만 CGAACGG[T]AA 를 포함해서 다른 variation들이 있는 것 같고, 프로그램의 일반성을 위해 특전 부분을 모두 GG[A]AA로 바꾸기는 어려움
+향후 Basecalling을 향상시키는 연구를 통해 일반화 할수 있는 개선안이 만들어진다면 유용할 것으로 생각됩니다. 
 
-
-
-- 5', 3' 말단에서 fwd, rev중 한 쪽에만 trace가 존재하는곳의 화면 scroll -->처리.  
-- generate TSV (CSV->TSV), 모든 case, 모든 region에 대해  
-
-sequencher basecalling 다르다
-double peak 
-
-
-fwd, rev 서로 align 안될때. (둘 다 poor quality, trimming 너무많이 되어서 짧게 남았을때)
-: 둘중에 긴걸로?
-둘 다 보려면 별도로 프로그램을 하나 더 열어서 반대쪽도 evaluation  
-
-
-
-*추가
 
 
 * 나중에
@@ -55,4 +69,18 @@ trimming 자동으로 일단 한후 (Hetero indel 있을때를위한 trimming �
 edit trimming 버튼
 
 adjustFwdRevPane
+
+
+
+<해결된 고민들>
+
+fwd, rev 먼저 align 고려...?
+이렇게 하더라도, edit base는 edit base일뿐, gap을 넣고 빼지는 못한다. 그거는 alignment 알고리즘이 하는것. (base만 수정한 후 다시 align 시키는 원리이므로)
+alignment 조정은 gap open penalty. 
+이게 너무 낮아서 문제인경우?? 쓸데없이 gap 활용?
+이 프로그램에선 gap이나 snv나 똑같이 1점 감점인데. gop 높으면 괜히 gap 1개 안만들려고 SNV 여러개 만듬. 등가로 놓아도 되는것 아닌가?
+
+
+그래도, 자연의 섭리는 SNV보다 indel이 생기기 어려움. 종간 tie 생길때 GOP 높여서 나오는게 더 합리적. 
+10 좋다. 이상한거 발견되면 15로. 
 

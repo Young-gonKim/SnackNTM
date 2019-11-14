@@ -99,7 +99,7 @@ public class RootController implements Initializable {
 	private static final String rpo = "rpo";
 	private static final String tuf = "tuf";
 	public static final int defaultGOP = 10;
-	public static final String version = "1.3.0";
+	public static final String version = "1.3.1";
 	private static final double tableRowHeight = 25.0;
 	private static String icSeq = null;
 	private static String chSeq = null;
@@ -1400,25 +1400,24 @@ public class RootController implements Initializable {
 
 			Vector<NTMSpecies> tempRetList = new Vector<NTMSpecies>();
 
-			if(retList.size() >= 1 && sample.alignmentPerformed[1]) {
+			//2개이상 종 남아있을때만 rpoB 활용
+			if(retList.size() >= 2 && sample.alignmentPerformed[1]) {
 				rpoList = sample.selectedSpeciesList[1];
-
 				tempRetList = (Vector<NTMSpecies>)retList.clone();
 				tempRetList.retainAll(rpoList);
-				if(tempRetList.size() > 0) 
+				if(tempRetList.size() > 0) { 
 					retList = tempRetList;
-
-				if(sample.alignmentPerformed[2]) {
-					tufList = sample.selectedSpeciesList[2];
-					tempRetList = (Vector<NTMSpecies>)retList.clone();
-					tempRetList.retainAll(tufList);
-					if(tempRetList.size() > 0) 
-						retList = tempRetList;
+					//rpoB까지 활용후에도 2개이상 종 남아있을때만 tuf 활용
+					if(retList.size() >= 2 && sample.alignmentPerformed[2]) {
+						tufList = sample.selectedSpeciesList[2];
+						tempRetList = (Vector<NTMSpecies>)retList.clone();
+						tempRetList.retainAll(tufList);
+						if(tempRetList.size() > 0) 
+							retList = tempRetList;
+					}
 				}
 			}
-
 			Vector<NTMSpecies> tempList = new Vector<NTMSpecies>();
-
 
 			for(NTMSpecies ntm : retList) {
 				NTMSpecies temp = new NTMSpecies(ntm.getSpeciesName(), strScore);

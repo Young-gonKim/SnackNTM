@@ -331,10 +331,10 @@ public class Formatter {
 			
 			AlignedPoint tempPoint = null;
 
-			System.out.println("fwdAli, revAli, fwdRef, revRef, fwdTra, revTra, fwdRC, revRc, fwdTc, revTc");
-			System.out.println(String.format("%d, %d, %d, %d, %d, %d, %c, %c, %c, %c", 
-					fwdAlignmentPos, revAlignmentPos, fwdRefPos, revRefPos, fwdTracePos,
-					revTracePos, fwdRefChar, revRefChar, fwdTraceChar, revTraceChar));
+			//System.out.println("fwdAli, revAli, fwdRef, revRef, fwdTra, revTra, fwdRC, revRc, fwdTc, revTc");
+			//System.out.println(String.format("%d, %d, %d, %d, %d, %d, %c, %c, %c, %c", 
+			//		fwdAlignmentPos, revAlignmentPos, fwdRefPos, revRefPos, fwdTracePos,
+			//		revTracePos, fwdRefChar, revRefChar, fwdTraceChar, revTraceChar));
 
 			char consensusBase = 'N';
 			int fwdQ = 0, revQ = 0;
@@ -360,9 +360,9 @@ public class Formatter {
 			else 
 				revQ = revTrace.getQCalls()[revTracePos];
 			
-			System.out.println(String.format("fwdOriQscore : %d, revOriQscore : %d",  fwdQ, revQ));
+			//System.out.println(String.format("fwdOriQscore : %d, revOriQscore : %d",  fwdQ, revQ));
 			
-			double penaltyWeight = 0.5;
+			double penaltyWeight = 1.0;
 			
 			if(fwdTracePos<20) {
 				fwdTracePosPenalty = (int)((20-fwdTracePos) * penaltyWeight);
@@ -383,7 +383,7 @@ public class Formatter {
 			fwdQ -= fwdTracePosPenalty;
 			revQ -= revTracePosPenalty;
 			
-			System.out.println(String.format("fwdQscore : %d, revQscore : %d",  fwdQ, revQ));
+			//System.out.println(String.format("fwdQscore : %d, revQscore : %d",  fwdQ, revQ));
 			
 			if(fwdQ >= revQ) 
 				consensusBase = fwdTraceChar;

@@ -105,6 +105,7 @@ public class RootController implements Initializable {
 	private static String chSeq = null;
 	public static TreeSet<String> rgmSet = new TreeSet<String>(); 
 	public static TreeSet<String> sgmSet = new TreeSet<String>();
+	public static double endPenalty = 2.0;
 
 	private static final String settingsFileName = "settings/settings.properties";
 	private int fontSize = 0;
@@ -298,6 +299,7 @@ public class RootController implements Initializable {
 			fontSize = Integer.parseInt(props.getProperty("fontsize"));
 			chSeq = props.getProperty("chimaera");
 			icSeq = props.getProperty("intracellularae");
+			endPenalty = Double.parseDouble(props.getProperty("end_penalty"));
 
 			for(int i=0;i<3;i++) {
 				keywordSet_F[i] = new TreeSet<String>();

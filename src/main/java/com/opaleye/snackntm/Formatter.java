@@ -362,7 +362,7 @@ public class Formatter {
 			
 			//System.out.println(String.format("fwdOriQscore : %d, revOriQscore : %d",  fwdQ, revQ));
 			
-			double penaltyWeight = 1.0;
+			double penaltyWeight = RootController.endPenalty;
 			
 			if(fwdTracePos<20) {
 				fwdTracePosPenalty = (int)((20-fwdTracePos) * penaltyWeight);

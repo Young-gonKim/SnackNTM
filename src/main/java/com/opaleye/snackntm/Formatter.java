@@ -186,6 +186,8 @@ public class Formatter {
 	 */
 	public Vector<AlignedPoint> format3(AlignedPair fwdAp, AlignedPair revAp, String s_refSeq, GanseqTrace fwdTrace, GanseqTrace revTrace) throws ArrayIndexOutOfBoundsException, NoContigException {
 
+		//padding : V1.2.1 --> V1.3.0, alignment 양 끝에 discrepancy가 있는경우도 다 포함시키기 위함.
+		
 		//fwd Trace
 		//front padding
 		int fwdFrontPaddingCnt = Integer.min(fwdAp.getStart1(), fwdAp.getStart2());
@@ -329,16 +331,60 @@ public class Formatter {
 			
 			AlignedPoint tempPoint = null;
 
-			//System.out.println("fwdAli, revAli, fwdRef, revRef, fwdTra, revTra, fwdRC, revRc, fwdTc, revTc");
-			//System.out.println(String.format("%d, %d, %d, %d, %d, %d, %c, %c, %c, %c", 
-			//		fwdAlignmentPos, revAlignmentPos, fwdRefPos, revRefPos, fwdTracePos,
-			//		revTracePos, fwdRefChar, revRefChar, fwdTraceChar, revTraceChar));
+			System.out.println("fwdAli, revAli, fwdRef, revRef, fwdTra, revTra, fwdRC, revRc, fwdTc, revTc");
+			System.out.println(String.format("%d, %d, %d, %d, %d, %d, %c, %c, %c, %c", 
+					fwdAlignmentPos, revAlignmentPos, fwdRefPos, revRefPos, fwdTracePos,
+					revTracePos, fwdRefChar, revRefChar, fwdTraceChar, revTraceChar));
 
 			char consensusBase = 'N';
 			int fwdQ = 0, revQ = 0;
+			int fwdTracePosPenalty = 0, revTracePosPenalty = 0;
 			//fwd, rev 중에 Q값 높은쪽으로 
-			fwdQ = fwdTrace.getQCalls()[fwdTracePos];
-			revQ = revTrace.getQCalls()[revTracePos];
+
+			//현재 position에서 trace가 gap이면 
+			// 1) Q score는 다음 base의 Q 값 갖고 있음. (이전 base gap 아니었다고 가정하면 거기서 traceindex를 +1 미리 해버렸음)
+			// 2) 여기가 마지막 base일 리는 없음 (trace가 gap으로 끝나지는않음. alignment 결과도 그렇고 padding도 그렇고. padding은 substring을 더하는 것이므로.)
+			// 3) 여기가 첫 base일리도 없음. (위와 마찬가지 이유로)
+			
+			
+			
+			if(fwdTraceChar == Formatter.gapChar) {	//gap이면 앞뒤 평균을 Q score로
+				fwdQ = (fwdTrace.getQCalls()[fwdTracePos] + fwdTrace.getQCalls()[Integer.max(fwdTracePos-1,  0)]) / 2;
+			}
+			else 
+				fwdQ = fwdTrace.getQCalls()[fwdTracePos];
+
+			if(revTraceChar == Formatter.gapChar) {	//gap이면 앞뒤 평균을 Q score로
+				revQ = (revTrace.getQCalls()[revTracePos] + revTrace.getQCalls()[Integer.max(revTracePos-1,  0)]) / 2;
+			}
+			else 
+				revQ = revTrace.getQCalls()[revTracePos];
+			
+			System.out.println(String.format("fwdOriQscore : %d, revOriQscore : %d",  fwdQ, revQ));
+			
+			double penaltyWeight = 0.5;
+			
+			if(fwdTracePos<20) {
+				fwdTracePosPenalty = (int)((20-fwdTracePos) * penaltyWeight);
+			}
+			else if(fwdTracePos >= fwdTrace.sequenceLength-20) {
+				fwdTracePosPenalty = (int)((20-(fwdTrace.sequenceLength - fwdTracePos)) * penaltyWeight);
+			}
+			
+			
+
+			if(revTracePos<20) {
+				revTracePosPenalty =(int)((20-revTracePos) * penaltyWeight);
+			}
+			else if(revTracePos >= revTrace.sequenceLength-20) {
+				revTracePosPenalty = (int)((20-(revTrace.sequenceLength - revTracePos)) * penaltyWeight);
+			}
+
+			fwdQ -= fwdTracePosPenalty;
+			revQ -= revTracePosPenalty;
+			
+			System.out.println(String.format("fwdQscore : %d, revQscore : %d",  fwdQ, revQ));
+			
 			if(fwdQ >= revQ) 
 				consensusBase = fwdTraceChar;
 			else 

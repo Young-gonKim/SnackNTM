@@ -1,3 +1,20 @@
+
+<snack NTM>
+문제 1
+1) phred score 차이 크지 않을때 (10?) : base position 상대적 위치 구해서 둘 중에 더 가운데 있는놈으로 선택. --> 이렇게 하면 problem 1,3 둘다 해결될듯?
+2) 이왕이면 reference와 같은 방향으로? --> 이렇게 하면 variant 놓칠 수 있음. 
+
+문제 2
+하면 됨
+
+문제 3
+문제1, 1) 방법으로 해결될듯.
+
+consensus 만드는 방법을 아얘 변경?
+fwd, rev 먼저 붙여버림? --> 그렇게 한다고 문제 해결되지 않음. 
+
+
+
 * 개선사항
 1. 국소적으로 가장 높은 alignment를 찾는 Local alignment 알고리즘의 특징에 의해 input trace 양쪽 끝에서 discrepency가 있는 경우 이를 결과에 포함시키지 않는 현상
 이를 수정하여 기존에 버려졌던 부분을 포함되게 함. (1page -> 2page, 4page ->5 page)

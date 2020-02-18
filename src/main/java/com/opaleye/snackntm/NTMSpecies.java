@@ -87,6 +87,7 @@ public class NTMSpecies implements Comparable<NTMSpecies>, Cloneable {
 	}
 
 	public NTMSpecies(String speciesName, String score) {
+		this.speciesName = speciesName;
 		speciesNameProperty= new SimpleStringProperty(speciesName);
 		scoreProperty = new SimpleStringProperty(score);
 	}

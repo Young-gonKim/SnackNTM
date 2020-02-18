@@ -45,7 +45,11 @@ public class Sample implements Comparable {
 	
 	public String consensusSeq[] = new String[3];
 
-
+	
+	public boolean containsIcSeq = false;
+	public boolean containsChSeq = false;
+	
+	
 	
 	
 	public Sample(String sampleId) {

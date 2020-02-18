@@ -3,6 +3,8 @@ package com.opaleye.snackntm;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.net.URL;
 import java.util.Collections;
@@ -11,6 +13,11 @@ import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.TreeSet;
 import java.util.Vector;
+
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import com.opaleye.snackntm.mmalignment.AlignedPair;
 import com.opaleye.snackntm.mmalignment.MMAlignment;
@@ -31,7 +38,6 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
-import javafx.scene.control.ProgressBar;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TableColumn;
@@ -98,11 +104,15 @@ public class RootController implements Initializable {
 	private static final String s16 = "16sRNA";
 	private static final String rpo = "rpo";
 	private static final String tuf = "tuf";
+
+
 	public static final int defaultGOP = 10;
 	public static final String version = "1.3.1";
 	private static final double tableRowHeight = 25.0;
 	private static String icSeq = null;
 	private static String chSeq = null;
+	private static String icName = null;
+	private static String chName = null;
 	public static TreeSet<String> rgmSet = new TreeSet<String>(); 
 	public static TreeSet<String> sgmSet = new TreeSet<String>();
 	public static double endPenalty = 2.0;
@@ -299,6 +309,10 @@ public class RootController implements Initializable {
 			fontSize = Integer.parseInt(props.getProperty("fontsize"));
 			chSeq = props.getProperty("chimaera");
 			icSeq = props.getProperty("intracellularae");
+			chName = props.getProperty("chimaera_name");
+			icName = props.getProperty("intracellularae_name");
+
+
 			endPenalty = Double.parseDouble(props.getProperty("end_penalty"));
 
 			for(int i=0;i<3;i++) {
@@ -877,6 +891,20 @@ public class RootController implements Initializable {
 					}
 				}
 			}
+
+			//읽어들인 sample에서 16srRNA에서 chimaera specific seq, IC specific seq 있는지 확인하여 저장.
+			if(sample.fwdLoaded[0]) {
+				if(sample.trimmedFwdTrace[0].getSequence().contains(icSeq)) 
+					sample.containsIcSeq = true;
+				if(sample.trimmedFwdTrace[0].getSequence().contains(chSeq)) 
+					sample.containsChSeq = true;
+			}
+			if(sample.revLoaded[0]) {
+				if(sample.trimmedRevTrace[0].getSequence().contains(icSeq)) 
+					sample.containsIcSeq = true;
+				if(sample.trimmedRevTrace[0].getSequence().contains(chSeq)) 
+					sample.containsChSeq = true;
+			}
 		}
 
 		//원상복귀. 읽은 다음 맨 위 가리키게.
@@ -1152,13 +1180,98 @@ public class RootController implements Initializable {
 
 	}
 
-	
+
 	public void handleConclusionList() {
 		if(sampleList == null || sampleList.size() ==0) return;
 		Stage dialog = new Stage(StageStyle.DECORATED);
 		dialog.initOwner(primaryStage);
 		dialog.setTitle("TSV");
 		Parent parent;
+
+		//excel
+		String filename = "";
+		File f = null;
+		filename = sampleList.get(0).sampleId + "_" + sampleList.lastElement().sampleId +".xlsx";
+		int counter = 2;
+		while(true) {
+			f = new File(filename);
+			
+			if (f.isFile()) {
+				String header = (filename.split("[ .]"))[0];
+				System.out.println("header : " + header);
+				filename = header + " (" + counter + ").xlsx";
+				counter++;
+			}
+			else 
+				break;
+		}
+		System.out.println("filename : " + filename);
+		
+
+		try (FileOutputStream fileOut = new FileOutputStream(new File(filename)); 
+				XSSFWorkbook wb = new XSSFWorkbook()) 
+		{
+			XSSFSheet sheet = wb.createSheet();			
+			Row row = sheet.createRow(0);
+
+			Cell cell = row.createCell(0);
+			cell.setCellValue("ID");
+			cell = row.createCell(1);
+			cell.setCellValue("Species");
+			
+			cell = row.createCell(2);
+			cell.setCellValue("Score");
+
+			
+			Sample sample;
+			String textToSet = "";
+			int count = 0;
+			for(int i=0;i<sampleList.size();i++) {
+				sample = sampleList.get(i);
+				
+				if(sample.finalList == null) {
+					count++;
+					row = sheet.createRow(count);
+					cell = row.createCell(0);
+					cell.setCellValue(sample.sampleId);
+				} 
+				
+				else {
+					for(NTMSpecies ntm : sample.finalList) {
+						count++;
+						row = sheet.createRow(count);
+						cell = row.createCell(0);
+						cell.setCellValue(sample.sampleId);
+
+						cell = row.createCell(1);
+						cell.setCellValue(ntm.getSpeciesName());
+
+						cell = row.createCell(2);
+						cell.setCellValue(ntm.getScoreProperty());
+					}
+				}
+				count++;
+			}
+			sheet.autoSizeColumn(1);
+			sheet.autoSizeColumn(2);
+			
+			wb.write(fileOut);
+			
+			
+		}
+		catch (FileNotFoundException fe) {
+			fe.printStackTrace();
+			popUp("Close the same excel file before execution");
+		}
+
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+
+
+		//end excel
+
+
 		try {
 			parent = FXMLLoader.load(getClass().getResource("tsv.fxml"));
 			TextArea ta_tsv = (TextArea)parent.lookup("#ta_tsv");
@@ -1166,32 +1279,13 @@ public class RootController implements Initializable {
 			Sample sample;
 			String textToSet = "";
 			for(int i=0;i<sampleList.size();i++) {
-
 				sample = sampleList.get(i);
-				for(int j=0;j<3;j++) {
-					if(sample.alignmentPerformed[j]) {
-
-						String region = "", direction = "";
-						switch(j) {
-						case 0: region = "16s";break;
-						case 1: region = "rpo";break;
-						case 2: region = "tuf";break;
-						}
-
-						if(sample.fwdLoaded[j] == true && sample.revLoaded[j] == false)
-							direction = "_F";
-						else if(sample.fwdLoaded[j] == false && sample.revLoaded[j] == true)
-							direction = "_R";
-
-						for(NTMSpecies ntm : sample.speciesList[j]) {
-							if(ntm.getScore()>=98) {
-								//textToSet += ntm.getQlen() + "\t\t" + ntm.getScoreProperty() + "\t" + ntm.getAccession() + "\t" + ntm.getSpeciesName() + "\n";
-								textToSet += sample.sampleId + "-" + region+ direction + "\t" + ntm.getQlen() + "\t" + ntm.getScoreProperty() + "\t" + ntm.getAccession() + "\t" + ntm.getSpeciesName() + "\n";
-
-							}
-						}
+				if(sample.finalList == null) {
+					textToSet += sample.sampleId + "\n";
+				} else
+					for(NTMSpecies ntm : sample.finalList) {
+						textToSet += sample.sampleId + "\t" +  ntm.getSpeciesName() + "\t" +  ntm.getScoreProperty() + "\n";
 					}
-				}
 			}
 
 
@@ -1208,8 +1302,11 @@ public class RootController implements Initializable {
 		catch(Exception ex) {
 			ex.printStackTrace();
 		}
-		
-		
+
+
+
+
+
 	}
 
 	public void handleTSVAll() {
@@ -1478,12 +1575,28 @@ public class RootController implements Initializable {
 					}
 				}
 			}
-			Vector<NTMSpecies> tempList = new Vector<NTMSpecies>();
 
+
+			boolean chimaeraInList = false, ICInList = false;
+			Vector<NTMSpecies> tempList = new Vector<NTMSpecies>();
 			for(NTMSpecies ntm : retList) {
 				NTMSpecies temp = new NTMSpecies(ntm.getSpeciesName(), strScore);
 				tempList.add(temp);
+				if(temp.getSpeciesName().equals(chName))
+					chimaeraInList = true;
+				if(temp.getSpeciesName().equals(icName))
+					ICInList = true;
 			}
+
+			//System.out.println("ch in list : " + chimaeraInList + ", " + "ic in list : " + ICInList);
+
+			if(chimaeraInList && ICInList) {
+				if(sample.containsChSeq && !sample.containsIcSeq)
+					tempList.remove(new NTMSpecies(icName, strScore));
+				if(!sample.containsChSeq && sample.containsIcSeq)
+					tempList.remove(new NTMSpecies(chName, strScore));
+			}
+
 			retList = tempList;
 		}
 		return retList;
@@ -1508,28 +1621,15 @@ public class RootController implements Initializable {
 			}
 
 			if(icInTheList || chimaeraPresent) {
-				boolean containsIcSeq = false;
-				boolean containsChSeq = false;
-				if(sample.fwdLoaded[context]) {
-					if(sample.trimmedFwdTrace[context].getSequence().contains(icSeq)) 
-						containsIcSeq = true;
-					if(sample.trimmedFwdTrace[context].getSequence().contains(chSeq)) 
-						containsChSeq = true;
-				}
-				if(sample.revLoaded[context]) {
-					if(sample.trimmedRevTrace[context].getSequence().contains(icSeq)) 
-						containsIcSeq = true;
-					if(sample.trimmedRevTrace[context].getSequence().contains(chSeq)) 
-						containsChSeq = true;
-				}
-				if(containsIcSeq) {
+
+				if(sample.containsIcSeq) {
 					icSeqLabel.setText("M. intracellularae specific sequence : O");
 				}
 
 				else {
 					icSeqLabel.setText("M. intracellularae specific sequence : X");
 				}
-				if(containsChSeq) {
+				if(sample.containsChSeq) {
 					chimaeraSeqLabel.setText("M. chimaera specific sequence : O");
 				}
 				else {
@@ -1687,6 +1787,8 @@ public class RootController implements Initializable {
 					break;
 			}
 			sample.alignmentPerformed[context] = true;
+
+
 			sample.finalList = updateFinalList();
 		}
 		else sample.alignmentPerformed[context] = false;

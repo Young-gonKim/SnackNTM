@@ -1,11 +1,21 @@
 JKJ. 고객감동. 장인이 되자. 내가 미술을 하나 뭐를 하나. 이쁘게 만드는걸 취미삼아.. Neal Caffery
 
+
+M.chimera specific seq, M.intracellularae specific seq 기준으로 conclusion 도출
+chiemera vs intracellularae는 specific sequence 포함여부로 구분
+: 둘다 99% 넘을때, chiemera specific seq 포함되어 있으면 IC는 list에서 제외, intracellularae specific seq 포함되어 있으면 chiemera는 list에서 제외
+(chiemera specific seq가 다른  몇몇종에도 포함되어 있으므로, chimera와 intracellularae 외의 종들은 제외하지 않음)
+
+
 conclusion 구현. Excel로 만들기. ICG처럼. (일단 conclusion만 엑셀로. 나머지는 일단 TSV로 놓고 뭐가 좋은지 여쩌보기)
 
 
-project save, load 기능 구현. snk 파일?
+MenuBar 만들기 -> New, Save, Open project
 
-settings 메뉴 만들기. 
+project save, load 기능 구현. snk 파일?
+new Project = 현재의 open trace files
+settings도 그 안에
+
 
 
 
@@ -114,4 +124,5 @@ alignment 조정은 gap open penalty.
 
 그래도, 자연의 섭리는 SNV보다 indel이 생기기 어려움. 종간 tie 생길때 GOP 높여서 나오는게 더 합리적. 
 10 좋다. 이상한거 발견되면 15로. 
+
 

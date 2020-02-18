@@ -1,3 +1,22 @@
+JKJ. 고객감동. 장인이 되자. 내가 미술을 하나 뭐를 하나. 이쁘게 만드는걸 취미삼아.. Neal Caffery
+
+conclusion 구현. Excel로 만들기. ICG처럼. (일단 conclusion만 엑셀로. 나머지는 일단 TSV로 놓고 뭐가 좋은지 여쩌보기)
+
+
+project save, load 기능 구현. snk 파일?
+
+settings 메뉴 만들기. 
+
+
+
+
+매번 부탁드리게 되어 죄송하고 또 감사드립니다.
+
+전공의 김승환 올림 
+
+
+
+
 *v 1.3.1 개선사항
 1. consensus sequence 만들때 trace 끝부분에 위치한 base에는 penalty 부여
 2. rpoB에서 결과가 없는 경우 tuf 적용하지 않음.  

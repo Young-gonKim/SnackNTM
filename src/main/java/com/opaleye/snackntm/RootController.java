@@ -1152,6 +1152,65 @@ public class RootController implements Initializable {
 
 	}
 
+	
+	public void handleConclusionList() {
+		if(sampleList == null || sampleList.size() ==0) return;
+		Stage dialog = new Stage(StageStyle.DECORATED);
+		dialog.initOwner(primaryStage);
+		dialog.setTitle("TSV");
+		Parent parent;
+		try {
+			parent = FXMLLoader.load(getClass().getResource("tsv.fxml"));
+			TextArea ta_tsv = (TextArea)parent.lookup("#ta_tsv");
+
+			Sample sample;
+			String textToSet = "";
+			for(int i=0;i<sampleList.size();i++) {
+
+				sample = sampleList.get(i);
+				for(int j=0;j<3;j++) {
+					if(sample.alignmentPerformed[j]) {
+
+						String region = "", direction = "";
+						switch(j) {
+						case 0: region = "16s";break;
+						case 1: region = "rpo";break;
+						case 2: region = "tuf";break;
+						}
+
+						if(sample.fwdLoaded[j] == true && sample.revLoaded[j] == false)
+							direction = "_F";
+						else if(sample.fwdLoaded[j] == false && sample.revLoaded[j] == true)
+							direction = "_R";
+
+						for(NTMSpecies ntm : sample.speciesList[j]) {
+							if(ntm.getScore()>=98) {
+								//textToSet += ntm.getQlen() + "\t\t" + ntm.getScoreProperty() + "\t" + ntm.getAccession() + "\t" + ntm.getSpeciesName() + "\n";
+								textToSet += sample.sampleId + "-" + region+ direction + "\t" + ntm.getQlen() + "\t" + ntm.getScoreProperty() + "\t" + ntm.getAccession() + "\t" + ntm.getSpeciesName() + "\n";
+
+							}
+						}
+					}
+				}
+			}
+
+
+			ta_tsv.setText(textToSet);
+
+			Button okButton = (Button) parent.lookup("#okButton");
+			okButton.setOnAction(event->dialog.close());
+			Scene scene = new Scene(parent);
+
+			dialog.setScene(scene);
+			dialog.setResizable(false);
+			dialog.showAndWait();
+		}
+		catch(Exception ex) {
+			ex.printStackTrace();
+		}
+		
+		
+	}
 
 	public void handleTSVAll() {
 		if(sampleList == null || sampleList.size() ==0) return;

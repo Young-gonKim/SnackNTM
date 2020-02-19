@@ -15,7 +15,11 @@ import java.util.TreeSet;
 import java.util.Vector;
 
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.xssf.usermodel.XSSFCellStyle;
+import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
@@ -184,7 +188,7 @@ public class RootController implements Initializable {
 	 */
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
-		checkVersion();
+		readProperties();
 		File tempFile = new File(lastVisitedDir);
 		if(!tempFile.exists())
 			lastVisitedDir=".";
@@ -292,7 +296,7 @@ public class RootController implements Initializable {
 		revZoomOutButton.setTooltip(zoomOutTooltip);
 	}
 
-	private void checkVersion() {
+	private void readProperties() {
 		String homepage = "", email = "", copyright = "";
 		String comment = "SnackNTM Ver " + version;
 		comment += "\n\n" + homepage;
@@ -1183,10 +1187,6 @@ public class RootController implements Initializable {
 
 	public void handleConclusionList() {
 		if(sampleList == null || sampleList.size() ==0) return;
-		Stage dialog = new Stage(StageStyle.DECORATED);
-		dialog.initOwner(primaryStage);
-		dialog.setTitle("TSV");
-		Parent parent;
 
 		//excel
 		String filename = "";
@@ -1211,17 +1211,33 @@ public class RootController implements Initializable {
 		try (FileOutputStream fileOut = new FileOutputStream(new File(filename)); 
 				XSSFWorkbook wb = new XSSFWorkbook()) 
 		{
-			XSSFSheet sheet = wb.createSheet();			
-			Row row = sheet.createRow(0);
 
+			XSSFSheet sheet = wb.createSheet();			
+			
+			XSSFCellStyle style = wb.createCellStyle();
+			XSSFFont font = wb.createFont();
+			font.setFontName("맑은 고딕");
+			font.setFontHeightInPoints((short) 11);
+			font.setBold(true);
+			style.setFont(font);   
+			
+			style.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.index);
+			style.setFillPattern(XSSFCellStyle.SOLID_FOREGROUND);
+			
+			
+			Row row = sheet.createRow(0);
 			Cell cell = row.createCell(0);
 			cell.setCellValue("ID");
+			cell.setCellStyle(style);
 			cell = row.createCell(1);
 			cell.setCellValue("Species");
+			cell.setCellStyle(style);
 			
 			cell = row.createCell(2);
 			cell.setCellValue("Score");
+			cell.setCellStyle(style);
 
+			
 			
 			Sample sample;
 			String textToSet = "";
@@ -1256,7 +1272,7 @@ public class RootController implements Initializable {
 			sheet.autoSizeColumn(2);
 			
 			wb.write(fileOut);
-			
+			popUp(filename + " has been created");
 			
 		}
 		catch (FileNotFoundException fe) {
@@ -1270,42 +1286,6 @@ public class RootController implements Initializable {
 
 
 		//end excel
-
-
-		try {
-			parent = FXMLLoader.load(getClass().getResource("tsv.fxml"));
-			TextArea ta_tsv = (TextArea)parent.lookup("#ta_tsv");
-
-			Sample sample;
-			String textToSet = "";
-			for(int i=0;i<sampleList.size();i++) {
-				sample = sampleList.get(i);
-				if(sample.finalList == null) {
-					textToSet += sample.sampleId + "\n";
-				} else
-					for(NTMSpecies ntm : sample.finalList) {
-						textToSet += sample.sampleId + "\t" +  ntm.getSpeciesName() + "\t" +  ntm.getScoreProperty() + "\n";
-					}
-			}
-
-
-			ta_tsv.setText(textToSet);
-
-			Button okButton = (Button) parent.lookup("#okButton");
-			okButton.setOnAction(event->dialog.close());
-			Scene scene = new Scene(parent);
-
-			dialog.setScene(scene);
-			dialog.setResizable(false);
-			dialog.showAndWait();
-		}
-		catch(Exception ex) {
-			ex.printStackTrace();
-		}
-
-
-
-
 
 	}
 

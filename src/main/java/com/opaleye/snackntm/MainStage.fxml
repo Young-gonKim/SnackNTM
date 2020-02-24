@@ -17,7 +17,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="847.0" prefWidth="1400.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.opaleye.snackntm.RootController">
+<AnchorPane prefHeight="847.0" prefWidth="1400.0" xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.opaleye.snackntm.RootController">
    <children>
       <ToolBar layoutX="5.0" layoutY="20.0" prefHeight="43.0" prefWidth="1072.0">
          <items>
@@ -158,8 +158,10 @@
          </font>
       </Label>
       <GridPane fx:id="headerPane" layoutX="167.0" layoutY="88.0" prefHeight="115.0" prefWidth="97.0" />
-      <Button layoutX="641.0" layoutY="612.0" mnemonicParsing="false" onAction="#handleConsensusSeq" prefHeight="23.0" prefWidth="108.0" text="Consensus Seq" />
-      <Button layoutX="757.0" layoutY="612.0" mnemonicParsing="false" onAction="#handleTSVThisSample" prefHeight="23.0" prefWidth="185.0" text="Generate TSV (this sample)" />
-      <Button layoutX="484.0" layoutY="612.0" mnemonicParsing="false" onAction="#handleConclusionList" prefHeight="23.0" prefWidth="150.0" text="Conclusion List File" />
+      <Button layoutX="677.0" layoutY="612.0" mnemonicParsing="false" onAction="#handleConsensusSeq" prefHeight="23.0" prefWidth="108.0" text="Consensus Seq" />
+      <Button layoutX="792.0" layoutY="612.0" mnemonicParsing="false" onAction="#handleConclusionList" prefHeight="23.0" prefWidth="150.0" text="Conclusion List File" />
+      <Button layoutX="575.0" layoutY="612.0" mnemonicParsing="false" onAction="#handleLoadData" prefHeight="23.0" prefWidth="97.0" text="Load data" />
+      <Button layoutX="496.0" layoutY="612.0" mnemonicParsing="false" onAction="#handleSaveData" text="Save data" />
+      <Button layoutX="307.0" layoutY="612.0" mnemonicParsing="false" onAction="#handleTSVThisSample" prefHeight="23.0" prefWidth="181.0" text="Generate TSV (This sample)" />
    </children>
 </AnchorPane>

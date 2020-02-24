@@ -1,24 +1,27 @@
 package com.opaleye.snackntm;
 
-import com.opaleye.snackntm.reference.ReferenceSeq;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 
 import javafx.beans.property.SimpleStringProperty;
 
-public class NTMSpecies implements Comparable<NTMSpecies>, Cloneable {
+public class NTMSpecies implements Comparable<NTMSpecies>, Cloneable, Serializable {
 	private String accession = "";
 	private String speciesName = "";
-	private String refSeq = null;
 	private double score = 0;
 	private int qlen = 0;
 	private int alen = 0;
 	private boolean rgm = false;
+	private String refSeq = null;
 
-	protected SimpleStringProperty accessionProperty;
-	protected SimpleStringProperty speciesNameProperty;
-	protected SimpleStringProperty scoreProperty;
-	protected SimpleStringProperty qlenProperty;
-	protected SimpleStringProperty alenProperty;
-	protected SimpleStringProperty rgmProperty;
+	protected transient SimpleStringProperty accessionProperty;
+	protected transient SimpleStringProperty speciesNameProperty;
+	protected transient SimpleStringProperty scoreProperty;
+	protected transient SimpleStringProperty qlenProperty;
+	protected transient SimpleStringProperty alenProperty;
+	protected transient SimpleStringProperty rgmProperty;
 
 
 	protected Object clone() throws CloneNotSupportedException { 
@@ -86,12 +89,49 @@ public class NTMSpecies implements Comparable<NTMSpecies>, Cloneable {
 
 	}
 
-	public NTMSpecies(String speciesName, String score) {
+	public NTMSpecies(String speciesName, String s_score) {
 		this.speciesName = speciesName;
 		speciesNameProperty= new SimpleStringProperty(speciesName);
-		scoreProperty = new SimpleStringProperty(score);
+		try {
+			this.score = Double.parseDouble(s_score);
+		}
+		catch (Exception ex) {
+			this.score = 0;
+		}
+		scoreProperty = new SimpleStringProperty(s_score);
 	}
 
+	/*
+	 * 	
+	 private transient String accession = "";
+	private transient String speciesName = "";
+	private transient double score = 0;
+	private transient int qlen = 0;
+	private transient int alen = 0;
+	private transient boolean rgm = false;
+	private transient String refSeq = null;
+	 */
+	
+	
+	 private void writeObject(ObjectOutputStream s) throws IOException {
+         s.defaultWriteObject();
+        
+     }
+     
+     private void readObject(ObjectInputStream s) throws IOException, ClassNotFoundException {
+        s.defaultReadObject();
+		accessionProperty= new SimpleStringProperty(accession);
+		speciesNameProperty= new SimpleStringProperty(speciesName);
+		if(rgm) 
+			rgmProperty = new SimpleStringProperty("O");
+		else
+			rgmProperty = new SimpleStringProperty("");
+		qlenProperty =  new SimpleStringProperty(String.format("%d",  qlen));
+		alenProperty =  new SimpleStringProperty(String.format("%d",  alen));
+		scoreProperty = new SimpleStringProperty(String.format("%.2f",  score));
+     }
+	
+	
 	public String getAccession() {
 		return accession;
 	}

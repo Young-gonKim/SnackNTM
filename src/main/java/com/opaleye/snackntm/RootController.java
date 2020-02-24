@@ -6,6 +6,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.URL;
 import java.util.Collections;
 import java.util.List;
@@ -15,7 +17,6 @@ import java.util.TreeSet;
 import java.util.Vector;
 
 import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.IndexedColors;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
@@ -31,6 +32,7 @@ import com.opaleye.snackntm.tools.TooltipDelay;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
+import javafx.concurrent.Task;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -111,7 +113,7 @@ public class RootController implements Initializable {
 
 
 	public static final int defaultGOP = 10;
-	public static final String version = "1.3.1";
+	public static final String version = "1.3.2";
 	private static final double tableRowHeight = 25.0;
 	private static String icSeq = null;
 	private static String chSeq = null;
@@ -165,7 +167,10 @@ public class RootController implements Initializable {
 	public static int filterQualityCutoff;
 	public static String filteringOption;
 
-
+	// for ProgressBar
+	//private Task task;
+	
+	
 	/**
 	 * For context switching
 	 */
@@ -261,7 +266,6 @@ public class RootController implements Initializable {
 				}                
 			}
 		});
-
 		sampleListView.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
 			@Override
 			public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
@@ -612,6 +616,8 @@ public class RootController implements Initializable {
 			sample.trimmedRevTrace[context].editBase(ap.getRevTraceIndex(), ap.getRevChar(), newRevChar);
 		}
 
+		updateChSeqIcSeq(sample);
+		
 		//새로 alignment 실행 && 원래 보여주고 있던 곳 보여주기위해 저장.
 		NTMSpecies selectedSpecies = speciesTable.getSelectionModel().getSelectedItem();
 
@@ -829,7 +835,7 @@ public class RootController implements Initializable {
 								try {
 									GanseqTrace tempTrace = new GanseqTrace(sample.fwdTraceFile[context]);
 									if(tempTrace.getSequenceLength()<30) {
-										popUp("Invalid trace file: too short sequence length(<30bp) or too poor quality of sequence");
+										popUp("Invalid trace file: " + fileName + " too short sequence length(<30bp) or too poor quality of sequence");
 										return;
 									}
 									int startTrimPosition = tempTrace.getFrontTrimPosition();
@@ -841,7 +847,7 @@ public class RootController implements Initializable {
 									else {
 										tempTrace.makeTrimmedTrace(startTrimPosition, endTrimPosition);
 										if(tempTrace.sequenceLength <= 0) {
-											popUp("Invalid trace file: too short sequence length(<30bp) or too poor quality of sequence");
+											popUp("Invalid trace file: " + fileName + " too short sequence length(<30bp) or too poor quality of sequence");
 											return;
 										}
 										confirmFwdTrace(tempTrace, false);
@@ -863,7 +869,7 @@ public class RootController implements Initializable {
 								try {
 									GanseqTrace tempTrace = new GanseqTrace(sample.revTraceFile[context]);
 									if(tempTrace.getSequenceLength()<30) {
-										popUp("Invalid trace file: too short sequence length(<30bp) or too poor quality of sequence");
+										popUp("Invalid trace file: " + fileName + " too short sequence length(<30bp) or too poor quality of sequence");
 										return;
 									}
 									int startTrimPosition = tempTrace.getFrontTrimPosition();
@@ -876,7 +882,7 @@ public class RootController implements Initializable {
 									else {
 										tempTrace.makeTrimmedTrace(startTrimPosition, endTrimPosition);
 										if(tempTrace.sequenceLength <= 0) {
-											popUp("Invalid trace file: too short sequence length(<30bp) or too poor quality of sequence");
+											popUp("Invalid trace file: " + fileName + " too short sequence length(<30bp) or too poor quality of sequence");
 											return;
 										}
 										//make complement
@@ -895,30 +901,39 @@ public class RootController implements Initializable {
 					}
 				}
 			}
-
-			//읽어들인 sample에서 16srRNA에서 chimaera specific seq, IC specific seq 있는지 확인하여 저장.
-			if(sample.fwdLoaded[0]) {
-				if(sample.trimmedFwdTrace[0].getSequence().contains(icSeq)) 
-					sample.containsIcSeq = true;
-				if(sample.trimmedFwdTrace[0].getSequence().contains(chSeq)) 
-					sample.containsChSeq = true;
-			}
-			if(sample.revLoaded[0]) {
-				if(sample.trimmedRevTrace[0].getSequence().contains(icSeq)) 
-					sample.containsIcSeq = true;
-				if(sample.trimmedRevTrace[0].getSequence().contains(chSeq)) 
-					sample.containsChSeq = true;
-			}
+			updateChSeqIcSeq(sample);
 		}
 
 		//원상복귀. 읽은 다음 맨 위 가리키게.
 		//다 돌리고 나면 첫번째 sample 16s로 채우기.
 		selectedSample = 0;
 		sampleListView.getSelectionModel().select(0);
-		context = 0;
-		s16Radio.setSelected(true);
+		
+		//이 두개는 sampleListChangeListener에서 자동으로 됨.
+		//context = 0;
+		//16Radio.setSelected(true);
+		
 		fillResults();
 
+	}
+
+	//16srRNA에서 chimaera specific seq, IC specific seq 있는지 확인하여 저장.
+	private void updateChSeqIcSeq(Sample sample) {
+
+		sample.containsChSeq = false; 
+		sample.containsIcSeq = false;
+		if(sample.fwdLoaded[0]) {
+			if(sample.trimmedFwdTrace[0].getSequence().contains(icSeq)) 
+				sample.containsIcSeq = true;
+			if(sample.trimmedFwdTrace[0].getSequence().contains(chSeq)) 
+				sample.containsChSeq = true;
+		}
+		if(sample.revLoaded[0]) {
+			if(sample.trimmedRevTrace[0].getSequence().contains(icSeq)) 
+				sample.containsIcSeq = true;
+			if(sample.trimmedRevTrace[0].getSequence().contains(chSeq)) 
+				sample.containsChSeq = true;
+		}
 	}
 
 	public void handleFwdEditTrimming() {
@@ -1161,6 +1176,7 @@ public class RootController implements Initializable {
 	public void popUp (String message) {
 		Stage dialog = new Stage(StageStyle.DECORATED);
 		dialog.initOwner(primaryStage);
+		dialog.initModality(Modality.WINDOW_MODAL);
 		dialog.setTitle("Notice");
 		Parent parent;
 		try {
@@ -1174,6 +1190,7 @@ public class RootController implements Initializable {
 			okButton.setOnAction(event->dialog.close());
 			Scene scene = new Scene(parent);
 
+			
 			dialog.setScene(scene);
 			dialog.setResizable(false);
 			dialog.show();
@@ -1186,45 +1203,40 @@ public class RootController implements Initializable {
 
 
 	public void handleConclusionList() {
-		if(sampleList == null || sampleList.size() ==0) return;
-
-		//excel
-		String filename = "";
-		File f = null;
-		filename = sampleList.get(0).sampleId + "_" + sampleList.lastElement().sampleId +".xlsx";
-		int counter = 2;
-		while(true) {
-			f = new File(filename);
-			
-			if (f.isFile()) {
-				String header = (filename.split("[ .]"))[0];
-				System.out.println("header : " + header);
-				filename = header + " (" + counter + ").xlsx";
-				counter++;
-			}
-			else 
-				break;
+		if(sampleList == null || sampleList.size() ==0) {
+			popUp("No sample to save");
+			return;
 		}
-		System.out.println("filename : " + filename);
-		
 
-		try (FileOutputStream fileOut = new FileOutputStream(new File(filename)); 
+		File tempFile2 = new File(lastVisitedDir);
+		if(!tempFile2.exists())
+			lastVisitedDir=".";
+
+		FileChooser fileChooser = new FileChooser();
+		fileChooser.getExtensionFilters().addAll(
+				new ExtensionFilter("Microsoft Excel File", "*.xlsx"));
+		fileChooser.setInitialDirectory(new File(lastVisitedDir));
+		File file = fileChooser.showSaveDialog(primaryStage);
+		if(file == null) return;
+		lastVisitedDir=file.getParent();
+
+		try (FileOutputStream fileOut = new FileOutputStream(file); 
 				XSSFWorkbook wb = new XSSFWorkbook()) 
 		{
 
 			XSSFSheet sheet = wb.createSheet();			
-			
+
 			XSSFCellStyle style = wb.createCellStyle();
 			XSSFFont font = wb.createFont();
 			font.setFontName("맑은 고딕");
 			font.setFontHeightInPoints((short) 11);
 			font.setBold(true);
 			style.setFont(font);   
-			
+
 			style.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.index);
 			style.setFillPattern(XSSFCellStyle.SOLID_FOREGROUND);
-			
-			
+
+
 			Row row = sheet.createRow(0);
 			Cell cell = row.createCell(0);
 			cell.setCellValue("ID");
@@ -1232,26 +1244,24 @@ public class RootController implements Initializable {
 			cell = row.createCell(1);
 			cell.setCellValue("Species");
 			cell.setCellStyle(style);
-			
+
 			cell = row.createCell(2);
 			cell.setCellValue("Score");
 			cell.setCellStyle(style);
 
-			
-			
 			Sample sample;
 			String textToSet = "";
 			int count = 0;
 			for(int i=0;i<sampleList.size();i++) {
 				sample = sampleList.get(i);
-				
+
 				if(sample.finalList == null) {
 					count++;
 					row = sheet.createRow(count);
 					cell = row.createCell(0);
 					cell.setCellValue(sample.sampleId);
 				} 
-				
+
 				else {
 					for(NTMSpecies ntm : sample.finalList) {
 						count++;
@@ -1270,10 +1280,10 @@ public class RootController implements Initializable {
 			}
 			sheet.autoSizeColumn(1);
 			sheet.autoSizeColumn(2);
-			
+
 			wb.write(fileOut);
-			popUp(filename + " has been created");
-			
+			popUp(file.getName() + " has been created");
+
 		}
 		catch (FileNotFoundException fe) {
 			fe.printStackTrace();
@@ -1283,14 +1293,83 @@ public class RootController implements Initializable {
 		catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+
+	public void handleSaveData() {
+		if(sampleList == null || sampleList.size() ==0) {
+			popUp("No sample to save");
+			return;
+		}
+
+		File tempFile2 = new File(lastVisitedDir);
+		if(!tempFile2.exists())
+			lastVisitedDir=".";
+
+		FileChooser fileChooser = new FileChooser();
+		fileChooser.getExtensionFilters().addAll(
+				new ExtensionFilter("SnackNTM data file", "*.ntm"));
+		fileChooser.setInitialDirectory(new File(lastVisitedDir));
+		File file = fileChooser.showSaveDialog(primaryStage);
+		if(file == null) return;
+		lastVisitedDir=file.getParent();
+
+		//String fileName = lastVisitedDir + "/data.ntm";
+		try (FileOutputStream fos = new FileOutputStream(file); ObjectOutputStream out = new ObjectOutputStream(fos); ) {
+			out.writeObject(sampleList);
+			popUp(file.getName() + " has been created");
+		}
+		catch(Exception ex) {
+			popUp(ex.getMessage());
+			ex.printStackTrace();
+		}
+	}
 
 
-		//end excel
+	public void handleLoadData() {
+		File tempFile2 = new File(lastVisitedDir);
+		if(!tempFile2.exists())
+			lastVisitedDir=".";
 
+		FileChooser fileChooser = new FileChooser();
+		fileChooser.getExtensionFilters().addAll(
+				new ExtensionFilter("SnackNTM data file", "*.ntm"));
+		fileChooser.setInitialDirectory(new File(lastVisitedDir));
+		File tempFile = fileChooser.showOpenDialog(primaryStage);
+		if(tempFile == null) return;
+		lastVisitedDir=tempFile.getParent();
+
+		try (FileInputStream fin = new FileInputStream(tempFile); ObjectInputStream in = new ObjectInputStream(fin); ) {
+			sampleList = (Vector<Sample>)in.readObject();
+
+			Vector<String> idList = new Vector<String>();
+			for(Sample sample:sampleList) {
+				//System.out.println(sample.sampleId);
+				idList.add(sample.sampleId);
+			}
+
+			sampleListView.setItems(FXCollections.observableArrayList(idList));
+			
+			selectedSample = 0;
+			sampleListView.getSelectionModel().select(0);
+			
+			//이 두개는 sampleListChangeListener에서 자동으로 됨.
+			//context = 0;
+			//16Radio.setSelected(true);
+			
+			fillResults();
+		}
+		catch (Exception ex) {
+			ex.printStackTrace();
+			popUp(ex.getMessage());
+			return;
+		}
 	}
 
 	public void handleTSVAll() {
-		if(sampleList == null || sampleList.size() ==0) return;
+		if(sampleList == null || sampleList.size() ==0) {
+			popUp("No sample to show");
+			return;
+		}
 		Stage dialog = new Stage(StageStyle.DECORATED);
 		dialog.initOwner(primaryStage);
 		dialog.setTitle("TSV");
@@ -1347,7 +1426,10 @@ public class RootController implements Initializable {
 	}
 
 	public void handleTSVThisSample() {
-		if(sampleList == null || sampleList.size() ==0) return;
+		if(sampleList == null || sampleList.size() ==0) {
+			popUp("No sample to show");
+			return;
+		}
 		Stage dialog = new Stage(StageStyle.DECORATED);
 		dialog.initOwner(primaryStage);
 		dialog.setTitle("TSV");
@@ -1526,14 +1608,14 @@ public class RootController implements Initializable {
 			}
 
 			//100 match 하는 것들 있으면 이것만 대상으로 함.
-			String strScore = "";
+			//String strScore = "";
 			if(!s16_100List.isEmpty()) { 
 				retList = s16_100List;
-				strScore = "Exact match";
+				//strScore = "Exact match";
 			}
 			else {
 				retList = s16List;
-				strScore = "most closely";
+				//strScore = "most closely";
 			}
 
 			Vector<NTMSpecies> tempRetList = new Vector<NTMSpecies>();
@@ -1560,6 +1642,7 @@ public class RootController implements Initializable {
 			boolean chimaeraInList = false, ICInList = false;
 			Vector<NTMSpecies> tempList = new Vector<NTMSpecies>();
 			for(NTMSpecies ntm : retList) {
+				String strScore = String.format("%.2f",  ntm.getScore());
 				NTMSpecies temp = new NTMSpecies(ntm.getSpeciesName(), strScore);
 				tempList.add(temp);
 				if(temp.getSpeciesName().equals(chName))
@@ -1572,9 +1655,9 @@ public class RootController implements Initializable {
 
 			if(chimaeraInList && ICInList) {
 				if(sample.containsChSeq && !sample.containsIcSeq)
-					tempList.remove(new NTMSpecies(icName, strScore));
+					tempList.remove(new NTMSpecies(icName, ""));
 				if(!sample.containsChSeq && sample.containsIcSeq)
-					tempList.remove(new NTMSpecies(chName, strScore));
+					tempList.remove(new NTMSpecies(chName, ""));
 			}
 
 			retList = tempList;

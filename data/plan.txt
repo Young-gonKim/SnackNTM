@@ -3,18 +3,19 @@ JKJ. 고객감동. 장인이 되자. 내가 미술을 하나 뭐를 하나. 이�
 
 Todo
 1. Save, Open, New project (new : 현재의 open trace files)
-- sampleList 객체 파일로 저장.
-- sampleList 읽어오면서 왼쪽에 sampleList 만들기 (openTraceFiles참조)
-- fillResults() 그대로 호출하면 될듯?
 
-2. UI
+2. UI (JavaFX책 참조)
 - Menubar 구현 
 - settings도 Menubar 안에
+- mainframe scroll가능하게
+
+3. Progress Bar
 
 *v 1.3.2 개선사항
 1. M.chimera specific seq, M.intracellularae 는 T450C 기준으로 conclusion 도출
 기존에는 화면 하단에 M.chimaera specific sequence 혹은 M.intracellularae specific sequence를 포함하는지 보여주고 
 사용자가 판단하도록 했던 것을, 자동화하고자 해보았습니다.
+
 
 현재 사용중인 두 종의 reference sequence는 T450C 외에는 모두 일치하기 때문에 점수대로 정렬된 결과가 T450C로 인해서 바뀔 가능성은 거의 없어보입니다.
 다만 M.chimaera의 reference가 5'이 5bp 더 길게 되어있어, 이 부분으로 인해서 결과가 바뀔 가능성이 희박하지만 존재할수 있을 것 같습니다.
@@ -23,9 +24,9 @@ Todo
 둘다 100%는 아니지만 99%를 넘을때는 T450C에 따라서 한 종만 선택하도록 하였습니다.
 99%가 넘는 다른 종들이 같이 있을 경우, 이들 종들은 영향을 받지 않고 그대로 list에 남아있도록 하였습니다.
 
+처음 읽을때 specific seq. 갖는지 평가, editbase 후에는 다시 평가
  
-2. Conclusion List : Excel File 동일한 폴더에 생성.
-
+2. Conclusion List : Excel File  생성.
 
 
 

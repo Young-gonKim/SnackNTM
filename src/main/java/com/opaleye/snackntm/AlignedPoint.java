@@ -1,5 +1,6 @@
 package com.opaleye.snackntm;
 
+import java.io.Serializable;
 
 /**
  * Title : AlignedPoint
@@ -7,7 +8,7 @@ package com.opaleye.snackntm;
  * @author Young-gon Kim
  * 2018.5.
  */
-public class AlignedPoint {
+public class AlignedPoint implements Serializable {
 	
 	private char refChar, fwdChar, revChar, consensusChar;
 	private boolean coding;

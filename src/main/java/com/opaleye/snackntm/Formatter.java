@@ -1,5 +1,6 @@
 package com.opaleye.snackntm;
 
+import java.io.Serializable;
 import java.util.TreeMap;
 import java.util.Vector;
 
@@ -14,7 +15,7 @@ import com.opaleye.snackntm.reference.ReferenceSeq;
  * 2018.5.
  */
 
-public class Formatter {
+public class Formatter implements Serializable {
 	public static final char gapChar = '-';
 	public TreeMap<Integer, Integer> fwdCoordinateMap = new TreeMap<Integer, Integer>();
 	public TreeMap<Integer, Integer> revCoordinateMap = new TreeMap<Integer, Integer>();

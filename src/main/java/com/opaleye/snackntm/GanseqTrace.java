@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.Serializable;
 import java.util.TreeMap;
 
 import org.biojava.bio.program.abi.ABITrace;
@@ -17,7 +18,7 @@ import com.opaleye.snackntm.tools.SymbolTools;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
 
-public class GanseqTrace {
+public class GanseqTrace implements Serializable {
 
 	//현재 : basecall 전후로 10칸씩. 총 21칸을 사용. 
 	private static final int LSTMLength = 10;

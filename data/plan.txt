@@ -1,13 +1,7 @@
 JKJ. 고객감동. 장인이 되자. 내가 미술을 하나 뭐를 하나. 이쁘게 만드는걸 취미삼아.. Neal Caffery
 
 
-Todo
-0. scrollable mainstage
-1. Save, Open, New project (new : 현재의 open trace files)
-
-2. UI (JavaFX책 참조)
-- Menubar 구현 
-- settings도 Menubar 안에
+( release에 poi관련내용 추가)
 
 
 

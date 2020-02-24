@@ -194,6 +194,7 @@ public class RootController implements Initializable {
 	 */
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
+		handleAbout();
 		readProperties();
 		File tempFile = new File(lastVisitedDir);
 		if(!tempFile.exists())
@@ -302,13 +303,7 @@ public class RootController implements Initializable {
 	}
 
 	private void readProperties() {
-		String homepage = "", email = "", copyright = "";
-		String comment = "SnackNTM Ver " + version;
-		comment += "\n\n" + homepage;
-		comment += "\n" + email;
-		comment += "\n\n" + copyright;
-
-		textPopUp(comment, "Notice");
+		
 		/* settings Property 읽기. 
 		 * 
 		 */
@@ -378,7 +373,7 @@ public class RootController implements Initializable {
 		}
 		catch(Exception e) {
 			e.printStackTrace();
-			textPopUp("Error in reading configuration file. (settings/settings.properties) Recover configuration file or reinstall the program.", "Error");
+			popUp("Error in reading configuration file. (settings/settings.properties) Recover configuration file or reinstall the program.");
 			System.exit(0);
 		}
 	}
@@ -386,6 +381,10 @@ public class RootController implements Initializable {
 
 
 	private void fillResults() {
+		//SampleListView initialize 될때 selectedSample -1로 바뀌면서 호출됨.. 무시..
+		if(selectedSample == -1) 
+			return;
+		
 		Sample sample = sampleList.get(selectedSample);
 
 		if(sample.split[context]) {
@@ -777,7 +776,7 @@ public class RootController implements Initializable {
 	/** 
 	 * Open forward trace file and opens trim.fxml with that file
 	 */
-	public void handleOpenTrace() {
+	public void handleNewProject() {
 
 		// 새로운 sample들을 읽기전 data structure 초기화. 나머지 data structure는 모두 sampleList에 달려있는데 아래에서 초기화 시킴.
 		gridPane = null;
@@ -788,6 +787,7 @@ public class RootController implements Initializable {
 			lastVisitedDir=".";
 
 		FileChooser fileChooser = new FileChooser();
+		fileChooser.setTitle("Choose Trace Files");
 		fileChooser.getExtensionFilters().addAll(
 				new ExtensionFilter("AB1 Files", "*.ab1"), 
 				new ExtensionFilter("All Files", "*.*"));
@@ -909,10 +909,10 @@ public class RootController implements Initializable {
 		//다 돌리고 나면 첫번째 sample 16s로 채우기.
 		selectedSample = 0;
 		sampleListView.getSelectionModel().select(0);
+		//밑에 두줄 지우면 에러남
+		context = 0;
+		s16Radio.setSelected(true);
 
-		//이 두개는 sampleListChangeListener에서 자동으로 됨.
-		//context = 0;
-		//16Radio.setSelected(true);
 
 		fillResults();
 
@@ -1202,53 +1202,8 @@ public class RootController implements Initializable {
 
 	}
 
-	/**
-	 * Shows the message with a popup
-	 * @param message : message to be showen
-	 */
-	public void progressPopUp () {
-		Stage dialog = new Stage(StageStyle.DECORATED);
-		dialog.initOwner(primaryStage);
-		dialog.initModality(Modality.WINDOW_MODAL);
-		dialog.setTitle("Running");
-		Parent parent;
-		try {
-			parent = FXMLLoader.load(getClass().getResource("progress_popup.fxml"));
-			Label messageLabel = (Label)parent.lookup("#progressLabel");
-			ProgressBar progressBar = (ProgressBar)parent.lookup("#progressBar");
-			task = runTask();
-
-
-			progressBar.progressProperty().unbind();
-			progressBar.progressProperty().bind(task.progressProperty());
-
-			task.messageProperty().addListener(new ChangeListener<String>() {
-				public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-					messageLabel.setText(newValue);
-					if(newValue.equals("finished")) {
-						dialog.close();
-						//다 돌리고 나면 첫번째 sample 16s로 채우기.
-						selectedSample = 0;
-						sampleListView.getSelectionModel().select(0);
-						context = 0;
-						s16Radio.setSelected(true);
-						fillResults();
-					}
-				}
-			});
-
-			new Thread(task).start();
-			messageLabel.setWrapText(true);
-			Scene scene = new Scene(parent);
-
-			dialog.setScene(scene);
-			dialog.setResizable(false);
-			dialog.show();
-		}
-		catch(Exception ex) {
-			ex.printStackTrace();
-		}
-	}
+	
+	
 
 	public void handleConclusionList() {
 		if(sampleList == null || sampleList.size() ==0) {
@@ -1343,7 +1298,7 @@ public class RootController implements Initializable {
 		}
 	}
 
-	public void handleSaveData() {
+	public void handleSaveProject() {
 		if(sampleList == null || sampleList.size() ==0) {
 			popUp("No sample to save");
 			return;
@@ -1373,12 +1328,13 @@ public class RootController implements Initializable {
 	}
 
 
-	public void handleLoadData() {
+	public void handleOpenProject() {
 		File tempFile2 = new File(lastVisitedDir);
 		if(!tempFile2.exists())
 			lastVisitedDir=".";
 
 		FileChooser fileChooser = new FileChooser();
+		fileChooser.setTitle("Choose a project file to open");
 		fileChooser.getExtensionFilters().addAll(
 				new ExtensionFilter("SnackNTM data file", "*.ntm"));
 		fileChooser.setInitialDirectory(new File(lastVisitedDir));
@@ -1399,10 +1355,9 @@ public class RootController implements Initializable {
 
 			selectedSample = 0;
 			sampleListView.getSelectionModel().select(0);
-
-			//이 두개는 sampleListChangeListener에서 자동으로 됨.
-			//context = 0;
-			//16Radio.setSelected(true);
+			//밑에 두줄 지우면 에러남
+			context = 0;
+			s16Radio.setSelected(true);
 
 			fillResults();
 		}
@@ -1538,17 +1493,24 @@ public class RootController implements Initializable {
 	 * Shows the message with a popup
 	 * @param message : message to be showen
 	 */
-	public void textPopUp (String message, String title) {
+	public void handleAbout () {
 		Stage dialog = new Stage(StageStyle.DECORATED);
 		dialog.initOwner(primaryStage);
-		dialog.setTitle(title);
+		dialog.setTitle("SnackNTM");
 		Parent parent;
+		
+		String homepage = "", email = "", copyright = "";
+		String comment = "SnackNTM Ver " + version;
+		comment += "\n\n" + homepage;
+		comment += "\n" + email;
+		comment += "\n\n" + copyright;
+		
 		try {
 			parent = FXMLLoader.load(getClass().getResource("login.fxml"));
 			TextArea ta_message = (TextArea)parent.lookup("#ta_message");
 
 
-			ta_message.setText(message);
+			ta_message.setText(comment);
 			Button okButton = (Button) parent.lookup("#okButton");
 			okButton.setOnAction(event->dialog.close());
 			Scene scene = new Scene(parent);
@@ -1774,17 +1736,57 @@ public class RootController implements Initializable {
 					if(selectedSample + 1 == sampleList.size()) 
 						updateMessage("finished");
 					else 
-						updateMessage(String.format("%d / %d th sample has been completed",  selectedSample + 1, sampleList.size()));
+						updateMessage(String.format("%d/%d sample finished",  selectedSample + 1, sampleList.size()));
 				}
-
-				System.out.println("Finished");
-
-
 				return true;
 			}
 		};
 	}
 
+	public void progressPopUp () {
+		Stage dialog = new Stage(StageStyle.UNDECORATED);
+		dialog.initOwner(primaryStage);
+		dialog.initModality(Modality.WINDOW_MODAL);
+		dialog.setTitle("Running");
+		Parent parent;
+		try {
+			parent = FXMLLoader.load(getClass().getResource("progress_popup.fxml"));
+			Label messageLabel = (Label)parent.lookup("#progressLabel");
+			ProgressBar progressBar = (ProgressBar)parent.lookup("#progressBar");
+			task = runTask();
+
+
+			progressBar.progressProperty().unbind();
+			progressBar.progressProperty().bind(task.progressProperty());
+
+			task.messageProperty().addListener(new ChangeListener<String>() {
+				public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+					messageLabel.setText(newValue);
+					if(newValue.equals("finished")) {
+						dialog.close();
+						//다 돌리고 나면 첫번째 sample 16s로 채우기.
+						selectedSample = 0;
+						sampleListView.getSelectionModel().select(0);
+						context = 0;
+						s16Radio.setSelected(true);
+						fillResults();
+					}
+				}
+			});
+
+			new Thread(task).start();
+			messageLabel.setWrapText(true);
+			Scene scene = new Scene(parent);
+
+			dialog.setScene(scene);
+			dialog.setResizable(false);
+			dialog.show();
+		}
+		catch(Exception ex) {
+			ex.printStackTrace();
+		}
+	}
+	
 	public void handleRunAllSamples() {
 
 		if(sampleList.size()<1) return;

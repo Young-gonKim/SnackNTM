@@ -44,6 +44,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.control.ProgressBar;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TableColumn;
@@ -168,9 +169,9 @@ public class RootController implements Initializable {
 	public static String filteringOption;
 
 	// for ProgressBar
-	//private Task task;
-	
-	
+	private Task task;
+
+
 	/**
 	 * For context switching
 	 */
@@ -617,7 +618,7 @@ public class RootController implements Initializable {
 		}
 
 		updateChSeqIcSeq(sample);
-		
+
 		//새로 alignment 실행 && 원래 보여주고 있던 곳 보여주기위해 저장.
 		NTMSpecies selectedSpecies = speciesTable.getSelectionModel().getSelectedItem();
 
@@ -908,11 +909,11 @@ public class RootController implements Initializable {
 		//다 돌리고 나면 첫번째 sample 16s로 채우기.
 		selectedSample = 0;
 		sampleListView.getSelectionModel().select(0);
-		
+
 		//이 두개는 sampleListChangeListener에서 자동으로 됨.
 		//context = 0;
 		//16Radio.setSelected(true);
-		
+
 		fillResults();
 
 	}
@@ -1190,7 +1191,7 @@ public class RootController implements Initializable {
 			okButton.setOnAction(event->dialog.close());
 			Scene scene = new Scene(parent);
 
-			
+
 			dialog.setScene(scene);
 			dialog.setResizable(false);
 			dialog.show();
@@ -1201,6 +1202,53 @@ public class RootController implements Initializable {
 
 	}
 
+	/**
+	 * Shows the message with a popup
+	 * @param message : message to be showen
+	 */
+	public void progressPopUp () {
+		Stage dialog = new Stage(StageStyle.DECORATED);
+		dialog.initOwner(primaryStage);
+		dialog.initModality(Modality.WINDOW_MODAL);
+		dialog.setTitle("Running");
+		Parent parent;
+		try {
+			parent = FXMLLoader.load(getClass().getResource("progress_popup.fxml"));
+			Label messageLabel = (Label)parent.lookup("#progressLabel");
+			ProgressBar progressBar = (ProgressBar)parent.lookup("#progressBar");
+			task = runTask();
+
+
+			progressBar.progressProperty().unbind();
+			progressBar.progressProperty().bind(task.progressProperty());
+
+			task.messageProperty().addListener(new ChangeListener<String>() {
+				public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+					messageLabel.setText(newValue);
+					if(newValue.equals("finished")) {
+						dialog.close();
+						//다 돌리고 나면 첫번째 sample 16s로 채우기.
+						selectedSample = 0;
+						sampleListView.getSelectionModel().select(0);
+						context = 0;
+						s16Radio.setSelected(true);
+						fillResults();
+					}
+				}
+			});
+
+			new Thread(task).start();
+			messageLabel.setWrapText(true);
+			Scene scene = new Scene(parent);
+
+			dialog.setScene(scene);
+			dialog.setResizable(false);
+			dialog.show();
+		}
+		catch(Exception ex) {
+			ex.printStackTrace();
+		}
+	}
 
 	public void handleConclusionList() {
 		if(sampleList == null || sampleList.size() ==0) {
@@ -1348,14 +1396,14 @@ public class RootController implements Initializable {
 			}
 
 			sampleListView.setItems(FXCollections.observableArrayList(idList));
-			
+
 			selectedSample = 0;
 			sampleListView.getSelectionModel().select(0);
-			
+
 			//이 두개는 sampleListChangeListener에서 자동으로 됨.
 			//context = 0;
 			//16Radio.setSelected(true);
-			
+
 			fillResults();
 		}
 		catch (Exception ex) {
@@ -1710,30 +1758,37 @@ public class RootController implements Initializable {
 		}
 	}
 
+	public Task runTask() {
+		return new Task() {
+			@Override
+			protected Object call() throws Exception {
+				for(selectedSample=0;selectedSample<sampleList.size();selectedSample++) {
+					System.out.println(String.format("(%d/%d) sample processing", selectedSample+1, sampleList.size()));
+					Sample sample = sampleList.get(selectedSample);
+					for(context=0;context<3;context++) {
+						if(sample.fwdLoaded[context] || sample.revLoaded[context]) {
+							actualRun();
+						}
+					}
+					updateProgress(selectedSample + 1, sampleList.size());
+					if(selectedSample + 1 == sampleList.size()) 
+						updateMessage("finished");
+					else 
+						updateMessage(String.format("%d / %d th sample has been completed",  selectedSample + 1, sampleList.size()));
+				}
+
+				System.out.println("Finished");
+
+
+				return true;
+			}
+		};
+	}
 
 	public void handleRunAllSamples() {
+
 		if(sampleList.size()<1) return;
-
-
-		for(selectedSample=0;selectedSample<sampleList.size();selectedSample++) {
-			System.out.println(String.format("(%d/%d) sample processing", selectedSample+1, sampleList.size()));
-			Sample sample = sampleList.get(selectedSample);
-			for(context=0;context<3;context++) {
-				if(sample.fwdLoaded[context] || sample.revLoaded[context]) {
-
-					actualRun();
-				}
-			}
-
-		}
-		System.out.println("Finished");
-
-		//다 돌리고 나면 첫번째 sample 16s로 채우기.
-		selectedSample = 0;
-		sampleListView.getSelectionModel().select(0);
-		context = 0;
-		s16Radio.setSelected(true);
-		fillResults();
+		progressPopUp();
 	}
 
 	public void handleRunCurrentTarget() {

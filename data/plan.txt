@@ -2,14 +2,14 @@ JKJ. 고객감동. 장인이 되자. 내가 미술을 하나 뭐를 하나. 이�
 
 
 Todo
+0. scrollable mainstage
 1. Save, Open, New project (new : 현재의 open trace files)
 
 2. UI (JavaFX책 참조)
 - Menubar 구현 
 - settings도 Menubar 안에
-- mainframe scroll가능하게
 
-3. Progress Bar
+
 
 *v 1.3.2 개선사항
 1. M.chimera specific seq, M.intracellularae 는 T450C 기준으로 conclusion 도출
@@ -27,6 +27,8 @@ Todo
 처음 읽을때 specific seq. 갖는지 평가, editbase 후에는 다시 평가
  
 2. Conclusion List : Excel File  생성.
+3. ProgressBar
+4. UI 개선. 버튼이 많아져서 MenuBar
 
 
 

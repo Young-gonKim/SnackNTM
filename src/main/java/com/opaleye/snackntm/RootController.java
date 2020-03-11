@@ -1375,7 +1375,7 @@ public class RootController implements Initializable {
 			cell.setCellStyle(style);
 
 			cell = row.createCell(2);
-			cell.setCellValue("Score");
+			cell.setCellValue("16S Score");
 			cell.setCellStyle(style);
 
 			Sample sample;

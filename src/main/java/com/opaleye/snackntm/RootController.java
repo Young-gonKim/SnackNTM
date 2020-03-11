@@ -1205,7 +1205,7 @@ public class RootController implements Initializable {
 
 
 
-	public void handleRawExcel() {
+	public void handleResultExcel() {
 		if(sampleList == null || sampleList.size() ==0) {
 			popUp("No sample to save");
 			return;
@@ -1229,36 +1229,44 @@ public class RootController implements Initializable {
 
 			XSSFSheet sheet = wb.createSheet();			
 
-			XSSFCellStyle style = wb.createCellStyle();
+			XSSFCellStyle titleStyle = wb.createCellStyle();
 			XSSFFont font = wb.createFont();
 			font.setFontName("맑은 고딕");
 			font.setFontHeightInPoints((short) 11);
 			font.setBold(true);
-			style.setFont(font);   
+			titleStyle.setFont(font);   
 
-			style.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.index);
-			style.setFillPattern(XSSFCellStyle.SOLID_FOREGROUND);
+			titleStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.index);
+			titleStyle.setFillPattern(XSSFCellStyle.SOLID_FOREGROUND);
 
+
+			XSSFCellStyle conclusionStyle = wb.createCellStyle();
+			conclusionStyle.setFont(font);   
+
+			conclusionStyle.setFillForegroundColor(IndexedColors.YELLOW.index);
+			conclusionStyle.setFillPattern(XSSFCellStyle.SOLID_FOREGROUND);
+
+			
 
 			Row row = sheet.createRow(0);
 			Cell cell = row.createCell(0);
 			cell.setCellValue("ID");
-			cell.setCellStyle(style);
+			cell.setCellStyle(titleStyle);
 			cell = row.createCell(1);
 			cell.setCellValue("qlen");
-			cell.setCellStyle(style);
+			cell.setCellStyle(titleStyle);
 
 			cell = row.createCell(2);
 			cell.setCellValue("Score");
-			cell.setCellStyle(style);
+			cell.setCellStyle(titleStyle);
 
 			cell = row.createCell(3);
 			cell.setCellValue("Accession");
-			cell.setCellStyle(style);
+			cell.setCellStyle(titleStyle);
 
 			cell = row.createCell(4);
 			cell.setCellValue("Species");
-			cell.setCellStyle(style);
+			cell.setCellStyle(titleStyle);
 
 			Sample sample;
 			int count =  0;
@@ -1282,23 +1290,32 @@ public class RootController implements Initializable {
 
 						for(NTMSpecies ntm : sample.speciesList[j]) {
 							if(ntm.getScore()>=98) {
+								
+								boolean conclusion = false;
+								if(j==0 && sample.finalList.contains(ntm)) 
+									conclusion = true;
+								
 								count++;
 								row = sheet.createRow(count);
 								cell = row.createCell(0);
+								if(conclusion) cell.setCellStyle(conclusionStyle);
 								cell.setCellValue(sample.sampleId + "-" + region+ direction);
 
 								cell = row.createCell(1);
+								if(conclusion) cell.setCellStyle(conclusionStyle);
 								cell.setCellValue(ntm.getQlen());
 
 								cell = row.createCell(2);
+								if(conclusion) cell.setCellStyle(conclusionStyle);
 								cell.setCellValue(ntm.getScoreProperty());
 
 								cell = row.createCell(3);
+								if(conclusion) cell.setCellStyle(conclusionStyle);
 								cell.setCellValue(ntm.getAccession());
 
 								cell = row.createCell(4);
+								if(conclusion) cell.setCellStyle(conclusionStyle);
 								cell.setCellValue(ntm.getSpeciesName());
-
 							}
 						}
 					}
@@ -1331,6 +1348,149 @@ public class RootController implements Initializable {
 		}
 	}
 
+
+	public void handleSaveProject() {
+		if(sampleList == null || sampleList.size() ==0) {
+			popUp("No sample to save");
+			return;
+		}
+
+		File tempFile2 = new File(lastVisitedDir);
+		if(!tempFile2.exists())
+			lastVisitedDir=".";
+
+		FileChooser fileChooser = new FileChooser();
+		fileChooser.getExtensionFilters().addAll(
+				new ExtensionFilter("SnackNTM data file (.ntm)", "*.ntm"));
+		fileChooser.setInitialDirectory(new File(lastVisitedDir));
+		File file = fileChooser.showSaveDialog(primaryStage);
+		if(file == null) return;
+		lastVisitedDir=file.getParent();
+
+		//String fileName = lastVisitedDir + "/data.ntm";
+		try (FileOutputStream fos = new FileOutputStream(file); ObjectOutputStream out = new ObjectOutputStream(fos); ) {
+			out.writeObject(sampleList);
+			popUp(file.getName() + " has been created");
+		}
+		catch(Exception ex) {
+			popUp(ex.getMessage());
+			ex.printStackTrace();
+		}
+	}
+
+
+	public void handleOpenProject() {
+		File tempFile2 = new File(lastVisitedDir);
+		if(!tempFile2.exists())
+			lastVisitedDir=".";
+
+		FileChooser fileChooser = new FileChooser();
+		fileChooser.setTitle("Choose a project file to open");
+		fileChooser.getExtensionFilters().addAll(
+				new ExtensionFilter("SnackNTM data file (.ntm)", "*.ntm"));
+		fileChooser.setInitialDirectory(new File(lastVisitedDir));
+		File tempFile = fileChooser.showOpenDialog(primaryStage);
+		if(tempFile == null) return;
+		lastVisitedDir=tempFile.getParent();
+
+		try (FileInputStream fin = new FileInputStream(tempFile); ObjectInputStream in = new ObjectInputStream(fin); ) {
+			sampleList = (Vector<Sample>)in.readObject();
+
+			Vector<String> idList = new Vector<String>();
+			for(Sample sample:sampleList) {
+				//System.out.println(sample.sampleId);
+				idList.add(sample.sampleId);
+			}
+
+			sampleListView.setItems(FXCollections.observableArrayList(idList));
+
+			selectedSample = 0;
+			sampleListView.getSelectionModel().select(0);
+			//밑에 두줄 지우면 에러남
+			context = 0;
+			s16Radio.setSelected(true);
+
+			fillResults();
+		}
+		catch (Exception ex) {
+			ex.printStackTrace();
+			popUp(ex.getMessage());
+			return;
+		}
+	}
+
+	public void handleResultTSV() {
+		if(sampleList == null || sampleList.size() ==0) {
+			popUp("No sample to show");
+			return;
+		}
+		Stage dialog = new Stage(StageStyle.DECORATED);
+		dialog.initOwner(primaryStage);
+		dialog.setTitle("TSV");
+		Parent parent;
+		try {
+			parent = FXMLLoader.load(getClass().getResource("tsv.fxml"));
+			TextArea ta_tsv = (TextArea)parent.lookup("#ta_tsv");
+
+			Sample sample;
+			String textToSet = "";
+			for(int i=0;i<sampleList.size();i++) {
+
+				sample = sampleList.get(i);
+				
+				boolean anyAlignment = false;
+				for(int j=0;j<3;j++) {
+					if(sample.alignmentPerformed[j]) {
+						anyAlignment = true;
+
+						String region = "", direction = "";
+						switch(j) {
+						case 0: region = "16s";break;
+						case 1: region = "rpo";break;
+						case 2: region = "tuf";break;
+						}
+
+						if(sample.fwdLoaded[j] == true && sample.revLoaded[j] == false)
+							direction = "_F";
+						else if(sample.fwdLoaded[j] == false && sample.revLoaded[j] == true)
+							direction = "_R";
+
+						for(NTMSpecies ntm : sample.speciesList[j]) {
+							if(ntm.getScore()>=98) {
+								
+								//textToSet += ntm.getQlen() + "\t\t" + ntm.getScoreProperty() + "\t" + ntm.getAccession() + "\t" + ntm.getSpeciesName() + "\n";
+								textToSet += sample.sampleId + "-" + region+ direction + "\t" + ntm.getQlen() + "\t" + ntm.getScoreProperty() + "\t" + ntm.getAccession() + "\t" + ntm.getSpeciesName() + "\t";
+
+								if(j==0 && sample.finalList.contains(ntm)) 
+									textToSet += "(conclusion)\n";
+								else 
+									textToSet += "\n";
+							}
+						}
+					}
+				}
+				if(!anyAlignment) {
+					textToSet += sample.sampleId + "\t\tNo alignmemt performed\n";
+				}
+			}
+
+
+			ta_tsv.setText(textToSet);
+
+			Button okButton = (Button) parent.lookup("#okButton");
+			okButton.setOnAction(event->dialog.close());
+			Scene scene = new Scene(parent);
+
+			dialog.setScene(scene);
+			dialog.setResizable(false);
+			dialog.showAndWait();
+		}
+		catch(Exception ex) {
+			ex.printStackTrace();
+		}
+	}
+	
+	/*
 	public void handleConclusionExcel() {
 		if(sampleList == null || sampleList.size() ==0) {
 			popUp("No sample to save");
@@ -1429,141 +1589,7 @@ public class RootController implements Initializable {
 
 
 
-	public void handleSaveProject() {
-		if(sampleList == null || sampleList.size() ==0) {
-			popUp("No sample to save");
-			return;
-		}
-
-		File tempFile2 = new File(lastVisitedDir);
-		if(!tempFile2.exists())
-			lastVisitedDir=".";
-
-		FileChooser fileChooser = new FileChooser();
-		fileChooser.getExtensionFilters().addAll(
-				new ExtensionFilter("SnackNTM data file (.ntm)", "*.ntm"));
-		fileChooser.setInitialDirectory(new File(lastVisitedDir));
-		File file = fileChooser.showSaveDialog(primaryStage);
-		if(file == null) return;
-		lastVisitedDir=file.getParent();
-
-		//String fileName = lastVisitedDir + "/data.ntm";
-		try (FileOutputStream fos = new FileOutputStream(file); ObjectOutputStream out = new ObjectOutputStream(fos); ) {
-			out.writeObject(sampleList);
-			popUp(file.getName() + " has been created");
-		}
-		catch(Exception ex) {
-			popUp(ex.getMessage());
-			ex.printStackTrace();
-		}
-	}
-
-
-	public void handleOpenProject() {
-		File tempFile2 = new File(lastVisitedDir);
-		if(!tempFile2.exists())
-			lastVisitedDir=".";
-
-		FileChooser fileChooser = new FileChooser();
-		fileChooser.setTitle("Choose a project file to open");
-		fileChooser.getExtensionFilters().addAll(
-				new ExtensionFilter("SnackNTM data file (.ntm)", "*.ntm"));
-		fileChooser.setInitialDirectory(new File(lastVisitedDir));
-		File tempFile = fileChooser.showOpenDialog(primaryStage);
-		if(tempFile == null) return;
-		lastVisitedDir=tempFile.getParent();
-
-		try (FileInputStream fin = new FileInputStream(tempFile); ObjectInputStream in = new ObjectInputStream(fin); ) {
-			sampleList = (Vector<Sample>)in.readObject();
-
-			Vector<String> idList = new Vector<String>();
-			for(Sample sample:sampleList) {
-				//System.out.println(sample.sampleId);
-				idList.add(sample.sampleId);
-			}
-
-			sampleListView.setItems(FXCollections.observableArrayList(idList));
-
-			selectedSample = 0;
-			sampleListView.getSelectionModel().select(0);
-			//밑에 두줄 지우면 에러남
-			context = 0;
-			s16Radio.setSelected(true);
-
-			fillResults();
-		}
-		catch (Exception ex) {
-			ex.printStackTrace();
-			popUp(ex.getMessage());
-			return;
-		}
-	}
-
-	public void handleRawTSV() {
-		if(sampleList == null || sampleList.size() ==0) {
-			popUp("No sample to show");
-			return;
-		}
-		Stage dialog = new Stage(StageStyle.DECORATED);
-		dialog.initOwner(primaryStage);
-		dialog.setTitle("TSV");
-		Parent parent;
-		try {
-			parent = FXMLLoader.load(getClass().getResource("tsv.fxml"));
-			TextArea ta_tsv = (TextArea)parent.lookup("#ta_tsv");
-
-			Sample sample;
-			String textToSet = "";
-			for(int i=0;i<sampleList.size();i++) {
-
-				sample = sampleList.get(i);
-				
-				boolean anyAlignment = false;
-				for(int j=0;j<3;j++) {
-					if(sample.alignmentPerformed[j]) {
-						anyAlignment = true;
-
-						String region = "", direction = "";
-						switch(j) {
-						case 0: region = "16s";break;
-						case 1: region = "rpo";break;
-						case 2: region = "tuf";break;
-						}
-
-						if(sample.fwdLoaded[j] == true && sample.revLoaded[j] == false)
-							direction = "_F";
-						else if(sample.fwdLoaded[j] == false && sample.revLoaded[j] == true)
-							direction = "_R";
-
-						for(NTMSpecies ntm : sample.speciesList[j]) {
-							if(ntm.getScore()>=98) {
-								//textToSet += ntm.getQlen() + "\t\t" + ntm.getScoreProperty() + "\t" + ntm.getAccession() + "\t" + ntm.getSpeciesName() + "\n";
-								textToSet += sample.sampleId + "-" + region+ direction + "\t" + ntm.getQlen() + "\t" + ntm.getScoreProperty() + "\t" + ntm.getAccession() + "\t" + ntm.getSpeciesName() + "\n";
-							}
-						}
-					}
-				}
-				if(!anyAlignment) {
-					textToSet += sample.sampleId + "\t\tNo alignmemt performed\n";
-				}
-			}
-
-
-			ta_tsv.setText(textToSet);
-
-			Button okButton = (Button) parent.lookup("#okButton");
-			okButton.setOnAction(event->dialog.close());
-			Scene scene = new Scene(parent);
-
-			dialog.setScene(scene);
-			dialog.setResizable(false);
-			dialog.showAndWait();
-		}
-		catch(Exception ex) {
-			ex.printStackTrace();
-		}
-	}
-
+	
 	public void handleConclusionTSV() {
 		if(sampleList == null || sampleList.size() ==0) {
 			popUp("No sample to show");
@@ -1668,7 +1694,7 @@ public void handleTSVThisSample() {
 	}
 }
 
-
+*/
 
 /**
  * Shows the message with a popup

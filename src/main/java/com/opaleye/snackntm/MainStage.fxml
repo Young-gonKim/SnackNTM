@@ -172,10 +172,8 @@
              </Menu>
              <Menu mnemonicParsing="false" text="Data">
                <items>
-                  <MenuItem mnemonicParsing="false" text="Export Conclusion List (Excel)" onAction="#handleConclusionExcel" />
-                  <MenuItem mnemonicParsing="false" text="Export Conclusion List (TSV)" onAction="#handleConclusionTSV" />
-                  <MenuItem mnemonicParsing="false" text="Export Raw data (Excel)" onAction="#handleRawExcel" />
-                  <MenuItem mnemonicParsing="false" text="Export Raw data (TSV)" onAction="#handleRawTSV" />
+                  <MenuItem mnemonicParsing="false" text="Export Results (Excel)" onAction="#handleResultExcel" />
+                  <MenuItem mnemonicParsing="false" text="Export Results (TSV)" onAction="#handleResultTSV" />
                </items>
              </Menu>
              <Menu mnemonicParsing="false" text="Help">

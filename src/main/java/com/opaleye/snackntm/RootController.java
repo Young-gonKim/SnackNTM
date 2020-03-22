@@ -2386,11 +2386,11 @@ private void adjustFwdRevPane(AlignedPoint ap) {
 	//System.out.println(String.format("fwdTraceIndex : %d, revTraceIndex : %d", ap.getFwdTraceIndex(), ap.getRevTraceIndex()));
 
 	if(sample.fwdLoaded[context]) {
-		fwdCoordinate = formatter.fwdStartOffset + sample.trimmedFwdTrace[context].getBaseCalls()[ap.getFwdTraceIndex()-1]*2;
+		fwdCoordinate = formatter.fwdStartOffset + sample.trimmedFwdTrace[context].getBaseCalls()[ap.getFwdTraceIndex()-1]*GanseqTrace.traceWidth;
 	}
 
 	if(sample.revLoaded[context]) {
-		revCoordinate = formatter.revStartOffset + sample.trimmedRevTrace[context].getBaseCalls()[ap.getRevTraceIndex()-1]*2;
+		revCoordinate = formatter.revStartOffset + sample.trimmedRevTrace[context].getBaseCalls()[ap.getRevTraceIndex()-1]*GanseqTrace.traceWidth;
 	}
 	//System.out.println(String.format("fwdCoordinate : %f, revCoordinate : %f", fwdCoordinate, revCoordinate));
 

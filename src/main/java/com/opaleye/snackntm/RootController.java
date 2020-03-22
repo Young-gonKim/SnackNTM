@@ -114,7 +114,7 @@ public class RootController implements Initializable {
 
 
 	public static final int defaultGOP = 10;
-	public static final String version = "1.3.3";
+	public static final String version = "1.3.4";
 	private static final double tableRowHeight = 25.0;
 	private static String icSeq = null;
 	private static String chSeq = null;
@@ -2398,13 +2398,15 @@ private void adjustFwdRevPane(AlignedPoint ap) {
 
 		// 양쪽끝 튀어나온부분 처리.
 		if(ap.getFwdTraceIndex() == 1 || ap.getRevTraceIndex() == 1) {	
-			fwdCoordinate = Double.min(fwdCoordinate, revCoordinate);
-			revCoordinate = Double.min(fwdCoordinate, revCoordinate);
+			double min = Double.min(fwdCoordinate, revCoordinate);
+			fwdCoordinate = min;
+			revCoordinate = min;
 		}
 
-		if(ap.getFwdTraceIndex() >= sample.trimmedFwdTrace[context].getSequenceLength() || ap.getRevTraceIndex() >= sample.trimmedRevTrace[context].getSequenceLength()) {	
-			fwdCoordinate = Double.max(fwdCoordinate, revCoordinate);
-			revCoordinate = Double.max(fwdCoordinate, revCoordinate);
+		if(ap.getFwdTraceIndex() > sample.trimmedFwdTrace[context].getSequenceLength() || ap.getRevTraceIndex() > sample.trimmedRevTrace[context].getSequenceLength()) {	
+			double max = Double.max(fwdCoordinate, revCoordinate);
+			fwdCoordinate = max;
+			revCoordinate = max;
 		}
 	}
 

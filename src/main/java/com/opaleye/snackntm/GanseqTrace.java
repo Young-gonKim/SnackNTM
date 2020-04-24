@@ -519,9 +519,9 @@ public class GanseqTrace implements Serializable {
 
 	
 	/**
-	 * Sequencher rule
+	 * Sequencher like rules. currently not used
 	 * @return
-	 */
+	 
 	public int getFrontTrimPosition() {
 		int scoreTrimPosition = traceLength * traceWidth-1;
 		int ambiguousTrimPosition = traceLength * traceWidth-1;
@@ -587,11 +587,6 @@ public class GanseqTrace implements Serializable {
 			
 			ret = Integer.max(scoreTrimPosition, ambiguousTrimPosition);
 
-			/*
-			if(!qualityPointFound && !ambiguousPointFound) {
-				ret = baseCalls[sequenceLength-1] * traceWidth; 
-			}
-			*/
 
 			System.out.println(String.format("5' trim, by score : %d, by ambiguous : %d", scoreTrimBaseCount, ambiguousTrimBaseCount));
 
@@ -614,11 +609,6 @@ public class GanseqTrace implements Serializable {
 	
 
 
-	
-	/**
-	 * Sequencher method
-	 * @return trimming 안할거면 traceLength*traceWidth
-	 */
 	public int getTailTrimPosition() {
 		int scoreTrimPosition = 1;
 		int ambiguousTrimPosition = 1;
@@ -693,13 +683,7 @@ public class GanseqTrace implements Serializable {
 			System.out.println(String.format("3' trim, by score : %d, by ambiguous : %d", scoreTrimPositionBase, ambiguousTrimPositionBase));
 
 			
-			/*
-			for(int i=0;i<sequenceLength;i++) {
-				System.out.println(String.format("%d",  qCalls[i]));
-			}
-			*/
-			
-			
+	
 			
 			
 			//3' terminal에 basecall 안된 trace 늘어져 있으면 자르기.
@@ -715,16 +699,15 @@ public class GanseqTrace implements Serializable {
 		}
 		return ret;
 	}
+	*/
 	
 	
-	
-/*
-	public int getFrontTrimPosition_hold() {
+	public int getFrontTrimPosition() {
 		int scoreTrimPosition = -1;
 		int ret = -1;
-		final int windowSize = 10;
-		int qualitySearchLength = 2000;	//일단 무한대
-		final int scoreCutOff = 35;
+		final int windowSize = 5;
+		int qualitySearchLength = 100;
+		final int scoreCutOff = 25;
 		boolean qualityPointFound = false;
 
 		qualitySearchLength = Integer.min(qualitySearchLength,  sequenceLength-windowSize);
@@ -787,13 +770,14 @@ public class GanseqTrace implements Serializable {
 		}
 		return ret;
 	}
-	
-	public int getTailTrimPosition_hold() {
+
+	// @return trimming 안할거면 traceLength*traceWidth
+	public int getTailTrimPosition() {
 		int scoreTrimPosition = traceLength*traceWidth;
 		int ret = traceLength*traceWidth;
-		final int windowSize = 10;
+		final int windowSize = 20;
 		int qScoreSearchLength = 2000;	// 일단 무한대
-		final int scoreCutOff = 35;
+		final int scoreCutOff = 25;
 		boolean qualityPointFound = false;
 
 
@@ -839,7 +823,7 @@ public class GanseqTrace implements Serializable {
 				//나중에 troubleshooting
 			}
 
-			System.out.println("3' trim, qSCore based : " + (basePosition+1) + " trace : " + scoreTrimPosition);
+			System.out.println("3' trim, qSCore based : " + (sequenceLength - (basePosition+1)) + " trace : " + (traceLength*traceWidth-scoreTrimPosition));
 
 
 			//ret = Integer.min(scoreTrimPosition, peakHeightPosition);
@@ -856,9 +840,6 @@ public class GanseqTrace implements Serializable {
 		}
 		return ret;
 	}
-	
-	*/
-	
 	
 	public int getDirection() {
 		return direction;

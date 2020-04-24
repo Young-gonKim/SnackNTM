@@ -191,6 +191,8 @@ public class TrimController implements Initializable {
 		Image ret =targetTrace.getTrimmingImage(startTrimPosition, endTrimPosition);
 		imageView = new ImageView(ret);
 		tracePane.setContent(imageView);
+		tracePane.layout();
+		tracePane.setVvalue(1.0);
 		setMouseClick();
 	}
 
@@ -199,6 +201,8 @@ public class TrimController implements Initializable {
 		Image ret =targetTrace.getTrimmingImage(startTrimPosition, endTrimPosition);
 		imageView = new ImageView(ret);
 		tracePane.setContent(imageView);
+		tracePane.layout();
+		tracePane.setVvalue(1.0);
 		setMouseClick();
 	}
 

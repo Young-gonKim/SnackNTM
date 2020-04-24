@@ -114,7 +114,7 @@ public class RootController implements Initializable {
 
 
 	public static final int defaultGOP = 10;
-	public static final String version = "1.3.4";
+	public static final String version = "1.3.5";
 	private static final double tableRowHeight = 25.0;
 	private static String icSeq = null;
 	private static String chSeq = null;
@@ -126,7 +126,6 @@ public class RootController implements Initializable {
 
 	private static final String settingsFileName = "settings/settings.properties";
 	private int fontSize = 0;
-	private int sampleIdLength = 0; 
 	private String keyword_16sF, keyword_16sR, keyword_rpoF, keyword_rpoR, keyword_tufF, keyword_tufR;
 	//private TreeSet<String> keywordSet_F[0], keywordSet_R[0], keywordSet_F[1], keywordSet_R[1], keywordSet_F[2], keywordSet_R[2];
 	private TreeSet<String> keywordSet_F[] = new TreeSet[3];
@@ -148,7 +147,9 @@ public class RootController implements Initializable {
 	@FXML private RadioButton s16Radio, rpoRadio, tufRadio;
 	@FXML private RadioButton fwdRadio, revRadio;
 
-	private String lastVisitedDir="f:\\GoogleDrive\\SnackNTM";
+	ChangeListener<Number> cl = null;
+	
+	private String lastVisitedDir="D:\\GoogleDrive\\SnackNTM\\data";
 	private Stage primaryStage;
 	public void setPrimaryStage(Stage primaryStage) {
 		this.primaryStage = primaryStage;
@@ -367,7 +368,6 @@ public class RootController implements Initializable {
 				keywordSet_R[2].add(keyword);
 			}
 
-			sampleIdLength = Integer.parseInt(props.getProperty("sample_id_length"));
 			headerHeight = Integer.parseInt(props.getProperty("header_height"));
 
 		}
@@ -514,7 +514,11 @@ public class RootController implements Initializable {
 		tcSpecies.setCellFactory(TextFieldTableCell.<NTMSpecies>forTableColumn());
 
 		if(first) {
-			speciesTable.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
+			
+			if(cl != null) 
+				speciesTable.getSelectionModel().selectedIndexProperty().removeListener(cl);
+			
+			cl = new ChangeListener<Number>() {
 				@Override
 				public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
 					if(newValue.intValue()<0) return;
@@ -529,7 +533,8 @@ public class RootController implements Initializable {
 					}
 					printAlignedResult();
 				}
-			});
+			};
+			speciesTable.getSelectionModel().selectedIndexProperty().addListener(cl);
 		}
 
 		s16Table.setEditable(true);
@@ -808,6 +813,8 @@ public class RootController implements Initializable {
 		for(File file:fileList) {
 			String fileName = file.getName();
 			if(fileName.length()<9) continue;
+			
+			int sampleIdLength = fileName.indexOf('-');
 
 			Sample sample = new Sample(fileName.substring(0,  sampleIdLength));
 			tempList.add(sample);
@@ -837,7 +844,7 @@ public class RootController implements Initializable {
 									GanseqTrace tempTrace = new GanseqTrace(sample.fwdTraceFile[context]);
 									if(tempTrace.getSequenceLength()<30) {
 										popUp("Invalid trace file: " + fileName + " too short sequence length(<30bp) or too poor quality of sequence");
-										return;
+										continue;
 									}
 									int startTrimPosition = tempTrace.getFrontTrimPosition();
 									int endTrimPosition = tempTrace.getTailTrimPosition();
@@ -849,7 +856,7 @@ public class RootController implements Initializable {
 										tempTrace.makeTrimmedTrace(startTrimPosition, endTrimPosition);
 										if(tempTrace.sequenceLength <= 0) {
 											popUp("Invalid trace file: " + fileName + " too short sequence length(<30bp) or too poor quality of sequence");
-											return;
+											continue;
 										}
 										confirmFwdTrace(tempTrace, false);
 									}
@@ -858,7 +865,7 @@ public class RootController implements Initializable {
 								catch (Exception ex) {
 									ex.printStackTrace();
 									popUp("Error in loading trace files\n" + ex.getMessage());
-									return;
+									continue;
 								}
 								break;
 							}
@@ -871,7 +878,7 @@ public class RootController implements Initializable {
 									GanseqTrace tempTrace = new GanseqTrace(sample.revTraceFile[context]);
 									if(tempTrace.getSequenceLength()<30) {
 										popUp("Invalid trace file: " + fileName + " too short sequence length(<30bp) or too poor quality of sequence");
-										return;
+										continue;
 									}
 									int startTrimPosition = tempTrace.getFrontTrimPosition();
 									int endTrimPosition = tempTrace.getTailTrimPosition();
@@ -884,7 +891,7 @@ public class RootController implements Initializable {
 										tempTrace.makeTrimmedTrace(startTrimPosition, endTrimPosition);
 										if(tempTrace.sequenceLength <= 0) {
 											popUp("Invalid trace file: " + fileName + " too short sequence length(<30bp) or too poor quality of sequence");
-											return;
+											continue;
 										}
 										//make complement
 										tempTrace.makeComplement();
@@ -894,7 +901,7 @@ public class RootController implements Initializable {
 								catch (Exception ex) {
 									ex.printStackTrace();
 									popUp("Error in loading trace files\n" + ex.getMessage());
-									return;
+									continue;
 								}
 								break;
 							}
@@ -2578,6 +2585,8 @@ public void handleFwdZoomIn() {
 		Image fxImage = SwingFXUtils.toFXImage(awtImage, null);
 		ImageView imageView = new ImageView(fxImage);
 		fwdPane.setContent(imageView);
+		fwdPane.layout();
+		fwdPane.setVvalue(1.0);
 	}
 }
 public void handleFwdZoomOut() {
@@ -2588,6 +2597,8 @@ public void handleFwdZoomOut() {
 		Image fxImage = SwingFXUtils.toFXImage(awtImage, null);
 		ImageView imageView = new ImageView(fxImage);
 		fwdPane.setContent(imageView);
+		fwdPane.layout();
+		fwdPane.setVvalue(1.0);
 	}
 }
 public void handleRevZoomIn() {
@@ -2598,6 +2609,8 @@ public void handleRevZoomIn() {
 		Image fxImage = SwingFXUtils.toFXImage(awtImage, null);
 		ImageView imageView = new ImageView(fxImage);
 		revPane.setContent(imageView);
+		revPane.layout();
+		revPane.setVvalue(1.0);
 	}
 }
 public void handleRevZoomOut() {
@@ -2608,6 +2621,8 @@ public void handleRevZoomOut() {
 		Image fxImage = SwingFXUtils.toFXImage(awtImage, null);
 		ImageView imageView = new ImageView(fxImage);
 		revPane.setContent(imageView);
+		revPane.layout();
+		revPane.setVvalue(1.0);
 	}
 }
 

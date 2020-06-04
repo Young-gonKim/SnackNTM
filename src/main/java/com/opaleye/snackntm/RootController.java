@@ -747,9 +747,9 @@ public class RootController implements Initializable {
 
 		file = null;
 		if(target == 0)
-			file = new File("reference/ref16s.fasta");
+			file = new File("reference/ref16s_ver2.1.fasta");
 		else if(target == 1)
-			file = new File("reference/refrpob.fasta");
+			file = new File("reference/refrpob_ver2.1.fasta");
 		else if(target == 2)
 			file = new File("reference/reftuf.fasta");
 

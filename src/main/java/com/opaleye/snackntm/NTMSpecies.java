@@ -1,3 +1,20 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.opaleye.snackntm;
 
 import java.io.IOException;
@@ -8,7 +25,7 @@ import java.io.Serializable;
 import javafx.beans.property.SimpleStringProperty;
 
 public class NTMSpecies implements Comparable<NTMSpecies>, Cloneable, Serializable {
-	private String accession = "";
+	private String strain = "";
 	private String speciesName = "";
 	private double score = 0;
 	private int qlen = 0;
@@ -16,7 +33,7 @@ public class NTMSpecies implements Comparable<NTMSpecies>, Cloneable, Serializab
 	private boolean rgm = false;
 	private String refSeq = null;
 
-	protected transient SimpleStringProperty accessionProperty;
+	protected transient SimpleStringProperty strainProperty;
 	protected transient SimpleStringProperty speciesNameProperty;
 	protected transient SimpleStringProperty scoreProperty;
 	protected transient SimpleStringProperty qlenProperty;
@@ -57,7 +74,7 @@ public class NTMSpecies implements Comparable<NTMSpecies>, Cloneable, Serializab
 				if(thisChar == '\n') {
 					firstLine = false;
 					String[] tokens = s_firstLine.split("\\|");
-					accession = tokens[1];
+					strain = tokens[1];
 					speciesName = tokens[3];
 					speciesName = speciesName.trim();
 					//System.out.println(speciesName);
@@ -79,8 +96,8 @@ public class NTMSpecies implements Comparable<NTMSpecies>, Cloneable, Serializab
 		}
 		refSeq = refSeqBuffer.toString().toUpperCase();
 
-		//System.out.println(String.format("%s, %s\n%s\n\n\n\n", accession, speciesName, refSeq.getRefString()));
-		accessionProperty= new SimpleStringProperty(accession);
+		//System.out.println(String.format("%s, %s\n%s\n\n\n\n", strain, speciesName, refSeq.getRefString()));
+		strainProperty= new SimpleStringProperty(strain);
 		speciesNameProperty= new SimpleStringProperty(speciesName);
 		if(rgm) 
 			rgmProperty = new SimpleStringProperty("O");
@@ -103,7 +120,7 @@ public class NTMSpecies implements Comparable<NTMSpecies>, Cloneable, Serializab
 
 	/*
 	 * 	
-	 private transient String accession = "";
+	 private transient String strain = "";
 	private transient String speciesName = "";
 	private transient double score = 0;
 	private transient int qlen = 0;
@@ -120,7 +137,7 @@ public class NTMSpecies implements Comparable<NTMSpecies>, Cloneable, Serializab
      
      private void readObject(ObjectInputStream s) throws IOException, ClassNotFoundException {
         s.defaultReadObject();
-		accessionProperty= new SimpleStringProperty(accession);
+		strainProperty= new SimpleStringProperty(strain);
 		speciesNameProperty= new SimpleStringProperty(speciesName);
 		if(rgm) 
 			rgmProperty = new SimpleStringProperty("O");
@@ -132,12 +149,12 @@ public class NTMSpecies implements Comparable<NTMSpecies>, Cloneable, Serializab
      }
 	
 	
-	public String getAccession() {
-		return accession;
+	public String getStrain() {
+		return strain;
 	}
 
-	public void setAccession(String accession) {
-		this.accession = accession;
+	public void setStrain(String strain) {
+		this.strain = strain;
 	}
 
 	public String getSpeciesName() {
@@ -190,8 +207,8 @@ public class NTMSpecies implements Comparable<NTMSpecies>, Cloneable, Serializab
 		return speciesNameProperty.get();
 	}
 
-	public String getAccessionProperty() {
-		return accessionProperty.get();
+	public String getStrainProperty() {
+		return strainProperty.get();
 	}
 
 	public String getScoreProperty() {

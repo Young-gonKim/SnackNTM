@@ -1,3 +1,20 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.opaleye.snackntm;
 
 import java.awt.image.BufferedImage;
@@ -115,14 +132,13 @@ public class RootController implements Initializable {
 	private String rpoRefFile = "";
 
 	public static final int defaultGOP = 10;
-	public static final String version = "1.3.5";
+	public static final String version = "1.4.0";
 	private static final double tableRowHeight = 25.0;
 	private static String icSeq = null;
 	private static String chSeq = null;
 	private static String icName = null;
 	private static String chName = null;
 	public static TreeSet<String> rgmSet = new TreeSet<String>(); 
-	public static TreeSet<String> sgmSet = new TreeSet<String>();
 	public static double endPenalty = 2.0;
 
 	private static final String settingsFileName = "settings/settings.properties";
@@ -318,7 +334,7 @@ public class RootController implements Initializable {
 			chName = props.getProperty("chimaera_name");
 			icName = props.getProperty("intracellularae_name");
 			s16RefFile = props.getProperty("ref_file_16s");
-			rpoRefFile = props.getProperty("ref_file_rpo");
+			rpoRefFile = props.getProperty("ref_file_rpoB");
 
 
 			endPenalty = Double.parseDouble(props.getProperty("end_penalty"));
@@ -435,10 +451,12 @@ public class RootController implements Initializable {
 		else 
 			rpoTable.setItems(FXCollections.observableArrayList(new Vector<NTMSpecies>()));
 
+		/*
 		if(sample.alignmentPerformed[2]) 
 			tufTable.setItems(FXCollections.observableArrayList(sample.selectedSpeciesList[2]));
 		else 
 			tufTable.setItems(FXCollections.observableArrayList(new Vector<NTMSpecies>()));
+		*/
 
 		//radio Button 색깔
 		if(sample.fwdLoaded[0] || sample.revLoaded[0])  
@@ -501,14 +519,14 @@ public class RootController implements Initializable {
 	private void initTableViews(boolean first) {
 		speciesTable.setEditable(true);
 		TableColumn tcSpecies = speciesTable.getColumns().get(0);
-		TableColumn tcAccession = speciesTable.getColumns().get(1);
+		TableColumn tcStrain = speciesTable.getColumns().get(1);
 		TableColumn tcQlen = speciesTable.getColumns().get(2);
 		TableColumn tcAlen = speciesTable.getColumns().get(3);
 		TableColumn tcScore = speciesTable.getColumns().get(4);
 		TableColumn tcRgm = speciesTable.getColumns().get(5);
 
 		tcSpecies.setCellValueFactory(new PropertyValueFactory("speciesNameProperty"));
-		tcAccession.setCellValueFactory(new PropertyValueFactory("accessionProperty"));
+		tcStrain.setCellValueFactory(new PropertyValueFactory("strainProperty"));
 		tcQlen.setCellValueFactory(new PropertyValueFactory("qlenProperty"));
 		tcAlen.setCellValueFactory(new PropertyValueFactory("alenProperty"));
 		tcScore.setCellValueFactory(new PropertyValueFactory("scoreProperty"));
@@ -554,17 +572,19 @@ public class RootController implements Initializable {
 		rpo_tcScore.setCellValueFactory(new PropertyValueFactory("scoreProperty"));
 		rpo_tcSpecies.setCellFactory(TextFieldTableCell.<NTMSpecies>forTableColumn());
 
+		/*
 		tufTable.setEditable(true);
 		TableColumn tuf_tcSpecies = tufTable.getColumns().get(0);
 		TableColumn tuf_tcScore = tufTable.getColumns().get(1);
 		tuf_tcSpecies.setCellValueFactory(new PropertyValueFactory("speciesNameProperty"));
 		tuf_tcScore.setCellValueFactory(new PropertyValueFactory("scoreProperty"));
 		tuf_tcSpecies.setCellFactory(TextFieldTableCell.<NTMSpecies>forTableColumn());
+		*/
 
 		speciesTable.setFixedCellSize(tableRowHeight);
 		s16Table.setFixedCellSize(tableRowHeight);
 		rpoTable.setFixedCellSize(tableRowHeight);
-		tufTable.setFixedCellSize(tableRowHeight);
+//		tufTable.setFixedCellSize(tableRowHeight);
 		finalTable.setFixedCellSize(tableRowHeight);
 
 		finalTable.setEditable(true);
@@ -696,6 +716,9 @@ public class RootController implements Initializable {
 
 	private void makeGlobalSpeciesList(int target) throws Exception {
 		globalSpeciesList[target] = new Vector<NTMSpecies>();
+		
+		//tuf removed
+		if(target==2) return;
 
 		//read rgm list
 		File file = new File("reference/rgm.txt");
@@ -723,38 +746,15 @@ public class RootController implements Initializable {
 		}
 
 
-		//read sgm list
-		file = new File("reference/sgm.txt");
-
-		buffer = new StringBuffer();
-		wholeString = "";
-
-		try (FileReader fileReader = new FileReader(file)){
-			int ch;
-			while ((ch = fileReader.read()) != -1) {
-				char readChar = (char) ch;
-				buffer.append(readChar);
-			}
-			wholeString = buffer.toString();
-
-			String[] tokens = wholeString.split("\n");
-			for(String token:tokens) {
-				token = token.trim();
-				sgmSet.add(token);
-			}
-
-		}catch (Exception ex) {
-			ex.printStackTrace();
-			throw new Exception("Error in reading sgm.txt");
-		}
-
 		file = null;
 		if(target == 0)
 			file = new File(s16RefFile);
 		else if(target == 1)
 			file = new File(rpoRefFile);
+		/*
 		else if(target == 2)
 			file = new File("reference/reftuf.fasta");
+		*/
 
 		buffer = new StringBuffer();
 		wholeString = "";
@@ -1271,7 +1271,7 @@ public class RootController implements Initializable {
 			cell.setCellStyle(titleStyle);
 
 			cell = row.createCell(3);
-			cell.setCellValue("Accession");
+			cell.setCellValue("Strain");
 			cell.setCellStyle(titleStyle);
 
 			cell = row.createCell(4);
@@ -1321,7 +1321,7 @@ public class RootController implements Initializable {
 
 								cell = row.createCell(3);
 								if(conclusion) cell.setCellStyle(conclusionStyle);
-								cell.setCellValue(ntm.getAccession());
+								cell.setCellValue(ntm.getStrain());
 
 								cell = row.createCell(4);
 								if(conclusion) cell.setCellStyle(conclusionStyle);
@@ -1468,8 +1468,8 @@ public class RootController implements Initializable {
 						for(NTMSpecies ntm : sample.speciesList[j]) {
 							if(ntm.getScore()>=98) {
 								
-								//textToSet += ntm.getQlen() + "\t\t" + ntm.getScoreProperty() + "\t" + ntm.getAccession() + "\t" + ntm.getSpeciesName() + "\n";
-								textToSet += sample.sampleId + "-" + region+ direction + "\t" + ntm.getQlen() + "\t" + ntm.getScoreProperty() + "\t" + ntm.getAccession() + "\t" + ntm.getSpeciesName() + "\t";
+								//textToSet += ntm.getQlen() + "\t\t" + ntm.getScoreProperty() + "\t" + ntm.getStrain() + "\t" + ntm.getSpeciesName() + "\n";
+								textToSet += sample.sampleId + "-" + region+ direction + "\t" + ntm.getQlen() + "\t" + ntm.getScoreProperty() + "\t" + ntm.getStrain() + "\t" + ntm.getSpeciesName() + "\t";
 
 								if(j==0 && sample.finalList.contains(ntm)) 
 									textToSet += "(conclusion)\n";
@@ -1679,8 +1679,8 @@ public void handleTSVThisSample() {
 
 				for(NTMSpecies ntm : sample.speciesList[j]) {
 					if(ntm.getScore()>=98) {
-						//textToSet += ntm.getQlen() + "\t\t" + ntm.getScoreProperty() + "\t" + ntm.getAccession() + "\t" + ntm.getSpeciesName() + "\n";
-						textToSet += sample.sampleId + "-" + region+ direction + "\t" + ntm.getQlen() + "\t" + ntm.getScoreProperty() + "\t" + ntm.getAccession() + "\t" + ntm.getSpeciesName() + "\n";
+						//textToSet += ntm.getQlen() + "\t\t" + ntm.getScoreProperty() + "\t" + ntm.getStrain() + "\t" + ntm.getSpeciesName() + "\n";
+						textToSet += sample.sampleId + "-" + region+ direction + "\t" + ntm.getQlen() + "\t" + ntm.getScoreProperty() + "\t" + ntm.getStrain() + "\t" + ntm.getSpeciesName() + "\n";
 
 					}
 				}
@@ -1872,20 +1872,25 @@ private Vector<NTMSpecies> updateFinalList() {
 			String strScore = String.format("%.2f",  ntm.getScore());
 			NTMSpecies temp = new NTMSpecies(ntm.getSpeciesName(), strScore);
 			tempList.add(temp);
+			
+			
+			/* 
 			if(temp.getSpeciesName().equals(chName))
 				chimaeraInList = true;
 			if(temp.getSpeciesName().equals(icName))
 				ICInList = true;
+			*/
 		}
 
-		//System.out.println("ch in list : " + chimaeraInList + ", " + "ic in list : " + ICInList);
 
+		/*
 		if(chimaeraInList && ICInList) {
 			if(sample.containsChSeq && !sample.containsIcSeq)
 				tempList.remove(new NTMSpecies(icName, ""));
 			if(!sample.containsChSeq && sample.containsIcSeq)
 				tempList.remove(new NTMSpecies(chName, ""));
 		}
+		*/
 
 		retList = tempList;
 	}
@@ -2043,6 +2048,7 @@ private void actualRun() {
 		inputLength = sample.trimmedRevTrace[context].getSequenceLength();
 
 	//fwd, rev 같이있을때는 fwd, rev 두개를 align 시켜서 나오는 길이를 inputLength로. 
+	//sample당 1회만 align하므로 performance 크게 저하시키지 않음. (어차피 sample당 reference 200개와 align 해야됨)
 	else if (sample.fwdLoaded[context] && sample.revLoaded[context]) {	 
 		MMAlignment mma = new MMAlignment();
 		AlignedPair ap = null;

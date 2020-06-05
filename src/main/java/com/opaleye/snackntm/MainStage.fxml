@@ -20,7 +20,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<ScrollPane prefHeight="849.0" prefWidth="1400.0" xmlns="http://javafx.com/javafx/8.0.141" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.opaleye.snackntm.RootController">
+<ScrollPane prefHeight="849.0" prefWidth="1400.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.opaleye.snackntm.RootController">
 <AnchorPane>
    <children>
       <ToolBar layoutX="5.0" layoutY="30.0" prefHeight="43.0" prefWidth="1072.0">
@@ -32,7 +32,7 @@
                         <Label prefHeight="15.0" prefWidth="98.0" text="Target Region : " />
                         <RadioButton fx:id="s16Radio" mnemonicParsing="false" prefHeight="16.0" prefWidth="78.0" text="16S rRNA" />
                         <RadioButton fx:id="rpoRadio" mnemonicParsing="false" prefHeight="16.0" prefWidth="53.0" text="rpoB" />
-                        <RadioButton fx:id="tufRadio" mnemonicParsing="false" prefHeight="16.0" prefWidth="54.0" text="tuf" />
+                        <RadioButton fx:id="tufRadio" mnemonicParsing="false" prefHeight="16.0" prefWidth="54.0" text="tuf" visible="false" />
                      </children>
                      <HBox.margin>
                         <Insets />
@@ -84,7 +84,7 @@
       <TableView fx:id="speciesTable" prefHeight="190" prefWidth="903.0">
       <columns>
       <TableColumn prefWidth="400" text="Species" />
-      <TableColumn prefWidth="180" text="Accession" />
+      <TableColumn prefWidth="180" text="Strain" />
       <TableColumn prefWidth="100" text="queryLength" />
       <TableColumn prefWidth="100" text="alignedLength" />
       <TableColumn prefWidth="50" text="Score" />
@@ -101,33 +101,26 @@
                </font>
             </Label>
             <Label layoutX="7.0" layoutY="45.0" prefHeight="15.0" prefWidth="150.0" text="By 16s rRNA (over 99%)" />
-            <Label layoutX="7.0" layoutY="220.0" text="by rpoB (over 99.3% for SGM, over 98.3% for RGM)" />
-            <Label layoutX="7.0" layoutY="395.0" text="by tuf (over 99%)" />
-            <Label layoutX="7.0" layoutY="570.0" prefHeight="15.0" prefWidth="119.0" text="Conclusion">
+            <Label layoutX="8.0" layoutY="289.0" text="by rpoB (over 99.3% for SGM, over 98.3% for RGM)" />
+            <Label layoutX="8.0" layoutY="544.0" prefHeight="15.0" prefWidth="119.0" text="Conclusion">
                <font>
                   <Font name="System Bold" size="15.0" />
                </font>
             </Label>
             
-            <TableView fx:id="s16Table" layoutX="7.0" layoutY="60.0" prefHeight="150.0" prefWidth="283.0">
+            <TableView fx:id="s16Table" layoutX="7.0" layoutY="60.0" prefHeight="210.0" prefWidth="283.0">
               <columns>
                 <TableColumn prefWidth="210.0" text="Species" />
                 <TableColumn prefWidth="73.0" text="Score" />
               </columns>
             </TableView>
-            <TableView fx:id="rpoTable" layoutX="7.0" layoutY="235.0" prefHeight="150.0" prefWidth="283.0">
+            <TableView fx:id="rpoTable" layoutX="7.0" layoutY="304.0" prefHeight="210.0" prefWidth="283.0">
                <columns>
                 <TableColumn prefWidth="210.0" text="Species" />
                 <TableColumn prefWidth="73.0" text="Score" />
                </columns>
             </TableView>
-            <TableView fx:id="tufTable" layoutX="9.0" layoutY="410.0" prefHeight="150.0" prefWidth="283.0">
-               <columns>
-                <TableColumn prefWidth="210.0" text="Species" />
-                <TableColumn prefWidth="73.0" text="Score" />
-               </columns>
-            </TableView>
-            <TableView fx:id="finalTable" layoutX="7.0" layoutY="585.0" prefHeight="150.0" prefWidth="283.0">
+            <TableView fx:id="finalTable" layoutX="7.0" layoutY="569.0" prefHeight="164.0" prefWidth="283.0">
                <columns>
                 <TableColumn prefWidth="200.0" text="Species" />
                 <TableColumn prefWidth="83.0" text="Score" />
@@ -165,20 +158,20 @@
            <menus>
              <Menu mnemonicParsing="false" text="File">
                <items>
-                 <MenuItem mnemonicParsing="false" text="New Project" onAction="#handleNewProject" />
-                 <MenuItem mnemonicParsing="false" text="Open Project" onAction="#handleOpenProject" />
-                 <MenuItem mnemonicParsing="false" text="Save Project" onAction="#handleSaveProject" />
+                 <MenuItem mnemonicParsing="false" onAction="#handleNewProject" text="New Project" />
+                 <MenuItem mnemonicParsing="false" onAction="#handleOpenProject" text="Open Project" />
+                 <MenuItem mnemonicParsing="false" onAction="#handleSaveProject" text="Save Project" />
                </items>
              </Menu>
              <Menu mnemonicParsing="false" text="Data">
                <items>
-                  <MenuItem mnemonicParsing="false" text="Export Results (Excel)" onAction="#handleResultExcel" />
-                  <MenuItem mnemonicParsing="false" text="Export Results (TSV)" onAction="#handleResultTSV" />
+                  <MenuItem mnemonicParsing="false" onAction="#handleResultExcel" text="Export Results (Excel)" />
+                  <MenuItem mnemonicParsing="false" onAction="#handleResultTSV" text="Export Results (TSV)" />
                </items>
              </Menu>
              <Menu mnemonicParsing="false" text="Help">
                <items>
-                 <MenuItem mnemonicParsing="false" text="About" onAction="#handleAbout"  />
+                 <MenuItem mnemonicParsing="false" onAction="#handleAbout" text="About" />
                </items>
              </Menu>
            </menus>

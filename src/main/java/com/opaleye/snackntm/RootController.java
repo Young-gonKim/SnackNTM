@@ -111,7 +111,8 @@ public class RootController implements Initializable {
 	private static final String s16 = "16sRNA";
 	private static final String rpo = "rpo";
 	private static final String tuf = "tuf";
-
+	private String s16RefFile = "";
+	private String rpoRefFile = "";
 
 	public static final int defaultGOP = 10;
 	public static final String version = "1.3.5";
@@ -316,6 +317,8 @@ public class RootController implements Initializable {
 			icSeq = props.getProperty("intracellularae");
 			chName = props.getProperty("chimaera_name");
 			icName = props.getProperty("intracellularae_name");
+			s16RefFile = props.getProperty("ref_file_16s");
+			rpoRefFile = props.getProperty("ref_file_rpo");
 
 
 			endPenalty = Double.parseDouble(props.getProperty("end_penalty"));
@@ -747,9 +750,9 @@ public class RootController implements Initializable {
 
 		file = null;
 		if(target == 0)
-			file = new File("reference/ref16s_ver2.1.fasta");
+			file = new File(s16RefFile);
 		else if(target == 1)
-			file = new File("reference/refrpob_ver2.1.fasta");
+			file = new File(rpoRefFile);
 		else if(target == 2)
 			file = new File("reference/reftuf.fasta");
 

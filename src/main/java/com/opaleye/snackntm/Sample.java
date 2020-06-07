@@ -61,6 +61,8 @@ public class Sample implements Comparable, Serializable {
 	public Formatter[] formatter = new Formatter[3];
 	
 	public String consensusSeq[] = new String[3];
+	
+	public int editBase[] = {0,0,0};
 
 	
 	public boolean containsIcSeq = false;

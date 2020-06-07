@@ -167,6 +167,7 @@
                <items>
                   <MenuItem mnemonicParsing="false" onAction="#handleResultExcel" text="Export Results (Excel)" />
                   <MenuItem mnemonicParsing="false" onAction="#handleResultTSV" text="Export Results (TSV)" />
+                  <MenuItem mnemonicParsing="false" onAction="#handleConclusionExcel" text="Export Conclusions (Excel)" />
                </items>
              </Menu>
              <Menu mnemonicParsing="false" text="Help">

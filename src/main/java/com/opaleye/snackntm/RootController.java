@@ -556,6 +556,11 @@ public class RootController implements Initializable {
 				}
 			};
 			speciesTable.getSelectionModel().selectedIndexProperty().addListener(cl);
+			speciesTable.setPlaceholder(new Label(""));
+			s16Table.setPlaceholder(new Label(""));
+			rpoTable.setPlaceholder(new Label(""));
+			finalTable.setPlaceholder(new Label(""));
+			
 		}
 
 		s16Table.setEditable(true);

@@ -212,7 +212,7 @@ public class RootController implements Initializable {
 	 */
 	@Override
 	public void initialize(URL location, ResourceBundle resources) {
-		handleAbout();
+		//handleAbout();
 		readProperties();
 		File tempFile = new File(lastVisitedDir);
 		if(!tempFile.exists())
@@ -615,6 +615,9 @@ public class RootController implements Initializable {
 			FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("editbase.fxml"));
 			Parent root1 = (Parent) fxmlLoader.load();
 			Stage stage = new Stage();
+			Image image = new Image(getClass().getResourceAsStream("snack_icon.png"));
+			stage.getIcons().add(image);
+			
 			EditBaseController controller = fxmlLoader.getController();
 			controller.setPrimaryStage(stage);
 			controller.setRootController(this);
@@ -697,6 +700,8 @@ public class RootController implements Initializable {
 			FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("settings.fxml"));
 			Parent root1 = (Parent) fxmlLoader.load();
 			Stage stage = new Stage();
+			Image image = new Image(getClass().getResourceAsStream("snack_icon.png"));
+			stage.getIcons().add(image);
 			SettingsController controller = fxmlLoader.getController();
 			controller.setPrimaryStage(stage);
 			controller.setRootController(this);
@@ -955,6 +960,8 @@ public class RootController implements Initializable {
 			FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("Trim.fxml"));
 			Parent root1 = (Parent) fxmlLoader.load();
 			Stage stage = new Stage();
+			Image image = new Image(getClass().getResourceAsStream("snack_icon.png"));
+			stage.getIcons().add(image);
 			TrimController controller = fxmlLoader.getController();
 			controller.setPrimaryStage(stage);
 
@@ -983,6 +990,8 @@ public class RootController implements Initializable {
 			FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("Trim.fxml"));
 			Parent root1 = (Parent) fxmlLoader.load();
 			Stage stage = new Stage();
+			Image image = new Image(getClass().getResourceAsStream("snack_icon.png"));
+			stage.getIcons().add(image);
 			TrimController controller = fxmlLoader.getController();
 			controller.setPrimaryStage(stage);
 

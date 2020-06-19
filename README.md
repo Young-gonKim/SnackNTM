@@ -17,5 +17,5 @@ Using SnackNTM is quite straightforward.<br>
 
 
 # 4. Utilized Libraries
-BioJAVA Legacy  (https://github.com/biojava/biojava-legacy)
+BioJAVA Legacy  (https://github.com/biojava/biojava-legacy)<br>
 Apache POI 3.15 (https://github.com/apache/poi)

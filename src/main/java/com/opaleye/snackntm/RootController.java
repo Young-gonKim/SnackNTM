@@ -1438,15 +1438,38 @@ public class RootController implements Initializable {
 				//16S rRNA
 				String speciesList = "";
 				String scoreList = "";
+				boolean first = true;
 
+				//100% 있으면 이걸로 list 만들기
+				Vector<NTMSpecies> s16_100List = new Vector<NTMSpecies>();
+				Vector<NTMSpecies> s16_List = new Vector<NTMSpecies>();
+				
 				if(sample.alignmentPerformed[0]) {
-					for(NTMSpecies ntm : sample.speciesList[0]) {
-						if(sample.finalList.contains(ntm)) {
-							speciesList += ntm.getSpeciesName() + "\n";
-							scoreList += String.format("%.2f\n", ntm.getScore());
+					for(NTMSpecies ntm : sample.selectedSpeciesList[0]) {
+						if(ntm.getScore() == 100) 
+							s16_100List.add(ntm);
+						else 
+							break;
+					}
+
+					//100 match 하는 것들 있으면 이것만 대상으로 함.
+					if(!s16_100List.isEmpty()) 
+						s16_List = s16_100List;
+					else 
+						s16_List = sample.selectedSpeciesList[0];
+
+					for(NTMSpecies ntm : s16_List) {
+						if(first) 
+							first = false;
+						else {
+							speciesList += "\n";
+							scoreList += "\n";
 						}
+						speciesList += ntm.getSpeciesName();
+						scoreList += String.format("%.2f", ntm.getScore());
 					}
 				}
+				
 				cell = row.createCell(1);
 				cell.setCellValue(speciesList);
 				cell = row.createCell(2);
@@ -1457,7 +1480,9 @@ public class RootController implements Initializable {
 				//rpoB
 				speciesList = "";
 				scoreList = "";
+				first = true;
 
+				/*
 				if(sample.alignmentPerformed[1]) {
 					for(NTMSpecies ntm : sample.speciesList[1]) {
 						if(sample.finalList.contains(ntm)) {
@@ -1466,6 +1491,22 @@ public class RootController implements Initializable {
 						}
 					}
 				}
+				*/
+				
+				
+				if(sample.selectedSpeciesList[1]!=null) {
+					for(NTMSpecies ntm : sample.selectedSpeciesList[1]) {
+						if(first) 
+							first = false;
+						else {
+							speciesList += "\n";
+							scoreList += "\n";
+						}
+						speciesList += ntm.getSpeciesName();
+						scoreList += String.format("%.2f", ntm.getScore());
+					}
+				}
+				
 				cell = row.createCell(5);
 				cell.setCellValue(speciesList);
 				cell = row.createCell(6);
@@ -1477,8 +1518,13 @@ public class RootController implements Initializable {
 				//conclusion
 				speciesList = "";
 				if(sample.finalList!=null) {
+					first = true;
 					for(NTMSpecies ntm : sample.finalList) {
-						speciesList += ntm.getSpeciesName() + "\n";
+						if(first) 
+							first = false;
+						else
+							speciesList += "\n";
+						speciesList += ntm.getSpeciesName();
 					}
 				}
 				cell = row.createCell(9);

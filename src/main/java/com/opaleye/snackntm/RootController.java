@@ -428,7 +428,7 @@ public class RootController implements Initializable {
 			speciesTable.setItems(FXCollections.observableArrayList(sample.speciesList[context]));
 			if(sample.speciesList[context].size()>0)
 				speciesTable.getSelectionModel().select(0);
-			updateChimaeraICLabel();
+			//updateChimaeraICLabel();
 		}
 		else {
 			speciesTable.setItems(FXCollections.observableArrayList(new Vector<NTMSpecies>()));

@@ -1320,6 +1320,10 @@ public class RootController implements Initializable {
 								if(j==0 && sample.finalList.contains(ntm)) 
 									conclusion = true;
 
+								boolean hundredPercentMatch = false;
+								if(ntm.getScoreProperty().contains("100")) 
+									hundredPercentMatch = true;
+								
 								count++;
 								row = sheet.createRow(count);
 								cell = row.createCell(0);
@@ -1331,6 +1335,7 @@ public class RootController implements Initializable {
 								cell.setCellValue(ntm.getQlen());
 
 								cell = row.createCell(2);
+
 								if(conclusion) cell.setCellStyle(conclusionStyle);
 								cell.setCellValue(ntm.getScoreProperty());
 
@@ -1340,7 +1345,10 @@ public class RootController implements Initializable {
 
 								cell = row.createCell(4);
 								if(conclusion) cell.setCellStyle(conclusionStyle);
-								cell.setCellValue(ntm.getSpeciesName());
+								if(!hundredPercentMatch && conclusion) 
+									cell.setCellValue(ntm.getSpeciesName() + " (Most Closely)");
+								else
+									cell.setCellValue(ntm.getSpeciesName());
 							}
 						}
 					}
@@ -2061,14 +2069,14 @@ public void handleTSVThisSample() {
 			}
 
 			//100 match 하는 것들 있으면 이것만 대상으로 함.
-			//String strScore = "";
+			String strScore = "";
 			if(!s16_100List.isEmpty()) { 
 				retList = s16_100List;
-				//strScore = "Exact match";
+				strScore = "Exact match";
 			}
 			else {
 				retList = s16List;
-				//strScore = "most closely";
+				strScore = "most closely";
 			}
 
 			Vector<NTMSpecies> tempRetList = new Vector<NTMSpecies>();
@@ -2095,7 +2103,7 @@ public void handleTSVThisSample() {
 			boolean chimaeraInList = false, ICInList = false;
 			Vector<NTMSpecies> tempList = new Vector<NTMSpecies>();
 			for(NTMSpecies ntm : retList) {
-				String strScore = String.format("%.2f",  ntm.getScore());
+				//String strScore = String.format("%.2f",  ntm.getScore());
 				NTMSpecies temp = new NTMSpecies(ntm.getSpeciesName(), strScore);
 				tempList.add(temp);
 

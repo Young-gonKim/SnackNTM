@@ -128,6 +128,7 @@ public class RootController implements Initializable {
 	private static final String s16 = "16sRNA";
 	private static final String rpo = "rpo";
 	private static final String tuf = "tuf";
+
 	private String s16RefFile = "";
 	private String rpoRefFile = "";
 
@@ -136,8 +137,7 @@ public class RootController implements Initializable {
 	private static final double tableRowHeight = 25.0;
 	private static String icSeq = null;
 	private static String chSeq = null;
-	private static String icName = null;
-	private static String chName = null;
+
 	public static TreeSet<String> rgmSet = new TreeSet<String>(); 
 	public static double endPenalty = 2.0;
 
@@ -331,8 +331,6 @@ public class RootController implements Initializable {
 			fontSize = Integer.parseInt(props.getProperty("fontsize"));
 			chSeq = props.getProperty("chimaera");
 			icSeq = props.getProperty("intracellularae");
-			chName = props.getProperty("chimaera_name");
-			icName = props.getProperty("intracellularae_name");
 			s16RefFile = props.getProperty("ref_file_16s");
 			rpoRefFile = props.getProperty("ref_file_rpoB");
 
@@ -428,7 +426,7 @@ public class RootController implements Initializable {
 			speciesTable.setItems(FXCollections.observableArrayList(sample.speciesList[context]));
 			if(sample.speciesList[context].size()>0)
 				speciesTable.getSelectionModel().select(0);
-			//updateChimaeraICLabel();
+			updateChimaeraICLabel();
 		}
 		else {
 			speciesTable.setItems(FXCollections.observableArrayList(new Vector<NTMSpecies>()));
@@ -1050,7 +1048,17 @@ public class RootController implements Initializable {
 		finally {
 
 		}
+		
+		//automatic rerun
+		boolean reRun = false;
+		if(sample.alignmentPerformed[context]) 
+			reRun = true;
 		resetParameters();
+		if(resetImage && reRun) {
+				actualRun();
+				fillResults();
+		}
+		
 	}
 
 
@@ -1158,7 +1166,17 @@ public class RootController implements Initializable {
 			popUp("Error in loading reverse trace file\n" + ex.getMessage());
 			ex.printStackTrace();
 		}
+
+		//automatic rerun
+		boolean reRun = false;
+		if(sample.alignmentPerformed[context]) 
+			reRun = true;
 		resetParameters();
+		if(resetImage && reRun) {
+			actualRun();
+			fillResults();
+		}
+
 	}
 
 
@@ -2106,24 +2124,7 @@ public void handleTSVThisSample() {
 				//String strScore = String.format("%.2f",  ntm.getScore());
 				NTMSpecies temp = new NTMSpecies(ntm.getSpeciesName(), strScore);
 				tempList.add(temp);
-
-
-			if(temp.getSpeciesName().equals(chName))
-				chimaeraInList = true;
-			if(temp.getSpeciesName().equals(icName))
-				ICInList = true;
 			}
-
-
-			/*
-		if(chimaeraInList && ICInList) {
-			if(sample.containsChSeq && !sample.containsIcSeq)
-				tempList.remove(new NTMSpecies(icName, ""));
-			if(!sample.containsChSeq && sample.containsIcSeq)
-				tempList.remove(new NTMSpecies(chName, ""));
-		}
-			 */
-
 			retList = tempList;
 		}
 		return retList;

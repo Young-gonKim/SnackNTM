@@ -28,6 +28,7 @@ import java.io.ObjectOutputStream;
 import java.net.URL;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.TreeSet;
@@ -58,7 +59,10 @@ import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ProgressBar;
@@ -558,7 +562,7 @@ public class RootController implements Initializable {
 			s16Table.setPlaceholder(new Label(""));
 			rpoTable.setPlaceholder(new Label(""));
 			finalTable.setPlaceholder(new Label(""));
-			
+
 		}
 
 		s16Table.setEditable(true);
@@ -620,7 +624,7 @@ public class RootController implements Initializable {
 			Stage stage = new Stage();
 			Image image = new Image(getClass().getResourceAsStream("snack_icon.png"));
 			stage.getIcons().add(image);
-			
+
 			EditBaseController controller = fxmlLoader.getController();
 			controller.setPrimaryStage(stage);
 			controller.setRootController(this);
@@ -859,7 +863,7 @@ public class RootController implements Initializable {
 										continue;
 									}
 									sample.originalFwdTrace[context] = (GanseqTrace)tempTrace.clone();
-									
+
 									int startTrimPosition = tempTrace.getFrontTrimPosition();
 									int endTrimPosition = tempTrace.getTailTrimPosition();
 									if(startTrimPosition >= endTrimPosition) {
@@ -959,12 +963,37 @@ public class RootController implements Initializable {
 		}
 	}
 
+
+	private boolean confirmEditTrimming() {
+		Alert alert = new Alert(AlertType.CONFIRMATION);
+		alert.setTitle("Confirmation Dialog");
+		alert.setHeaderText("Edit trimming may reload the trace and revert the edited bases to original status.");
+		alert.setContentText("Continue?");
+
+		Optional<ButtonType> result = alert.showAndWait();
+
+		if (result.get() == ButtonType.OK){
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+
 	public void handleFwdEditTrimming() {
 		GanseqTrace tempTrace = null;
 		Sample sample = sampleList.get(selectedSample);
+
+		if(sample.editBase[context] > 0) { 
+			if(confirmEditTrimming() == false)
+				return;
+			else 
+				sample.editBase[context] = 0;
+		}
+
 		try {
 			tempTrace = (GanseqTrace)sample.originalFwdTrace[context].clone();
-			
+
 			FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("Trim.fxml"));
 			Parent root1 = (Parent) fxmlLoader.load();
 			Stage stage = new Stage();
@@ -994,6 +1023,14 @@ public class RootController implements Initializable {
 	public void handleRevEditTrimming() {
 		GanseqTrace tempTrace = null;
 		Sample sample = sampleList.get(selectedSample);
+		
+		if(sample.editBase[context] > 0) { 
+			if(confirmEditTrimming() == false)
+				return;
+			else 
+				sample.editBase[context] = 0;
+		}
+		
 		try {
 			tempTrace = (GanseqTrace)sample.originalRevTrace[context].clone();
 			FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("Trim.fxml"));
@@ -1054,17 +1091,17 @@ public class RootController implements Initializable {
 		finally {
 
 		}
-		
+
 		//automatic rerun
 		boolean reRun = false;
 		if(sample.alignmentPerformed[context]) 
 			reRun = true;
 		resetParameters();
 		if(resetImage && reRun) {
-				actualRun();
-				fillResults();
+			actualRun();
+			fillResults();
 		}
-		
+
 	}
 
 
@@ -1347,7 +1384,7 @@ public class RootController implements Initializable {
 								boolean hundredPercentMatch = false;
 								if(ntm.getScoreProperty().contains("100")) 
 									hundredPercentMatch = true;
-								
+
 								count++;
 								row = sheet.createRow(count);
 								cell = row.createCell(0);
@@ -1475,7 +1512,7 @@ public class RootController implements Initializable {
 				//100% 있으면 이걸로 list 만들기
 				Vector<NTMSpecies> s16_100List = new Vector<NTMSpecies>();
 				Vector<NTMSpecies> s16_List = new Vector<NTMSpecies>();
-				
+
 				if(sample.alignmentPerformed[0]) {
 					for(NTMSpecies ntm : sample.selectedSpeciesList[0]) {
 						if(ntm.getScore() == 100) 
@@ -1501,7 +1538,7 @@ public class RootController implements Initializable {
 						scoreList += String.format("%.2f", ntm.getScore());
 					}
 				}
-				
+
 				cell = row.createCell(1);
 				cell.setCellValue(speciesList);
 				cell = row.createCell(2);
@@ -1523,9 +1560,9 @@ public class RootController implements Initializable {
 						}
 					}
 				}
-				*/
-				
-				
+				 */
+
+
 				if(sample.selectedSpeciesList[1]!=null) {
 					for(NTMSpecies ntm : sample.selectedSpeciesList[1]) {
 						if(first) 
@@ -1538,7 +1575,7 @@ public class RootController implements Initializable {
 						scoreList += String.format("%.2f", ntm.getScore());
 					}
 				}
-				
+
 				cell = row.createCell(5);
 				cell.setCellValue(speciesList);
 				cell = row.createCell(6);

@@ -133,7 +133,7 @@ public class RootController implements Initializable {
 	private String rpoRefFile = "";
 
 	public static final int defaultGOP = 10;
-	public static final String version = "1.4.0";
+	public static final String version = "1.5.0";
 	private static final double tableRowHeight = 25.0;
 	private static String icSeq = null;
 	private static String chSeq = null;
@@ -858,6 +858,8 @@ public class RootController implements Initializable {
 										popUp("Invalid trace file: " + fileName + " too short sequence length(<30bp) or too poor quality of sequence");
 										continue;
 									}
+									sample.originalFwdTrace[context] = (GanseqTrace)tempTrace.clone();
+									
 									int startTrimPosition = tempTrace.getFrontTrimPosition();
 									int endTrimPosition = tempTrace.getTailTrimPosition();
 									if(startTrimPosition >= endTrimPosition) {
@@ -892,6 +894,7 @@ public class RootController implements Initializable {
 										popUp("Invalid trace file: " + fileName + " too short sequence length(<30bp) or too poor quality of sequence");
 										continue;
 									}
+									sample.originalRevTrace[context] = (GanseqTrace)tempTrace.clone();
 									int startTrimPosition = tempTrace.getFrontTrimPosition();
 									int endTrimPosition = tempTrace.getTailTrimPosition();
 
@@ -958,8 +961,10 @@ public class RootController implements Initializable {
 
 	public void handleFwdEditTrimming() {
 		GanseqTrace tempTrace = null;
+		Sample sample = sampleList.get(selectedSample);
 		try {
-			tempTrace = new GanseqTrace(sampleList.get(selectedSample).fwdTraceFile[context]);
+			tempTrace = (GanseqTrace)sample.originalFwdTrace[context].clone();
+			
 			FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("Trim.fxml"));
 			Parent root1 = (Parent) fxmlLoader.load();
 			Stage stage = new Stage();
@@ -988,8 +993,9 @@ public class RootController implements Initializable {
 
 	public void handleRevEditTrimming() {
 		GanseqTrace tempTrace = null;
+		Sample sample = sampleList.get(selectedSample);
 		try {
-			tempTrace = new GanseqTrace(sampleList.get(selectedSample).revTraceFile[context]);
+			tempTrace = (GanseqTrace)sample.originalRevTrace[context].clone();
 			FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("Trim.fxml"));
 			Parent root1 = (Parent) fxmlLoader.load();
 			Stage stage = new Stage();

@@ -29,13 +29,10 @@ import org.biojava.bio.program.abi.ABITrace;
 import org.biojava.bio.seq.DNATools;
 import org.biojava.bio.symbol.SymbolList;
 
-import com.opaleye.snackntm.settings.SettingsController;
-import com.opaleye.snackntm.tools.SymbolTools;
-
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
 
-public class GanseqTrace implements Serializable {
+public class GanseqTrace implements Serializable, Cloneable {
 
 	//현재 : basecall 전후로 10칸씩. 총 21칸을 사용. 
 	private static final int LSTMLength = 10;
@@ -65,6 +62,12 @@ public class GanseqTrace implements Serializable {
 	protected double ratio = 1.0;
 
 	public GanseqTrace() {};
+	@Override
+	protected Object clone() throws CloneNotSupportedException {
+
+		return super.clone();
+	}
+
 	public GanseqTrace(File ABIFile) throws Exception {
 
 		//function calls from ABITrace

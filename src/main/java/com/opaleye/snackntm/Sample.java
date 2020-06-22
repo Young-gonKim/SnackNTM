@@ -44,6 +44,9 @@ public class Sample implements Comparable, Serializable {
 	public Vector<AlignedPoint>[] alignedPoints = new Vector[3];
 	public File[] fwdTraceFile = new File[3], revTraceFile = new File[3];
 	public GanseqTrace[] trimmedFwdTrace = new GanseqTrace[3], trimmedRevTrace = new GanseqTrace[3];
+	public GanseqTrace[] originalFwdTrace = new GanseqTrace[3], originalRevTrace = new GanseqTrace[3];
+	
+	
 	public boolean fwdLoaded[] = {false, false, false}, revLoaded[] = {false, false, false};
 
 	public boolean split[] = {false, false, false};

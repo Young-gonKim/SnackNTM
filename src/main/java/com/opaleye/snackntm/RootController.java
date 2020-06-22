@@ -334,8 +334,6 @@ public class RootController implements Initializable {
 		try {
 			props.load(new FileInputStream(settingsFileName));
 			fontSize = Integer.parseInt(props.getProperty("fontsize"));
-			chSeq = props.getProperty("chimaera");
-			icSeq = props.getProperty("intracellularae");
 			s16RefFile = props.getProperty("ref_file_16s");
 			rpoRefFile = props.getProperty("ref_file_rpoB");
 			icVsChimaera = props.getProperty("display_ic_vs_chimaera");
@@ -657,7 +655,8 @@ public class RootController implements Initializable {
 			sample.trimmedRevTrace[context].editBase(ap.getRevTraceIndex(), ap.getRevChar(), newRevChar);
 		}
 
-		updateChSeqIcSeq(sample);
+		if(icVsChimaera.equals("true"))
+			updateChSeqIcSeq(sample);
 		sample.editBase[context]++;
 
 		//새로 alignment 실행 && 원래 보여주고 있던 곳 보여주기위해 저장.
@@ -931,7 +930,8 @@ public class RootController implements Initializable {
 					}
 				}
 			}
-			//updateChSeqIcSeq(sample);
+			if(icVsChimaera.equals("true"))
+				updateChSeqIcSeq(sample);
 		}
 
 		//원상복귀. 읽은 다음 맨 위 가리키게.

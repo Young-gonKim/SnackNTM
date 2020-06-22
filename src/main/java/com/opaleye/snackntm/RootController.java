@@ -139,13 +139,14 @@ public class RootController implements Initializable {
 	public static final int defaultGOP = 10;
 	public static final String version = "1.5.0";
 	private static final double tableRowHeight = 25.0;
-	private static String icSeq = null;
-	private static String chSeq = null;
-
+	private static String icSeq = "ATCGACGAAGGTCCGGGTTTTCTCGGATT";
+	private static String chSeq = "ATCGACGAAGGTTCGGGTTTTCTCGGATT";
+	
 	public static TreeSet<String> rgmSet = new TreeSet<String>(); 
 	public static double endPenalty = 2.0;
 
 	private static final String settingsFileName = "settings/settings.properties";
+	private String icVsChimaera = "false";
 	private int fontSize = 0;
 	private String keyword_16sF, keyword_16sR, keyword_rpoF, keyword_rpoR, keyword_tufF, keyword_tufR;
 	//private TreeSet<String> keywordSet_F[0], keywordSet_R[0], keywordSet_F[1], keywordSet_R[1], keywordSet_F[2], keywordSet_R[2];
@@ -337,6 +338,7 @@ public class RootController implements Initializable {
 			icSeq = props.getProperty("intracellularae");
 			s16RefFile = props.getProperty("ref_file_16s");
 			rpoRefFile = props.getProperty("ref_file_rpoB");
+			icVsChimaera = props.getProperty("display_ic_vs_chimaera");
 
 
 			endPenalty = Double.parseDouble(props.getProperty("end_penalty"));
@@ -430,7 +432,8 @@ public class RootController implements Initializable {
 			speciesTable.setItems(FXCollections.observableArrayList(sample.speciesList[context]));
 			if(sample.speciesList[context].size()>0)
 				speciesTable.getSelectionModel().select(0);
-			updateChimaeraICLabel();
+			if(icVsChimaera.equals("true"))
+					updateChimaeraICLabel();
 		}
 		else {
 			speciesTable.setItems(FXCollections.observableArrayList(new Vector<NTMSpecies>()));
@@ -928,7 +931,7 @@ public class RootController implements Initializable {
 					}
 				}
 			}
-			updateChSeqIcSeq(sample);
+			//updateChSeqIcSeq(sample);
 		}
 
 		//원상복귀. 읽은 다음 맨 위 가리키게.

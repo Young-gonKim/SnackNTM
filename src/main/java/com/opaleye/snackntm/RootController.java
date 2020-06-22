@@ -128,7 +128,7 @@ public class RootController implements Initializable {
 	//0: 16S rRNA, 1: rpoB, 2: tuf
 
 	//constants
-	private static final double paneWidth = 907; 
+	private static final double paneWidth = 800; 
 	private static final String s16 = "16sRNA";
 	private static final String rpo = "rpo";
 	private static final String tuf = "tuf";

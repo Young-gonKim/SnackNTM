@@ -15,6 +15,18 @@ Linux, Mac : java -jar SnackNTM.jar
 Using SnackNTM is quite straightforward.<br>
 
 
+1. Click new project from menu<br>
+<img src="figures/Figure1.png">
+
+2. Open trace files (choose all trace files at once)<br>
+<img src="figures/Figure2.png">
+
+3. Trace filesa are allocated according to the file naming rules<br>
+<img src="figures/Figure3.jpg">
+
+4. Identification results are shown after clicking 'Run all samples' button<br>
+<img src="figures/Figure4.jpg">
+
 
 # 4. Utilized Libraries
 BioJAVA Legacy  (https://github.com/biojava/biojava-legacy)<br>

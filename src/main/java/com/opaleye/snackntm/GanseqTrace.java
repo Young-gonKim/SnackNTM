@@ -725,7 +725,7 @@ public class GanseqTrace implements Serializable, Cloneable {
 	public int getFrontTrimPosition() {
 		int scoreTrimPosition = -1;
 		int ret = -1;
-		final int windowSize = 10;
+		final int windowSize = 5;
 		int qualitySearchLength = 100;
 		final int scoreCutOff = 25;
 		boolean qualityPointFound = false;
@@ -795,7 +795,7 @@ public class GanseqTrace implements Serializable, Cloneable {
 	public int getTailTrimPosition() {
 		int scoreTrimPosition = traceLength*traceWidth;
 		int ret = traceLength*traceWidth;
-		final int windowSize = 10;
+		final int windowSize = 20;
 		int qScoreSearchLength = 2000;	// 일단 무한대
 		final int scoreCutOff = 25;
 		boolean qualityPointFound = false;

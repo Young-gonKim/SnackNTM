@@ -171,7 +171,7 @@ public class RootController implements Initializable {
 
 	ChangeListener<Number> cl = null;
 
-	private String lastVisitedDir="D:\\GoogleDrive\\SnackNTM\\data";
+	private String lastVisitedDir="D:\\GoogleDrive\\SnackNTM\\data\\DataForMovie";
 	private Stage primaryStage;
 	public void setPrimaryStage(Stage primaryStage) {
 		this.primaryStage = primaryStage;

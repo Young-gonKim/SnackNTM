@@ -25,7 +25,7 @@ Using SnackNTM is quite straightforward.<br>
 <img src="figures/Figure3.jpg">
 
 4. Identification results are shown after clicking 'Run all samples' button<br>
-<img src="figures/Figure4.jpg">
+<img src="figures/Figure4.JPG">
 
 
 # 4. Utilized Libraries

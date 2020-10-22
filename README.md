@@ -1,10 +1,10 @@
-SnackNTM Ver 1.5.0
+SnackNTM Ver 1.5.1
 ======================
 SnackNTM is a free software for Nontuberculous mycobacteria(NTM) identification.<br>
 
 # 1. How to Run
 1. You need to have [Java](https://www.java.com) installed.(Version 8 or higher)
-2. Download SnackNTM Ver1.5.0 and unzip. (Download : Release tab above)
+2. Download SnackNTM Ver1.5.1 and unzip. (Download : Release tab above)
 3. Run <br>
 Windows : Run.bat or SnackNTM.jar (If not run by double click, right click-> open with -> JAVA)<br>
 Linux, Mac : java -jar SnackNTM.jar

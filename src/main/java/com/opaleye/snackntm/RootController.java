@@ -137,7 +137,7 @@ public class RootController implements Initializable {
 	private String rpoRefFile = "";
 
 	public static final int defaultGOP = 10;
-	public static final String version = "1.5.0";
+	public static final String version = "1.5.1";
 	private static final double tableRowHeight = 25.0;
 	private static String icSeq = "ATCGACGAAGGTCCGGGTTTTCTCGGATT";
 	private static String chSeq = "ATCGACGAAGGTTCGGGTTTTCTCGGATT";
@@ -1346,14 +1346,18 @@ public class RootController implements Initializable {
 			cell.setCellStyle(titleStyle);
 
 			cell = row.createCell(2);
-			cell.setCellValue("Score");
+			cell.setCellValue("alen");
 			cell.setCellStyle(titleStyle);
 
 			cell = row.createCell(3);
-			cell.setCellValue("Strain");
+			cell.setCellValue("Score");
 			cell.setCellStyle(titleStyle);
 
 			cell = row.createCell(4);
+			cell.setCellValue("Strain");
+			cell.setCellStyle(titleStyle);
+
+			cell = row.createCell(5);
 			cell.setCellValue("Species");
 			cell.setCellStyle(titleStyle);
 
@@ -1399,15 +1403,19 @@ public class RootController implements Initializable {
 								cell.setCellValue(ntm.getQlen());
 
 								cell = row.createCell(2);
+								if(conclusion) cell.setCellStyle(conclusionStyle);
+								cell.setCellValue(ntm.getAlen());
+
+								cell = row.createCell(3);
 
 								if(conclusion) cell.setCellStyle(conclusionStyle);
 								cell.setCellValue(ntm.getScoreProperty());
 
-								cell = row.createCell(3);
+								cell = row.createCell(4);
 								if(conclusion) cell.setCellStyle(conclusionStyle);
 								cell.setCellValue(ntm.getStrain());
 
-								cell = row.createCell(4);
+								cell = row.createCell(5);
 								if(conclusion) cell.setCellStyle(conclusionStyle);
 								if(!hundredPercentMatch && conclusion) 
 									cell.setCellValue(ntm.getSpeciesName() + " (Most Closely)");
@@ -1428,7 +1436,7 @@ public class RootController implements Initializable {
 				}
 
 			}
-			for(int i=0;i<5;i++) 
+			for(int i=0;i<6;i++) 
 				sheet.autoSizeColumn(i);
 
 			wb.write(fileOut);
@@ -1767,7 +1775,7 @@ public class RootController implements Initializable {
 							if(ntm.getScore()>=98) {
 
 								//textToSet += ntm.getQlen() + "\t\t" + ntm.getScoreProperty() + "\t" + ntm.getStrain() + "\t" + ntm.getSpeciesName() + "\n";
-								textToSet += sample.sampleId + "-" + region+ direction + "\t" + ntm.getQlen() + "\t" + ntm.getScoreProperty() + "\t" + ntm.getStrain() + "\t" + ntm.getSpeciesName() + "\t";
+								textToSet += sample.sampleId + "-" + region+ direction + "\t" + ntm.getQlen() + "\t" + ntm.getAlen() + "\t" + ntm.getScoreProperty() + "\t" + ntm.getStrain() + "\t" + ntm.getSpeciesName() + "\t";
 
 								if(j==0 && sample.finalList.contains(ntm)) 
 									textToSet += "(conclusion)\n";

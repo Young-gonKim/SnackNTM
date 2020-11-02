@@ -14,7 +14,6 @@ Linux, Mac : java -jar SnackNTM.jar
 
 Using SnackNTM is quite straightforward.<br>
 
-
 1. Click new project from menu<br>
 <img src="figures/Figure1.png">
 
@@ -31,3 +30,6 @@ Using SnackNTM is quite straightforward.<br>
 # 4. Utilized Libraries
 BioJAVA Legacy  (https://github.com/biojava/biojava-legacy)<br>
 Apache POI 3.15 (https://github.com/apache/poi)
+
+# 5. Reference sequences
+[Reference sequences](references)

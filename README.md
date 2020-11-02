@@ -32,4 +32,4 @@ BioJAVA Legacy  (https://github.com/biojava/biojava-legacy)<br>
 Apache POI 3.15 (https://github.com/apache/poi)
 
 # 5. Reference sequences
-[Reference sequences](references)
+[Reference sequences](reference)

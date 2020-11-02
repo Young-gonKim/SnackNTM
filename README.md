@@ -32,4 +32,5 @@ BioJAVA Legacy  (https://github.com/biojava/biojava-legacy)<br>
 Apache POI 3.15 (https://github.com/apache/poi)
 
 # 5. Reference sequences
-[Reference sequences](reference)
+[16S rRNA](reference/ref16s_ver2.1.fasta)<br>
+[rpoB](reference/refrpob_ver2.1.fasta)

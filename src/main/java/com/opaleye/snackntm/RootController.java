@@ -18,6 +18,7 @@
 package com.opaleye.snackntm;
 
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -137,7 +138,7 @@ public class RootController implements Initializable {
 	private String rpoRefFile = "";
 
 	public static final int defaultGOP = 10;
-	public static final String version = "1.5.1";
+	public static final String version = "1.5.2";
 	private static final double tableRowHeight = 25.0;
 	private static String icSeq = "ATCGACGAAGGTCCGGGTTTTCTCGGATT";
 	private static String chSeq = "ATCGACGAAGGTTCGGGTTTTCTCGGATT";
@@ -2016,6 +2017,7 @@ public void handleTSVThisSample() {
 	 * Shows the message with a popup
 	 * @param message : message to be showen
 	 */
+	/*
 	public void handleAbout () {
 		Stage dialog = new Stage(StageStyle.DECORATED);
 		dialog.initOwner(primaryStage);
@@ -2046,8 +2048,43 @@ public void handleTSVThisSample() {
 			ex.printStackTrace();
 		}
 	}
+	*/
+	
+	/**
+	 * Shows the Terms of use popup
+	 * @param message : message to be showen
+	 */
+	public void termsPopUp (String message) {
+		Stage popUpStage = new Stage(StageStyle.DECORATED);
+		popUpStage.initOwner(primaryStage);
+		popUpStage.setTitle("Terms of Use");
+		Parent parent;
+		try {
+			parent = FXMLLoader.load(getClass().getResource("Terms.fxml"));
+			TextArea termsArea = (TextArea)parent.lookup("#termsArea");
 
 
+			termsArea.setText(message);
+			//termsArea.setWrapText(true);
+			Button okButton = (Button) parent.lookup("#okButton");
+			okButton.setOnAction(event->popUpStage.close());
+			Scene scene = new Scene(parent);
+
+			popUpStage.setScene(scene);
+			popUpStage.setResizable(false);
+			//dialog.show();
+
+			popUpStage.show();
+		}
+		catch(Exception ex) {
+			ex.printStackTrace();
+		}
+
+	}
+	
+
+	
+	
 	public void handleConsensusSeq() {
 		if(sampleList == null || sampleList.size() ==0) return;
 		String consensusSeq = "";
@@ -2920,6 +2957,20 @@ public void handleTSVThisSample() {
 			revPane.layout();
 			revPane.setVvalue(1.0);
 		}
+	}
+	
+	public void handleTermsOfUse() {
+		String text = "";
+		try (BufferedReader reader = new BufferedReader(new FileReader("Terms_of_use.txt"))) {
+			String temp; 
+			while((temp=reader.readLine())!=null)
+				text+=temp+'\n';
+		}
+		catch (Exception ex) {
+			ex.printStackTrace();
+			popUp("Missing Terms_of_use.txt file");
+		}
+		termsPopUp(text);
 	}
 
 

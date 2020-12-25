@@ -1,3 +1,8 @@
+ .root {
+	-fx-font-size: 13px;
+	-fx-font-family: "Verdana";
+ }
+ 
 #progressPane {
 	-fx-border-width: 1;
 	-fx-border-color: black;

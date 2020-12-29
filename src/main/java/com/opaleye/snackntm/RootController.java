@@ -138,7 +138,7 @@ public class RootController implements Initializable {
 	private String rpoRefFile = "";
 
 	public static final int defaultGOP = 10;
-	public static final String version = "1.5.2";
+	public static final String version = "1.5.3";
 	private static final double tableRowHeight = 25.0;
 	private static String icSeq = "ATCGACGAAGGTCCGGGTTTTCTCGGATT";
 	private static String chSeq = "ATCGACGAAGGTTCGGGTTTTCTCGGATT";
@@ -737,7 +737,7 @@ public class RootController implements Initializable {
 		if(target==2) return;
 
 		//read rgm list
-		File file = new File("reference/rgm.txt");
+		File file = new File("reference/rgm_2.0.txt");
 
 		StringBuffer buffer = new StringBuffer();
 		String wholeString = "";
@@ -2017,7 +2017,6 @@ public void handleTSVThisSample() {
 	 * Shows the message with a popup
 	 * @param message : message to be showen
 	 */
-	/*
 	public void handleAbout () {
 		Stage dialog = new Stage(StageStyle.DECORATED);
 		dialog.initOwner(primaryStage);
@@ -2048,7 +2047,6 @@ public void handleTSVThisSample() {
 			ex.printStackTrace();
 		}
 	}
-	*/
 	
 	/**
 	 * Shows the Terms of use popup

@@ -77,11 +77,11 @@ public class NTMSpecies implements Comparable<NTMSpecies>, Cloneable, Serializab
 					strain = tokens[1];
 					speciesName = tokens[3];
 					speciesName = speciesName.trim();
-					speciesName = speciesName.replace('_', ' ');
 					//System.out.println(speciesName);
 					if(RootController.rgmSet.contains(speciesName)) {
 						rgm = true;
 					}
+					speciesName = speciesName.replace('_', ' ');
 				}
 				else {
 					s_firstLine += thisChar;
